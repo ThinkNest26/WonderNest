@@ -748,7 +748,7 @@ function classesView(){
   const nameOf = id => (tc.students.find(s=>s.id===id)||{}).first_name || "";
   if(tc.kid){
     const k = tc.students.find(s=>s.id===tc.kid); const mine = tc.entries.filter(e=>e.student_id===tc.kid);
-    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["story","📖 Stories"],["reflection","🌱 How I've grown"]];
+    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["atl","🧩 Skill quests"],["story","📖 Stories"],["reflection","🌱 How I've grown"]];
     return top(`${esc(k.picture)} ${esc(k.first_name)}'s Wonder Nest`) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.kid=null;render()">‹ Back to ${esc(c.name)}</button></div>
       <div class="grid2"><div>${kinds.slice(0,2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div><div>${kinds.slice(2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div></div>`;
   }
@@ -782,7 +782,7 @@ Sara"></textarea>
 }
 function kindCard(list, kind, label){
   const items = list.filter(e=>e.kind===kind);
-  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
+  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : kind==="atl" ? (e.content.type==="quiz" ? `${esc(e.content.skill)}: quiz ${e.content.score}/${e.content.total}` : `${esc(e.content.skill)}: ${esc(e.content.starter)} ${esc(e.content.text)}`) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
   return `<div class="card"><div class="label">${label} (${items.length})</div>${items.map(e=>`<div class="entry"><button class="link danger del" title="Delete" onclick="tDelEntry('${e.id}')">✕</button>${kind==="story"?`<h4>${esc(e.title)}</h4>`:""}<p>${body(e)}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.unit_label ? " · " + esc(e.unit_label) : ""}</small></div>`).join("") || `<div class="hint">Nothing yet.</div>`}</div>`;
 }
 async function tAuth(){
@@ -873,7 +873,7 @@ function tPrintCards(){
 /* ---------- ATL growth ---------- */
 const LVL_COLOURS = ["#f59e0b","#3b82f6","#8b5cf6","#10b981","#ef4444","#0ea5e9","#14b8a6","#a855f7","#f97316","#22c55e"];
 const SELF_FACES = ["🌱","🌿","🌳","🌟"];
-const atlS = {classes:null, cls:null, students:[], records:[], skills:[], kid:null, modal:null, comment:"", loading:false};
+const atlS = {classes:null, cls:null, students:[], records:[], skills:[], kid:null, modal:null, comment:"", loading:false, toolkits:{}, quests:[], tkSkill:null};
 const atlLevels = () => settings.atlLevels.split(",").map(x => x.trim()).filter(Boolean);
 const allSkills = () => Object.entries(ATL).flatMap(([c, ss]) => ss.map(x => c + " · " + x));
 async function atlLoadClasses(){
@@ -885,14 +885,18 @@ async function atlLoadClasses(){
 async function atlOpen(id){
   if(!id){ atlS.cls = null; return render(); }
   const c = atlS.classes.find(x => x.id === id); atlS.cls = c; atlS.kid = null; atlS.comment = "";
-  const [s, r] = await Promise.all([
+  const [s, r, tk, q] = await Promise.all([
     db.from("students").select("id, first_name, picture").eq("class_id", id).order("first_name"),
-    db.from("atl_records").select("*").eq("class_id", id).order("created_at", {ascending:false})
+    db.from("atl_records").select("*").eq("class_id", id).order("created_at", {ascending:false}),
+    db.from("atl_toolkits").select("*").eq("class_id", id),
+    db.from("entries").select("*").eq("class_id", id).eq("kind", "atl").order("created_at", {ascending:false})
   ]);
+  atlS.toolkits = {}; (tk.data || []).forEach(t => atlS.toolkits[t.skill] = t); atlS.quests = q.data || [];
   if(r.error){ error = tcErr(r.error) + " (has the ATL database update been run?)"; }
   atlS.students = s.data || []; atlS.records = r.data || [];
   const unitSkills = (c.current_unit && c.current_unit.atl) || [];
   atlS.skills = unitSkills.length ? unitSkills.slice() : [...new Set(atlS.records.map(x => x.skill))].slice(0, 4);
+  atlS.tkSkill = atlS.skills[0] || null;
   render();
 }
 function latest(kid, skill, source){ return atlS.records.find(r => r.student_id === kid && r.skill === skill && r.source === source); }
@@ -917,7 +921,69 @@ function atlView(){
         ${atlS.skills.map((x,j)=>{const t=latest(k.id,x,"teacher"), sf=latest(k.id,x,"self"); return `<td><button class="cell" onclick="atlModal('${k.id}',${j})">${lvlBadge(t)}<span class="selfx" title="Child's own rating">${sf ? SELF_FACES[Math.min(sf.level,4)-1] : ""}</span></button></td>`;}).join("")}</tr>`).join("")}
     </table></div>` : `<div class="hint">${atlS.students.length ? "" : "Add children to this class first."}</div>`}
   </div>
+  ${atlS.skills.length ? toolkitCard() : ""}
   ${atlS.modal ? atlModalHTML() : ""}`;
+}
+function toolkitCard(){
+  const sk = atlS.skills.includes(atlS.tkSkill) ? atlS.tkSkill : atlS.skills[0], row = atlS.toolkits[sk], t = row && row.data;
+  const tabs = `<div class="tabs" style="max-width:none">${atlS.skills.map(x=>`<button class="${x===sk?"on":""}" onclick="atlS.tkSkill=${esc(JSON.stringify(x))};render()">${esc(x.split(" · ")[1]||x)}</button>`).join("")}</div>`;
+  if(!t) return `<div class="card"><div class="label">🧰 ATL toolkit</div>${tabs}
+    <div style="text-align:center;padding:20px"><div style="font-size:38px">🧰</div><h3 style="color:var(--navy);margin:6px 0">${esc(sk)}</h3>
+    <p class="hint" style="max-width:560px;margin:0 auto 14px">WonderNest creates classroom practices, activities, teaching ideas, discussion questions, a quiz and reflection prompts for this skill, for ${esc(atlS.cls.grade)} and your current unit. You can share the quiz and reflections with the children as a "Skill quest".</p>
+    <button class="btn" onclick="tkGenerate()">✨ Create toolkit</button></div></div>`;
+  const sec = (title, inner) => `<div class="label" style="margin-top:16px">${title}</div>${inner}`;
+  const kidsDone = atlS.quests.filter(q => q.content && q.content.skill === sk);
+  return `<div class="card"><div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">🧰 ATL toolkit</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px;cursor:pointer"><input type="checkbox" ${row.shared?"checked":""} onchange="tkShare(this.checked)" style="width:18px;height:18px"> Share quiz &amp; reflections with children</label>
+        <button class="btn small ghost" onclick="tkWord()">⬇️ Word</button><button class="link" onclick="if(confirm('Replace this toolkit with new ideas?')) tkGenerate()">↻ New ideas</button></div></div>
+    ${tabs}
+    <div class="themebox card" style="margin:0 0 6px"><div class="label">The skill in children's words</div><p style="font-size:18px;font-weight:800;color:var(--navy)">"${esc(t.kidStatement)}"</p></div>
+    <div class="grid2"><div>
+      ${sec("👀 What it looks like", `<ul style="padding-left:18px;line-height:1.7;font-size:14.5px">${(t.lookFors||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`)}
+      ${sec("🔁 Everyday practices", (t.practices||[]).map(p=>`<div class="routine" style="border-left-color:var(--blue)"><h4>${esc(p.title)}</h4><p>${esc(p.how)}</p></div>`).join(""))}
+      ${sec("🎨 Activities", (t.activities||[]).map(a=>`<div class="routine" style="border-left-color:var(--leaf)"><h4>${esc(a.title)} <span>${esc(a.time||"")}</span></h4>${a.materials?`<p><b>You need:</b> ${esc(a.materials)}</p>`:""}<ol style="padding-left:18px;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6">${(a.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>`).join(""))}
+    </div><div>
+      ${sec("💡 Ideas for teachers", `<ul style="padding-left:18px;line-height:1.7;font-size:14.5px">${(t.teacherIdeas||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`)}
+      ${sec("❓ Questions to ask", (t.questions||[]).map(x=>`<div class="prov" style="padding:9px 12px;margin-bottom:6px"><p style="font-size:14px;color:#6b4a00">${esc(x)}</p></div>`).join(""))}
+      ${sec("🧩 Quiz for children", (t.quiz||[]).map((q,i)=>`<div class="entry"><h4>${i+1}. ${esc(q.q)}</h4><p>${(q.options||[]).map((o,j)=>`${j===q.answer?"✅":"◻️"} ${esc(o)}`).join("<br>")}</p><small>${esc(q.why||"")}</small></div>`).join(""))}
+      ${sec("✍️ Reflection starters", `<div class="chips">${(t.reflections||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>`)}
+      ${kidsDone.length ? sec("🏆 Children's quest results", kidsDone.slice(0,20).map(q=>{const k = atlS.students.find(s=>s.id===q.student_id)||{}; return `<div class="hist">${esc(k.picture||"")} <b>${esc(k.first_name||"")}</b> · ${q.content.type==="quiz" ? `quiz ${q.content.score}/${q.content.total}` : `"${esc(q.content.starter)} ${esc(q.content.text)}"`}</div>`;}).join("")) : ""}
+    </div></div></div>`;
+}
+async function tkGenerate(){
+  const sk = atlS.skills.includes(atlS.tkSkill) ? atlS.tkSkill : atlS.skills[0], cu = atlS.cls.current_unit || {};
+  error = ""; loading(true, "Creating the ATL toolkit…");
+  try{
+    const u = { theme: cu.themeName || "", description: "", grade: atlS.cls.grade, centralIdea: cu.centralIdea || "", lines: [], keyConcepts: [], atl: [sk] };
+    const d = await ai("atl_toolkit", u, { skill: sk });
+    const old = atlS.toolkits[sk];
+    if(old){ const { error: e } = await db.from("atl_toolkits").update({ data: d, updated_at: new Date().toISOString() }).eq("id", old.id); if(e) throw e; old.data = d; }
+    else {
+      const { error: e } = await db.from("atl_toolkits").insert({ class_id: atlS.cls.id, skill: sk, data: d }); if(e) throw e;
+      const { data } = await db.from("atl_toolkits").select("*").eq("class_id", atlS.cls.id); (data || []).forEach(t => atlS.toolkits[t.skill] = t);
+    }
+  }catch(e){ error = tcErr(e) + (String(e.message||"").includes("atl_toolkits") ? " (has the ATL toolkit database update been run?)" : ""); }
+  finally{ loading(false); render(); }
+}
+async function tkShare(on){
+  const sk = atlS.skills.includes(atlS.tkSkill) ? atlS.tkSkill : atlS.skills[0], row = atlS.toolkits[sk];
+  const { error: e } = await db.from("atl_toolkits").update({ shared: on }).eq("id", row.id);
+  if(e){ error = tcErr(e); return render(); } row.shared = on; toast(on ? "Children can now see this Skill quest ✓" : "Hidden from children"); render();
+}
+function tkWord(){
+  const sk = atlS.skills.includes(atlS.tkSkill) ? atlS.tkSkill : atlS.skills[0], t = atlS.toolkits[sk].data;
+  const li = a => `<ul>${(a||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt;color:#1d2433}h1{color:#14325c;font-size:20pt}h2{color:#2f6fd6;font-size:13pt;margin-top:16pt}</style></head><body>
+  <p style="color:#667085">${esc(settings.school||"")} · WonderNest ATL toolkit · ${esc(atlS.cls.name)}</p><h1>${esc(sk)}</h1><p><b>In children's words:</b> "${esc(t.kidStatement)}"</p>
+  <h2>What it looks like</h2>${li(t.lookFors)}
+  <h2>Everyday practices</h2>${(t.practices||[]).map(p=>`<p><b>${esc(p.title)}:</b> ${esc(p.how)}</p>`).join("")}
+  <h2>Activities</h2>${(t.activities||[]).map(a=>`<p><b>${esc(a.title)}</b> (${esc(a.time||"")})${a.materials?`<br>You need: ${esc(a.materials)}`:""}</p><ol>${(a.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`).join("")}
+  <h2>Ideas for teachers</h2>${li(t.teacherIdeas)}<h2>Questions to ask</h2>${li(t.questions)}
+  <h2>Quiz</h2><ol>${(t.quiz||[]).map(q=>`<li>${esc(q.q)}<br>${(q.options||[]).map((o,j)=>`${j===q.answer?"✔ ":""}${esc(o)}`).join(" · ")}</li>`).join("")}</ol>
+  <h2>Reflection starters</h2>${li(t.reflections)}</body></html>`;
+  const blob = new Blob(["\ufeff", h], {type:"application/msword"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "WonderNest ATL toolkit - " + (sk.split(" · ")[1]||sk) + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 function atlModal(kid, j){ atlS.modal = {kid, skill: atlS.skills[j], level: 0}; render(); }
 function atlModalHTML(){
@@ -948,6 +1014,7 @@ function atlKidView(){
     ${skills.map(x=>{const t=latest(k.id,x,"teacher"), sf=latest(k.id,x,"self"), hist=mine.filter(r=>r.skill===x);
       return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b style="color:var(--navy)">${esc(x)}</b>${lvlBadge(t)}</div>
         <div style="display:flex;align-items:center;gap:8px;margin:6px 0"><div class="bar"><i style="width:${t?Math.round(t.level/L.length*100):0}%;background:${t?LVL_COLOURS[(t.level-1)%10]:"#ccc"}"></i></div><span class="selfx">${sf?SELF_FACES[Math.min(sf.level,4)-1]:""}</span></div>
+        ${atlS.quests.filter(q=>q.student_id===k.id && q.content && q.content.skill===x).slice(0,3).map(q=>`<div class="hist">🧩 ${q.content.type==="quiz" ? `Skill quest quiz: <b>${q.content.score}/${q.content.total}</b>` : `"${esc(q.content.starter)} ${esc(q.content.text)}"`} · ${new Date(q.created_at).toLocaleDateString("en-GB")}</div>`).join("")}
         ${hist.slice(0,4).map(r=>`<div class="hist">${r.source==="self"?"🧒 "+SELF_FACES[Math.min(r.level,4)-1]+" ":"👩‍🏫 "}<b>${esc(r.level_label)}</b> · ${new Date(r.created_at).toLocaleDateString("en-GB")}${r.note?` · ${esc(r.note)}`:""}</div>`).join("") || `<div class="hint">No evidence yet.</div>`}</div>`;}).join("")}
   </div>
   <div class="card"><div class="label">✨ Report comment (ATL / inquiry)</div>
@@ -1056,6 +1123,13 @@ document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("cl
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  atl_toolkit: {kidStatement:"I can listen and share my ideas", lookFors:["Looks at the speaker and waits for a turn","Repeats or builds on a friend's idea","Asks a question to find out more","Shares an idea in a full sentence"],
+    practices:[{title:"Talk partners",how:"Each day, partners take turns to share and say back one thing they heard."},{title:"Thinking time",how:"Count to five silently before anyone answers a question."},{title:"Building on",how:"Use the starter 'I agree with… and I want to add…'."}],
+    activities:[{title:"Habitat listening walk",time:"20 minutes",materials:"Clipboards, pencils",steps:["Walk around the school garden","Listen for animal sounds","Share one sound with a partner","Draw where it might live"]},{title:"Pass the shell",time:"15 minutes",materials:"A shell or soft toy",steps:["Sit in a circle","Only the person holding the shell speaks","Others listen and nod","Pass it on"]},{title:"Expert interviews",time:"30 minutes",materials:"Question cards",steps:["In pairs, choose an animal","Ask each other three questions","Report one new fact to the class"]}],
+    teacherIdeas:["Model active listening with a puppet","Display a 'Good listeners…' anchor chart","Praise specific listening behaviours","Mix talk partners every week"],
+    questions:["How do you know someone is really listening to you?","Why is it important to take turns when we talk?","How can a friend's idea help your own idea grow?","What can you do if you didn't understand?","How do you feel when people listen to you?"],
+    quiz:[{q:"Your friend is telling you about her pet. What should you do?",options:["Look at her and listen","Talk about your own pet","Play with your pencil"],answer:0,why:"Good listeners look at the speaker and listen carefully."},{q:"You want to share an idea but someone is talking. What do you do?",options:["Shout your idea","Wait for your turn","Walk away"],answer:1,why:"Waiting for your turn shows respect."},{q:"You didn't understand what your partner said. What can you do?",options:["Pretend you understood","Say nothing","Ask them to say it again"],answer:2,why:"Asking a question helps you understand."},{q:"Which sentence builds on a friend's idea?",options:["I want to add…","That's wrong","I don't care"],answer:0,why:"'I want to add…' helps ideas grow together."},{q:"How can you show someone you are listening?",options:["Turn away","Nod and look at them","Talk at the same time"],answer:1,why:"Nodding and looking show you are listening."}],
+    reflections:["Today I listened to…","I shared my idea about…","A friend helped me learn…","Next time I will…"]},
   atl_comment: {comment: "[Name] is growing as a researcher. During our inquiry, [Name] gathered information from books and photographs and began to record it in simple notes. [Name] is becoming more confident in asking \"How do we know?\" before accepting an idea. Next, [Name] will practise comparing two sources to check that information is reliable."},
   summative: {
     title:"Habitat Helpers",

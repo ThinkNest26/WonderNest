@@ -97,7 +97,7 @@ const KID_SKILLS = {
   "Organization":"I can plan and organise my work", "States of mind":"I can keep trying and stay calm"
 };
 const FACES = [["🌱","I'm starting"],["🌿","I'm growing"],["🌳","I can do it"],["🌟","I can teach others"]];
-let atl = [];
+let atl = [], quests = [], quiz = null, reflectSkill = null;
 const BUBBLE_COLOURS = ["#fff1c9","#e3f1ff","#ffe3da","#e6f7ec","#f1edff","#ffeef6"];
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: "wondernest-kids" } });
 const $ = s => document.querySelector(s);
@@ -155,6 +155,8 @@ async function loadEntries(){
     db.from("atl_records").select("*").eq("student_id", me.student_id).order("created_at", { ascending: false })
   ]);
   entries = e.data || []; atl = a.data || [];
+  const q = await db.from("atl_toolkits").select("skill, data").eq("class_id", me.class_id);
+  quests = (q.data || []).filter(t => t.data && (t.data.quiz || []).length);
 }
 async function rateSkill(skill, level){
   const unit = me.current_unit ? (me.current_unit.centralIdea || "") : "";
@@ -208,7 +210,40 @@ function draw(){
       <button class="tile" style="background:var(--lilac)" onclick="go('stories')"><span>📖</span>My stories</button>
       <button class="tile" style="background:var(--coral)" onclick="go('grown')"><span>🌱</span>How I've grown</button>
       <button class="tile" style="background:var(--leaf)" onclick="go('wonders')"><span>💭</span>All my wonders</button>
+      ${quests.length ? `<button class="tile" onclick="go('quests')" style="background:linear-gradient(135deg,#f59e0b,#ff7a59);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>🧩</span><span style="font-size:17px">Skill quests · ${quests.length} to try!</span></button>` : ""}
     </div></div>`;
+
+  if(screen === "quests") return app.innerHTML = head("Skill quests 🧩", "Practise your learning skills", "linear-gradient(135deg,#f59e0b,#ff7a59)") + `<div class="body">
+    ${quests.map((t,i)=>{ const done = entries.filter(e=>e.kind==="atl" && e.content.skill===t.skill && e.content.type==="quiz"); const best = done.reduce((m,e)=>Math.max(m,e.content.score),0);
+      return `<div class="card"><h2>${esc(t.data.kidStatement || t.skill)}<button class="speak" onclick="speak(${esc(JSON.stringify(t.data.kidStatement||""))})">🔊</button></h2>
+        ${done.length ? `<p style="font-weight:800;color:var(--muted);margin-bottom:10px">Best score: ${"⭐".repeat(best)} ${best}/${t.data.quiz.length}</p>` : ""}
+        <div class="tiles"><button class="btn" onclick="startQuiz(${i})">▶ Start quest</button><button class="btn ghost" onclick="reflectSkill=${i}; go('reflect')">✍️ Reflect</button></div></div>`; }).join("")}
+  </div>`;
+
+  if(screen === "quiz"){ const t = quests[quiz.idx].data, q = t.quiz[quiz.i];
+    if(quiz.i >= t.quiz.length) return app.innerHTML = head("Quest complete! 🎉", esc(t.kidStatement), "linear-gradient(135deg,#f59e0b,#ff7a59)") + `<div class="body"><div class="card center">
+      <div style="font-size:44px;letter-spacing:4px">${"⭐".repeat(quiz.score) || "🌱"}</div>
+      <h2 style="justify-content:center;font-size:24px;margin:10px 0">You got ${quiz.score} out of ${t.quiz.length}!</h2>
+      <p style="font-size:16px;margin-bottom:16px">${quiz.score === t.quiz.length ? "Amazing! You really know this skill." : quiz.score >= t.quiz.length/2 ? "Great work! Keep practising." : "Good try! Every quest helps you grow."}</p>
+      <div class="tiles"><button class="btn ghost" onclick="startQuiz(${quiz.idx})">↻ Play again</button><button class="btn leaf" onclick="reflectSkill=${quiz.idx}; go('reflect')">✍️ Reflect</button></div></div></div>`;
+    return app.innerHTML = head(`Question ${quiz.i+1} of ${t.quiz.length}`, esc(t.kidStatement), "linear-gradient(135deg,#f59e0b,#ff7a59)") + `<div class="body">
+      <div class="card"><h2 style="font-size:20px;line-height:1.35">${esc(q.q)}<button class="speak" onclick="speak(${esc(JSON.stringify(q.q + ' ' + q.options.join('. ')))})">🔊</button></h2>
+        ${q.options.map((o,j)=>{ const picked = quiz.picked !== null, right = j === q.answer, mine = j === quiz.picked;
+          const bg = !picked ? "#fff" : right ? "#e6f7ec" : mine ? "#ffe3da" : "#fff", bd = !picked ? "#f0e6d0" : right ? "var(--leaf)" : mine ? "var(--coral)" : "#f0e6d0";
+          return `<button ${picked?"disabled":""} onclick="pick(${j})" style="display:block;width:100%;text-align:left;margin-bottom:10px;padding:16px;border-radius:18px;border:3px solid ${bd};background:${bg};font-size:17px;font-weight:800;color:var(--navy)">${picked && right ? "✅ " : picked && mine ? "❌ " : ""}${esc(o)}</button>`; }).join("")}
+        ${quiz.picked !== null ? `<div class="item" style="background:${quiz.picked===q.answer?"#e6f7ec":"#fff1c9"}"><p><b>${quiz.picked===q.answer?"Great thinking! 🎉":"Good try! 💪"}</b> ${esc(q.why||"")}</p></div>
+          <button class="btn wide" onclick="nextQ()">${quiz.i+1 < t.quiz.length ? "Next question →" : "See my stars ⭐"}</button>` : ""}
+      </div></div>`; }
+
+  if(screen === "reflect"){ const t = quests[reflectSkill].data;
+    return app.innerHTML = head("Reflect ✍️", esc(t.kidStatement), "var(--leaf)") + `<div class="body"><div class="card">
+      <h2>Choose a sentence to finish<button class="speak" onclick="speak('Choose a sentence and finish it.')">🔊</button></h2>
+      <div class="wall" style="margin-bottom:12px">${(t.reflections||[]).map((r,i)=>`<button class="bub" style="background:${BUBBLE_COLOURS[i%6]}" onclick="$('#refStarter').value=${esc(JSON.stringify(r))}; $('#refShow').textContent=${esc(JSON.stringify(r))}; speak(${esc(JSON.stringify(r))})">${esc(r)}</button>`).join("")}</div>
+      <input type="hidden" id="refStarter" value="${esc((t.reflections||[""])[0])}">
+      <p id="refShow" style="font-size:18px;font-weight:900;color:var(--navy);margin-bottom:8px">${esc((t.reflections||[""])[0])}</p>
+      <div class="mic-row" style="align-items:flex-start">${micBtn("refText")}<textarea id="refText" placeholder="…" style="min-height:110px"></textarea></div>
+      ${langSwitch()}
+      <button class="btn leaf wide" style="margin-top:12px" onclick="saveAtlReflection()">Save in my nest</button></div></div>`; }
 
   if(screen === "wonders") return app.innerHTML = head("All my wonders 💭", `${wonders.length} wonders`) + `<div class="body"><div class="card">
     ${wonders.map((w,i)=>`<div class="item" style="background:${BUBBLE_COLOURS[i%6]}"><p><b>${esc(w.content.text)}</b></p><small>${new Date(w.created_at).toLocaleDateString()}</small></div>`).join("") || `<div class="empty">No wonders yet.</div>`}
@@ -248,6 +283,19 @@ function draw(){
       <button class="btn leaf wide" style="margin-top:12px" onclick="saveReflection()">Save</button></div>
     ${refl.map(r=>`<div class="card"><div class="then"><div style="background:#fff1c9"><small>I USED TO THINK</small>${esc(r.content.before)}</div><div style="background:#e6f7ec"><small>NOW I THINK</small>${esc(r.content.now)}</div></div><small style="color:var(--muted)">${new Date(r.created_at).toLocaleDateString()}</small></div>`).join("")}
   </div>`;
+}
+
+/* ---------- skill quests ---------- */
+function startQuiz(i){ quiz = { idx: i, i: 0, score: 0, picked: null }; go("quiz"); }
+function pick(j){ const q = quests[quiz.idx].data.quiz[quiz.i]; quiz.picked = j; if(j === q.answer){ quiz.score++; speak("Great thinking!"); } else speak("Good try!"); draw(); }
+async function nextQ(){
+  const t = quests[quiz.idx]; quiz.i++; quiz.picked = null;
+  if(quiz.i >= t.data.quiz.length){ await addEntry("atl", "Skill quest", { type: "quiz", skill: t.skill, score: quiz.score, total: t.data.quiz.length }); }
+  draw(); window.scrollTo(0,0);
+}
+async function saveAtlReflection(){
+  const t = quests[reflectSkill], text = $("#refText").value.trim(); if(!text) return toast("Finish the sentence first!");
+  if(await addEntry("atl", "ATL reflection", { type: "reflection", skill: t.skill, starter: $("#refStarter").value, text })) go("quests");
 }
 
 /* ---------- saving ---------- */
