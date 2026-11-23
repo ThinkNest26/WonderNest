@@ -210,6 +210,17 @@
   .reader{font-family:Georgia,"Times New Roman",serif;font-size:19px;line-height:1.75;color:#1d2433}
   .reader p{margin-bottom:14px}
   .reader[dir=rtl]{font-family:"Geeza Pro",Arial,sans-serif;text-align:right}
+  .tgarden{border-radius:16px;overflow:hidden;background:linear-gradient(#cfe9ff,#f0f8ff 70%);margin-top:8px}
+  .tsky{text-align:right;padding:8px 16px 0;font-size:30px}
+  .tbed{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:flex-end;padding:4px 12px 0;min-height:140px}
+  .tplant{width:132px;display:flex;flex-direction:column;align-items:center;text-align:center;background:none;padding:4px;border-radius:12px}
+  .tplant:hover{background:rgba(255,255,255,.6)}
+  .tpl{font-size:52px;line-height:1;transform-origin:bottom center;animation:tsway 3.5s ease-in-out infinite}
+  @keyframes tsway{50%{transform:rotate(4deg)}}
+  .tplant b{font-size:13px;color:var(--navy);margin-top:4px} .tplant small{font-size:11.5px;color:#475066;line-height:1.3}
+  .tplant em{font-style:normal;font-size:10.5px;font-weight:800;color:var(--coral)}
+  .tplant.idle{opacity:.7}
+  .tsoil{height:30px;background:linear-gradient(#8b5a33,#6e4426);border-top:6px solid #5f9e3c}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -1509,7 +1520,8 @@ const JAR_CSS = `
 
 (() => { const st = document.createElement('style'); st.textContent = JAR_CSS; document.head.appendChild(st); })();
 /* ---------- open inquiry (teachers) ---------- */
-const OI_STOPS = ["Not started","💭 Choosing","🧭 Planning","🔍 Exploring","🎨 Creating","🌟 Sharing","🏁 Finished"];
+const OI_STOPS = ["Not started","🌰 Planting","🐦 Expedition","🔍 Crack the case","🏛️ Sharing","🌸 Blooming","🌸 Bloomed"];
+const OI_PLANTS = ["🌰","🌱","🌿","🪴","🌷","🌸"];
 const OI_STICKERS = ["🌟 Great question!","👏 Super research!","💡 Creative idea!","🔍 Try asking an expert","📚 Find another source","🧪 Test your idea","🤝 Work with a buddy","🎨 Beautiful work!"];
 const OI_BANK = [
   {kind:"provocation", emoji:"📦", title:"The mystery box", body:"Put an unusual object in a box. Children feel it, guess, and ask questions before they see it."},
@@ -1563,14 +1575,17 @@ function oiView(){
   const pick = `<div class="card"><select onchange="oiOpen(this.value)"><option value="">Choose a class…</option>${oi.classes.map(c=>`<option value="${c.id}" ${oi.cls && oi.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
   if(!oi.cls) return top + pick;
   const qCount = oi.inqs.filter(q => q.data && q.data.expertQ && (q.data.expertIds||[]).length).length;
-  const tabs = `<div class="tabs" style="max-width:none">${[["board","🗺️ Class board"],["jar","🫙 Wonder jar & challenges"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar & mystery parcels"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
   let body = "";
   if(oi.tab === "board"){
-    const cols = [0,1,2,3,4,5,6].map(stage => ({ stage, items: stage === 0 ? oi.students.filter(s => !oi.inqs.some(q => q.student_id === s.id)).map(s => ({ kid: s })) : oi.inqs.filter(q => q.stage === stage).map(q => ({ kid: oiKid(q.student_id), q })) }));
-    body = `<div class="hint" style="margin-bottom:10px">Children start adventures from their Wonder Nest (🗺️ My inquiry adventures). Click a card to see their work and give feedback.</div>
-      <div class="oiboard">${cols.map(c=>`<div class="oicol"><div class="oihead">${OI_STOPS[c.stage]} <span>${c.items.length}</span></div>
-        ${c.items.map(it=> it.q ? `<button class="oicard" onclick="oi.open='${it.q.id}';render()"><b>${esc(it.kid.picture||"")} ${esc(it.kid.first_name||"")}</b><span>${esc((it.q.data.wonder||"New adventure").slice(0,70))}</span>${it.q.shared?`<em>🖼️ in gallery</em>`:""}${oi.notes.some(n=>n.inquiry_id===it.q.id && n.author_type==="teacher")?"":`<em style="color:var(--coral)">● no feedback yet</em>`}</button>`
-          : `<div class="oicard idle"><b>${esc(it.kid.picture||"")} ${esc(it.kid.first_name||"")}</b></div>`).join("") || `<div class="hint" style="padding:6px">—</div>`}</div>`).join("")}</div>`;
+    const kids = oi.students.map(k => ({ k, qs: oi.inqs.filter(q => q.student_id === k.id) }));
+    const counts = [0,1,2,3,4,5,6].map(st => oi.inqs.filter(q => q.stage === st).length);
+    body = `<div class="card"><div class="actions" style="margin-top:0;margin-bottom:8px"><div class="hint">Each plant is a child's wonder. It grows with every step of their journey. Click a plant to see their work and give feedback.</div>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px;white-space:nowrap;cursor:pointer"><input type="checkbox" ${oi.cls.kid_ai !== false ? "checked" : ""} onchange="oiKidAI(this.checked)" style="width:18px;height:18px"> 🐦 Children's AI helpers</label></div>
+      <div class="chips" style="margin-bottom:6px">${[1,2,3,4,5,6].map(st=>`<span class="chip">${OI_STOPS[st]}: <b>${counts[st]}</b></span>`).join("")}</div>
+      <div class="tgarden"><div class="tsky">☀️</div><div class="tbed">${kids.map(({k, qs}) => qs.length ? qs.map(q => { const n = Math.min(5, ((q.data||{}).stamps||[]).length), fb = oi.notes.some(x => x.inquiry_id === q.id && x.author_type === "teacher");
+          return `<button class="tplant" onclick="oi.open='${q.id}';oi.ai=null;render()" title="${esc(q.data.wonder||"")}"><span class="tpl">${OI_PLANTS[n]}</span><b>${esc(k.picture||"")} ${esc(k.first_name)}</b><small>${esc((q.data.wonder||"New seed").slice(0,46))}</small>${fb ? "" : `<em>● needs feedback</em>`}</button>`; }).join("")
+          : `<div class="tplant idle"><span class="tpl" style="opacity:.35">🕳️</span><b>${esc(k.picture||"")} ${esc(k.first_name)}</b><small>Not planted yet</small></div>`).join("") || `<div class="hint" style="padding:20px">Add children to this class first.</div>`}</div><div class="tsoil"></div></div></div>`;
   }
   if(oi.tab === "jar"){
     const mine = oi.provs;
@@ -1584,7 +1599,11 @@ function oiView(){
         <div class="fields" style="grid-template-columns:110px 1fr;margin:0 0 8px"><div><label>Type</label><select id="pk"><option value="provocation">Provocation</option><option value="maker">Maker challenge</option><option value="wonder">Wonder</option></select></div><div><label>Title</label><input type="text" id="pt" placeholder="For example: Why do leaves change colour?"></div></div>
         <label class="hint">Details (optional)</label><textarea id="pb" style="min-height:60px;margin-top:4px"></textarea>
         <div class="actions"><span></span><button class="btn" onclick="oiAddProv()">＋ Add to wonder jar</button></div></div>
-      <div class="card"><div class="label">Idea bank: click to add</div>
+      <div class="card"><div class="label">✨ Mystery parcels for your unit</div>
+        ${oi.cls.current_unit ? `<p class="hint" style="margin-bottom:8px">Ideas written for <b>${esc(oi.cls.current_unit.centralIdea)}</b> and its ATL skills.</p>
+          <button class="btn small" onclick="oiParcels()">✨ Suggest mystery parcels</button>
+          ${(oi.parcels||[]).map((b,k)=>{const added = mine.some(p=>p.title===b.title); return `<div class="unit-row" style="padding:8px 0"><div><h4 style="font-size:14px">${esc(b.emoji||"📦")} ${esc(b.title)}</h4><p>${b.kind==="maker"?"🛠️ Maker challenge":b.kind==="wonder"?"💭 Wonder":"✨ Provocation"}${b.body?" · "+esc(b.body):""}</p></div>${added?`<span class="hint">✓ added</span>`:`<button class="btn small ghost" onclick="oiAddParcel(${k})">＋ Add</button>`}</div>`;}).join("")}` : `<p class="hint">Set a current unit for this class to get mystery parcels written for it.</p>`}
+      <div class="label" style="margin-top:18px">Idea bank: click to add</div>
         ${["provocation","maker","wonder"].map(k=>`<div class="label" style="margin-top:10px;color:var(--blue)">${k==="maker"?"🛠️ Maker challenges":k==="wonder"?"💭 Wonders":"✨ Provocations"}</div>
           ${OI_BANK.filter(b=>b.kind===k).map(b=>{const added = mine.some(p=>p.title===b.title); return `<div class="unit-row" style="padding:8px 0"><div><h4 style="font-size:14px">${b.emoji} ${esc(b.title)}</h4>${b.body?`<p>${esc(b.body)}</p>`:""}</div>${added?`<span class="hint">✓ added</span>`:`<button class="btn small ghost" onclick="oiAddBank(${esc(JSON.stringify(b.title))})">＋ Add</button>`}</div>`;}).join("")}`).join("")}
       </div></div>`;
@@ -1607,29 +1626,59 @@ function oiView(){
   const sl = oi.slip && oi.provs.find(p => p.id === oi.slip);
   return top + pick + tabs + body + oiModal() + (sl ? slipCard(sl, `<button class="btn ghost" onclick="oiToggleProv('${sl.id}',false);oi.slip=null">🙈 Hide from children</button><button class="btn ghost" style="color:#c2410c;border-color:#c2410c" onclick="oi.slip=null;oiDelProv('${sl.id}')">🗑️ Delete slip</button><button class="btn" onclick="oi.slip=null;render()">Put it back</button>`) : "");
 }
+function oiJourneyText(q){
+  const d = q.data || {}, b = d.board || {}, sh = d.share || d.create || {}, r = d.reflect || {};
+  const tw = (d.notebook || []).map(e => e.type === "photo" ? "[photo]" : e.type === "tally" ? `Counted ${e.title||""}: ${(e.items||[]).map(t=>t.label+" "+t.count).join(", ")}` : e.type === "try" ? `Tried: ${e.tried}. Noticed: ${e.noticed}` : e.type === "interview" ? `Asked ${e.who}: ${e.q||""} They said: ${e.a}` : e.text).join("\n- ");
+  return `Wonder: ${d.wonder||""}\nEvidence collected:\n- ${tw}\nWhat the clues mean: ${b.meaning||""}\nSkills the child said they used: ${Object.keys(d.badges||{}).join(", ")}\nShared as: ${sh.format||""} "${sh.title||""}" ${sh.label||sh.script||sh.text||""}\nReflection: learned ${r.learned||""}; surprised ${r.surprised||""}; proud ${r.proud||""}; wonders now ${r.wonderNow||""}`;
+}
 function oiModal(){
   if(!oi.open) return ""; const q = oi.inqs.find(x => x.id === oi.open); if(!q) return "";
-  const k = oiKid(q.student_id), d = q.data || {}, c = d.create || {}, r = d.reflect || {}, ns = oi.notes.filter(n => n.inquiry_id === q.id);
-  const nb = e => e.type === "photo" ? `<img src="${e.img}" style="width:100%;border-radius:10px">` : e.type === "tally" ? `<b>🔢 ${esc(e.title||"Count")}</b><br>${e.items.map(t=>`${esc(t.label)}: ${t.count}`).join(" · ")}` : e.type === "try" ? `<b>🧪 I tried:</b> ${esc(e.tried)}<br><b>👀 I noticed:</b> ${esc(e.noticed)}` : `✏️ ${esc(e.text)}`;
-  const skills = (oi.cls.current_unit && oi.cls.current_unit.atl) || [];
-  return `<div class="modal-bg" onclick="if(event.target===this){oi.open=null;render()}"><div class="modal" style="width:min(860px,96vw)">
-    <div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">${OI_STOPS[q.stage]} · ${(d.stamps||[]).length}/5 stamps${q.shared?" · 🖼️ shared":""}</div><h3 style="color:var(--navy)">${esc(k.picture||"")} ${esc(k.first_name||"")}: ${esc(d.wonder||"New adventure")}</h3></div><button class="btn small" onclick="oi.open=null;render()">Close</button></div>
+  const k = oiKid(q.student_id), d = q.data || {}, sh = d.share || (d.create ? { format: "museum", title: d.create.format, img: d.create.img, label: d.create.text } : {}), r = d.reflect || {}, b = d.board || {}, ns = oi.notes.filter(n => n.inquiry_id === q.id);
+  const nb = e => e.type === "photo" ? `<img src="${e.img}" style="width:100%;border-radius:10px">` : e.type === "tally" ? `<b>🔢 ${esc(e.title||"Count")}</b><br>${e.items.map(t=>`${esc(t.label)}: ${t.count}`).join(" · ")}` : e.type === "try" ? `<b>🧪 Tried:</b> ${esc(e.tried)}<br><b>👀 Noticed:</b> ${esc(e.noticed)}` : e.type === "interview" ? `<b>🎤 Asked ${esc(e.who)}:</b> ${esc(e.q||"")}<br><b>They said:</b> ${esc(e.a)}` : `✏️ ${esc(e.text)}`;
+  const skills = (oi.cls.current_unit && oi.cls.current_unit.atl) || [], n = Math.min(5, (d.stamps||[]).length);
+  return `<div class="modal-bg" onclick="if(event.target===this){oi.open=null;render()}"><div class="modal" style="width:min(900px,96vw)">
+    <div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">${OI_STOPS[q.stage] || ""} · ${(d.stamps||[]).length}/5 steps${q.shared?" · 🌸 in class garden":""}</div><h3 style="color:var(--navy)">${esc(k.picture||"")} ${esc(k.first_name||"")}: ${esc(d.wonder||"New seed")}</h3></div><button class="btn small" onclick="oi.open=null;render()">Close</button></div>
     <div class="grid2" style="margin-top:12px"><div>
-      ${d.think ? `<div class="entry"><h4>💭 What I think</h4><p>${esc(d.think)}</p></div>` : ""}
-      ${(d.methods||[]).length ? `<div class="entry"><h4>🧭 How I'll find out</h4><p>${esc(d.methods.join(" · "))}</p></div>` : ""}
-      ${(d.notebook||[]).length ? `<div class="entry"><h4>📓 Field notebook (${d.notebook.length})</h4>${d.notebook.map(e=>`<div style="margin:8px 0;font-size:14px">${nb(e)}</div>`).join("")}</div>` : ""}
-      ${c.format || c.img || c.text ? `<div class="entry"><h4>🎨 ${esc(c.format||"Creation")}</h4>${c.img?`<img src="${c.img}" style="width:100%;border-radius:10px;margin:6px 0">`:""}<p>${esc(c.text||"")}</p></div>` : ""}
-      ${r.learned ? `<div class="entry"><h4>🌟 Reflection</h4><p><b>Learned:</b> ${esc(r.learned)}${r.surprised?`<br><b>Surprised:</b> ${esc(r.surprised)}`:""}${r.wonderNow?`<br><b>Wonders now:</b> ${esc(r.wonderNow)}`:""}${r.skill?`<br><b>Skill:</b> ${esc(r.skill)}`:""}</p></div>` : ""}
+      ${(d.notebook||[]).length ? `<div class="entry"><h4>🪵 Twigs in the nest (${d.notebook.length})</h4>${d.notebook.map(e=>`<div style="margin:8px 0;font-size:14px">${nb(e)}</div>`).join("")}</div>` : ""}
+      ${b.meaning ? `<div class="entry"><h4>🔍 What the clues mean (${(b.links||[]).length} connections)</h4><p>${esc(b.meaning)}</p></div>` : ""}
+      ${Object.keys(d.badges||{}).length ? `<div class="entry"><h4>🏅 Badges the child chose</h4><p>${Object.entries(d.badges).map(([s2,l])=>`${esc(s2.split(" · ")[1]||s2)} (${["🌱","🌿","🌳","🌟"][Math.min(l,4)-1]})`).join(" · ")}</p></div>` : ""}
+      ${sh.format ? `<div class="entry"><h4>${sh.format==="radio"?"🎙️ Radio show":"🏛️ Museum exhibit"}: ${esc(sh.title||"")}</h4>${sh.img?`<img src="${sh.img}" style="width:100%;border-radius:10px;margin:6px 0">`:""}${sh.audio?`<audio controls src="${sh.audio}" style="width:100%;margin:6px 0"></audio>`:""}<p>${esc(sh.label||sh.script||"")}</p>${sh.activity?`<p><b>Touch and try:</b> ${esc(sh.activity)}</p>`:""}</div>` : ""}
+      ${r.learned ? `<div class="entry"><h4>🌸 Reflection</h4><p><b>Learned:</b> ${esc(r.learned)}${r.surprised?`<br><b>Surprised:</b> ${esc(r.surprised)}`:""}${r.proud?`<br><b>Proud of:</b> ${esc(r.proud)}`:""}${r.wonderNow?`<br><b>Wonders now:</b> ${esc(r.wonderNow)}`:""}</p></div>` : ""}
+      ${!(d.notebook||[]).length && !r.learned ? `<div class="hint">The child has just planted this wonder.</div>` : ""}
     </div><div>
       <div class="label">Give feedback</div>
-      <div class="chips">${OI_STICKERS.map(s=>`<button class="chip" onclick="oiNote('sticker', ${esc(JSON.stringify(s))})">${esc(s)}</button>`).join("")}</div>
-      <textarea id="oiC" style="min-height:70px" placeholder="Write a comment for ${esc(k.first_name||"the child")}…"></textarea>
-      <div class="actions"><span></span><button class="btn small" onclick="const v=$('#oiC').value.trim(); if(v) oiNote('comment', v)">Send comment</button></div>
-      ${skills.length ? `<div class="label" style="margin-top:14px">Record ATL evidence</div>
-        <div class="edit-row"><select id="oiSk">${skills.map(s=>`<option>${esc(s)}</option>`).join("")}</select><select id="oiLv" style="max-width:150px">${atlLevels().map((l,i)=>`<option value="${i+1}">${esc(l)}</option>`).join("")}</select><button class="btn small ghost" onclick="oiAtl()">Save</button></div>` : ""}
+      <div class="chips">${OI_STICKERS.map(s2=>`<button class="chip" onclick="oiNote('sticker', ${esc(JSON.stringify(s2))})">${esc(s2)}</button>`).join("")}</div>
+      <textarea id="oiC" style="min-height:80px" placeholder="Write a comment for ${esc(k.first_name||"the child")}…">${esc((oi.ai && oi.ai.comment) || "")}</textarea>
+      <div class="actions"><button class="link" onclick="oiFeedback()">✨ Suggest a comment</button><button class="btn small" onclick="const v=$('#oiC').value.trim(); if(v) oiNote('comment', v)">Send comment</button></div>
+      ${skills.length ? `<div class="label" style="margin-top:14px">ATL evidence</div>
+        <button class="link" onclick="oiSummary()">✨ Summarise ATL evidence in this inquiry</button>
+        ${oi.ai && oi.ai.skills ? oi.ai.skills.map(x=>`<div class="why" style="margin-top:6px"><b>${esc(x.skill)}:</b> ${esc(x.evidence)}</div>`).join("") : ""}
+        <div class="edit-row" style="margin-top:8px"><select id="oiSk">${skills.map(s2=>`<option>${esc(s2)}</option>`).join("")}</select><select id="oiLv" style="max-width:150px">${atlLevels().map((l,i)=>`<option value="${i+1}">${esc(l)}</option>`).join("")}</select><button class="btn small ghost" onclick="oiAtl()">Save</button></div>` : ""}
       <div class="label" style="margin-top:14px">Messages (${ns.length})</div>
-      ${ns.map(n=>`<div class="hist">${n.author_type==="teacher" ? "👩‍🏫 " + esc(n.content.text||"") : `🧒 ${esc(oiKid(n.author_student).first_name||"")}: ⭐ ${esc(n.content.star1||"")} ⭐ ${esc(n.content.star2||"")} 🪄 ${esc(n.content.wish||"")}`} <button class="link danger" style="font-size:11px" onclick="oiDelNote('${n.id}')">✕</button></div>`).join("") || `<div class="hint">No messages yet.</div>`}
+      ${ns.map(n2=>`<div class="hist">${n2.author_type==="teacher" ? "👩‍🏫 " + esc(n2.content.text||"") : `🧒 ${esc(oiKid(n2.author_student).first_name||"")}: ⭐ ${esc(n2.content.star1||"")} ⭐ ${esc(n2.content.star2||"")} 🪄 ${esc(n2.content.wish||"")}`} <button class="link danger" style="font-size:11px" onclick="oiDelNote('${n2.id}')">✕</button></div>`).join("") || `<div class="hint">No messages yet.</div>`}
     </div></div></div></div>`;
+}
+function oiUnit(){ const cu = oi.cls.current_unit || {}; return { theme: cu.themeName ? (THEMES.find(t => t.name === cu.themeName) || {}).id : "", description: "", grade: oi.cls.grade, centralIdea: cu.centralIdea || "", lines: [], keyConcepts: [], atl: cu.atl || [] }; }
+async function oiFeedback(){
+  const q = oi.inqs.find(x => x.id === oi.open); loading(true, "Reading the journey…");
+  try{ const d = await ai("feedback_starter", oiUnit(), { journey: oiJourneyText(q) }); oi.ai = Object.assign(oi.ai || {}, { comment: d.comment || "" }); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+async function oiSummary(){
+  const q = oi.inqs.find(x => x.id === oi.open); loading(true, "Looking for ATL evidence…");
+  try{ const d = await ai("atl_inquiry_summary", oiUnit(), { journey: oiJourneyText(q) }); oi.ai = Object.assign(oi.ai || {}, { skills: d.skills || [] }); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+async function oiParcels(){
+  loading(true, "Packing mystery parcels…");
+  try{ const d = await ai("parcel_ideas", oiUnit(), {}); oi.parcels = d.ideas || []; }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+function oiAddParcel(k){ const b = oi.parcels[k]; oiAddProvRow({ kind: ["provocation","maker","wonder"].includes(b.kind) ? b.kind : "provocation", title: String(b.title).slice(0,120), body: String(b.body||"").slice(0,600), emoji: b.emoji || "📦" }); }
+async function oiKidAI(on){
+  const { error: e } = await db.from("classes").update({ kid_ai: on }).eq("id", oi.cls.id);
+  if(e){ error = tcErr(e) + " (has the Wonder Garden database update been run?)"; return render(); }
+  oi.cls.kid_ai = on; toast(on ? "Children's AI helpers are on" : "Children's AI helpers are off"); render();
 }
 async function oiNote(kind, text){
   const q = oi.inqs.find(x => x.id === oi.open);
@@ -1642,7 +1691,7 @@ async function oiAtl(){
   const { error: e } = await db.from("atl_records").insert({ student_id: q.student_id, class_id: q.class_id, skill: $("#oiSk").value, level: lv, level_label: L[lv-1], source: "teacher", note: "Open inquiry: " + (q.data.wonder||"").slice(0, 200), unit_label: (oi.cls.current_unit && oi.cls.current_unit.centralIdea) || "" });
   if(e){ error = tcErr(e); return render(); } toast("ATL evidence saved ✓");
 }
-async function oiAddProvRow(row){ const { data, error: e } = await db.from("class_provocations").insert(Object.assign({ class_id: oi.cls.id, active: true }, row)).select().single(); if(e){ error = tcErr(e); return render(); } await oiOpen(oi.cls.id); oi.tab = "jar"; oi.newProv = data && data.id; render(); setTimeout(() => { oi.newProv = null; }, 1200); toast("Dropped into the jar 🫙"); }
+async function oiAddProvRow(row){ const keepParcels = oi.parcels; const { data, error: e } = await db.from("class_provocations").insert(Object.assign({ class_id: oi.cls.id, active: true }, row)).select().single(); if(e){ error = tcErr(e); return render(); } await oiOpen(oi.cls.id); oi.parcels = keepParcels; oi.tab = "jar"; oi.newProv = data && data.id; render(); setTimeout(() => { oi.newProv = null; }, 1200); toast("Dropped into the jar 🫙"); }
 function oiSlip(id){ oi.slip = id; render(); }
 function closeSlip(){ oi.slip = null; render(); }
 function oiAddBank(title){ const b = OI_BANK.find(x => x.title === title); oiAddProvRow({ kind: b.kind, title: b.title, body: b.body, emoji: b.emoji }); }
@@ -1933,6 +1982,9 @@ document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("cl
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  feedback_starter: {comment:"You asked a great question and collected clues in lots of ways, especially your interview. Next, can you compare two of your clues and explain what they tell you together?"},
+  atl_inquiry_summary: {skills:[{skill:"Research · Information literacy",evidence:"The child gathered information through notes, a photo and an interview, and recorded each clearly."},{skill:"Thinking · Critical thinking",evidence:"The child connected clues on the evidence board and explained what they mean."}]},
+  parcel_ideas: {ideas:[{kind:"provocation",emoji:"📦",title:"The empty nest",body:"Place an empty bird's nest on a table with a magnifying glass and a sign: Who lived here?"},{kind:"maker",emoji:"🛠️",title:"Build a bee hotel",body:"Children design a home for solitary bees from recycled tubes."},{kind:"wonder",emoji:"💭",title:"Why do some animals live together?",body:""}]},
   story: {title:"The Two Lunch Boxes", text:"Mariam had a red lunch box. Leo had a blue one.\n\nAt lunch, Mariam opened hers. Inside were warm flatbreads. Leo opened his. Inside were cheese sandwiches.\n\n\"Want to swap one?\" asked Leo.\n\nMariam smiled. They swapped, and both said, \"Yum!\"\n\nThe next day, the whole table brought something to share.", textSecond:"", questions:["What do you notice on the cover?","How did Mariam feel when Leo asked to swap?","What do you like to share with friends?","How can sharing help us belong?"], spark:"Draw your favourite food and write who you would share it with.", vocabulary:[{word:"swap",meaning:"give one thing and get another"},{word:"share",meaning:"let others have some too"}]},
   template_examples: {examples:["Frogs need a pond","Both need water","Birds need trees","Plants","Shade","Water"]},
   atl_toolkit: {kidStatement:"I can listen and share my ideas", lookFors:["Looks at the speaker and waits for a turn","Repeats or builds on a friend's idea","Asks a question to find out more","Shares an idea in a full sentence"],

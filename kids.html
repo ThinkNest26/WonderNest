@@ -107,6 +107,53 @@
   .kreader{font-size:19px;line-height:1.75;color:var(--ink)}
   .kreader p{margin-bottom:14px}
   .kreader[dir=rtl]{text-align:right}
+  .gardencard{padding:0;overflow:hidden;background:linear-gradient(#cfe9ff,#eaf6ff 60%)}
+  .sky{height:54px;position:relative}
+  .sun{position:absolute;right:16px;top:8px;font-size:34px;animation:spin 18s linear infinite}
+  .cloudy{position:absolute;left:20px;top:12px;font-size:28px;animation:drift 9s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}} @keyframes drift{50%{transform:translateX(30px)}}
+  .bed{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:6px 4px;padding:0 10px;min-height:120px}
+  .bedempty{font-weight:800;color:#3d6b4f;padding:30px 0;font-size:16px}
+  .soil{height:34px;background:linear-gradient(#8b5a33,#6e4426);border-top:6px solid #5f9e3c;border-radius:0 0 22px 22px}
+  .plant{display:flex;flex-direction:column;align-items:center;width:86px;background:none}
+  .pl{font-size:48px;line-height:1;transform-origin:bottom center;animation:sway 3.5s ease-in-out infinite}
+  .pl.g0{font-size:30px} .pl.g1{font-size:38px} .pl.g5{font-size:54px}
+  @keyframes sway{50%{transform:rotate(4deg)}}
+  .ptag{font-size:11px;font-weight:800;color:#2d4a37;background:rgba(255,255,255,.85);border-radius:8px;padding:2px 6px;margin:3px 0 4px;max-width:84px;line-height:1.25}
+  .growcard{background:linear-gradient(#eaf6ff,#fff)}
+  .bigplant{font-size:96px;line-height:1.1;animation:sway 3.5s ease-in-out infinite;transform-origin:bottom center}
+  .bigplant.g0{font-size:60px} .bigplant.g1{font-size:72px}
+  .stop .snm small{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+  .birdsays{display:flex;gap:10px;align-items:flex-start;background:#e8f1ff;border-radius:18px;padding:12px;margin-top:12px;animation:pop .4s ease}
+  .birdsays img{width:54px;flex-shrink:0}
+  .birdsays b{color:var(--navy);display:block;margin-bottom:4px} .birdsays p{font-size:14.5px;line-height:1.45;margin-top:3px}
+  @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:none;opacity:1}}
+  .nestscene{position:relative;height:150px}
+  .birdfly{width:96px;position:absolute;left:50%;top:0;transform:translateX(-50%);animation:hover 2.6s ease-in-out infinite}
+  @keyframes hover{50%{transform:translate(-50%,-8px)}}
+  .nest{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:170px;height:56px;border-radius:0 0 90px 90px;background:radial-gradient(ellipse at 50% 0%,#a77645 0,#7a4f2a 70%);box-shadow:inset 0 6px 0 rgba(0,0,0,.15)}
+  .twig{position:absolute;left:50%;top:18px;width:62px;height:6px;border-radius:4px;background:#c58b52;transform:translate(var(--x),var(--y)) rotate(var(--a));box-shadow:0 1px 0 #6b4423}
+  .twigbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .twigbtn{background:var(--c);color:#fff;border-radius:16px;padding:10px 4px;font-weight:900;font-size:13.5px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+  .twigbtn span{font-size:24px}
+  .lbl{font-weight:800;color:var(--navy);margin-bottom:6px;font-size:14.5px}
+  .cork{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:16px 12px;padding:16px 10px;border-radius:16px;background:#c99a62 radial-gradient(rgba(0,0,0,.08) 1px,transparent 1px) 0 0/8px 8px;border:6px solid #8b5a33;min-height:140px}
+  .clue{position:relative;background:#fffdf3;border-radius:4px;padding:16px 8px 8px;font-size:12.5px;font-weight:700;color:var(--ink);text-align:left;line-height:1.35;box-shadow:0 3px 6px rgba(0,0,0,.2);transform:rotate(var(--r));z-index:2;max-height:140px;overflow:hidden}
+  .clue img{width:100%;border-radius:3px}
+  .clue.picked{outline:4px solid #d62828;transform:rotate(0) scale(1.05)}
+  .pin{position:absolute;top:4px;left:50%;width:12px;height:12px;border-radius:50%;background:#d62828;transform:translateX(-50%);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .strings{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+  .badges{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .badge{border:2.5px dashed #d8cfb5;border-radius:16px;padding:10px;font-weight:800;font-size:13px;color:var(--navy);background:var(--cream);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+  .badge span{font-size:30px} .badge.on{border:2.5px solid var(--sun);background:#fff1c9}
+  .exhibit{background:#fbf7ef;border:3px solid #c9a46a}
+  .plaque{background:linear-gradient(#e7c98f,#c9a46a);color:#4a3416;font-weight:900;text-align:center;padding:10px;border-radius:8px;margin-bottom:12px;font-size:17px;letter-spacing:.5px}
+  .exhibitimg{width:100%;border-radius:6px;border:10px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.18);margin-bottom:12px}
+  .exhibit .label{background:#fff;border-left:5px solid #c9a46a;padding:10px 12px;font-size:15px;line-height:1.55;margin-bottom:10px}
+  .exhibit .touch{background:#e6f7ec;border-radius:12px;padding:10px 12px;font-weight:800;color:#1f7a4d}
+  .radio{background:linear-gradient(135deg,#1d2433,#3a2f5c);color:#fff}
+  .radio h2{color:#fff} .onair{display:inline-block;background:#d62828;color:#fff;font-weight:900;font-size:12px;padding:4px 10px;border-radius:6px;margin-bottom:8px;animation:blink 1.4s infinite}
+  @keyframes blink{50%{opacity:.5}}
 </style>
 </head>
 <body>
@@ -243,21 +290,19 @@ function draw(){
       <button class="tile" style="background:var(--coral)" onclick="go('grown')"><span>🌱</span>How I've grown</button>
       <button class="tile" style="background:var(--leaf)" onclick="go('wonders')"><span>💭</span>All my wonders</button>
       <button class="tile" onclick="goShelf()" style="background:linear-gradient(135deg,#8a6cf0,#ff7a59);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>📚</span><span style="font-size:17px">Class bookshelf</span></button>
-      <button class="tile" onclick="goAdventures()" style="background:linear-gradient(135deg,#2f9e6b,#2f6fd6);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>🗺️</span><span style="font-size:17px">My inquiry adventures</span></button>
+      <button class="tile" onclick="goAdventures()" style="background:linear-gradient(135deg,#2f9e6b,#2f6fd6);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>🌱</span><span style="font-size:17px">My Wonder Garden</span></button>
       ${quests.length ? `<button class="tile" onclick="go('quests')" style="background:linear-gradient(135deg,#f59e0b,#ff7a59);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>🧩</span><span style="font-size:17px">Skill quests · ${quests.length} to try!</span></button>` : ""}
     </div></div>`;
 
-  if(screen === "adv") return app.innerHTML = head("My inquiry adventures 🗺️", "Follow your own questions", "linear-gradient(135deg,#2f9e6b,#2f6fd6)") + `<div class="body">
-    <button class="btn wide leaf" style="margin-bottom:14px;font-size:19px" onclick="newInquiry()">✨ Start a new adventure</button>
-    ${inqs.length ? inqs.map(q => `<div class="card" onclick="openInq('${q.id}')" style="cursor:pointer">
-        <h2 style="font-size:17px">💭 ${esc(q.data.wonder || "A new adventure")}</h2>
-        <div class="stamps">${STOPS.map((s,i)=>`<span class="stamp ${(q.data.stamps||[]).includes(i+1)?"on":""}">${s.ic}</span>`).join("")}</div>
-        <p style="font-size:13px;color:var(--muted);font-weight:700;margin-top:8px">${q.stage > 5 ? "🏁 Finished!" : "Next stop: " + STOPS[q.stage-1].name}</p></div>`).join("")
-      : `<div class="card center"><div style="font-size:48px">🗺️</div><p style="font-size:16px;font-weight:700">Every big discovery starts with a wonder. Start your first adventure!</p></div>`}
-    <div class="tiles" style="margin-top:6px">
+  if(screen === "adv") return app.innerHTML = head("My Wonder Garden 🌱", "Every wonder is a seed", "linear-gradient(135deg,#2f9e6b,#7cc36b)") + `<div class="body">
+    <div class="card gardencard"><div class="sky"><span class="sun">☀️</span><span class="cloudy">☁️</span></div>
+      <div class="bed">${inqs.length ? inqs.slice(0, 12).map(q => { const n = growth(q); return `<button class="plant" onclick="openInq('${q.id}')"><span class="pl g${n}">${PLANTS[n]}</span><span class="ptag">${esc((q.data.wonder || "New seed").slice(0, 28))}</span></button>`; }).join("")
+        : `<div class="bedempty">Plant your first wonder! 🌰</div>`}</div><div class="soil"></div></div>
+    <button class="btn wide leaf" style="margin:4px 0 14px;font-size:19px" onclick="newInquiry()">🌰 Plant a new wonder</button>
+    <div class="tiles">
       <button class="tile" style="background:#f59e0b" onclick="go('jar')"><span>🫙</span>Wonder jar</button>
       <button class="tile" style="background:var(--lilac)" onclick="go('experts')"><span>🧑‍🔬</span>Ask an expert</button>
-      <button class="tile" style="background:var(--coral);grid-column:1/-1;min-height:70px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start" onclick="loadGallery()"><span>🖼️</span>Class gallery</button>
+      <button class="tile" style="background:var(--coral);grid-column:1/-1;min-height:70px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start" onclick="loadGallery()"><span>🌸</span>Our class garden</button>
     </div></div>`;
 
   if(screen === "jar") return app.innerHTML = head("Wonder jar 🫙", "Ideas from your teacher", "#f59e0b") + `<div class="body">
@@ -266,27 +311,24 @@ function draw(){
       ${provs.length ? `<button class="btn wide" style="background:#f59e0b;font-size:20px" onclick="shakeJar()">🫙 Shake the jar!</button>
         <p style="margin-top:10px;font-weight:700;color:var(--muted)">…or tap a slip inside the jar</p>`
         : `<p style="font-weight:700">The jar is empty for now. Your teacher will fill it with wonders soon!</p>`}
-    </div></div>${slipOpen ? slipCard(slipOpen, `<button class="btn wide leaf" onclick="useSlip()">🗺️ Start an adventure with this!</button>
+    </div></div>${slipOpen ? slipCard(slipOpen, `<button class="btn wide leaf" onclick="useSlip()">🌰 Plant this as my wonder!</button>
       <button class="btn wide ghost" onclick="speak(${esc(JSON.stringify(slipOpen.title + ". " + (slipOpen.body || "")))})">🔊 Read it to me</button>
       <button class="btn wide ghost" onclick="closeSlip()">Put it back in the jar</button>`) : ""}`;
 
   if(screen === "experts") return app.innerHTML = head("Ask an expert 🧑‍🔬", "People who can help you find out", "var(--lilac)") + `<div class="body">
     ${experts.length ? experts.map(x => `<div class="card" style="display:flex;gap:12px;align-items:center"><span style="font-size:40px">${esc(x.emoji)}</span><div><b style="font-size:17px;color:var(--navy)">${esc(x.name)}</b><p style="font-size:14px;color:var(--muted)">Ask me about: ${esc(x.topic)}</p></div></div>`).join("")
-      + `<p style="text-align:center;font-weight:700;color:var(--muted)">Choose an expert in the 🧭 Plan stop of your adventure.</p>`
+      + `<p style="text-align:center;font-weight:700;color:var(--muted)">Send an expert a question on your 🐦 Expedition.</p>`
       : `<div class="card center"><div style="font-size:44px">🧑‍🔬</div><p style="font-weight:700">No experts yet. Your teacher will add some soon!</p></div>`}</div>`;
 
-  if(screen === "gallery") return app.innerHTML = head("Class gallery 🖼️", "Adventures your friends shared", "var(--coral)") + `<div class="body">
-    ${gallery.length ? gallery.map(q => `<div class="card" onclick="viewGallery('${q.id}')" style="cursor:pointer">
-        ${q.data.create && q.data.create.img ? `<img src="${q.data.create.img}" style="width:100%;border-radius:16px;margin-bottom:10px;max-height:220px;object-fit:cover">` : ""}
-        <p style="font-size:13px;font-weight:800;color:var(--muted)">${esc(mateName(q.student_id))}${q.student_id === me.student_id ? " (me)" : ""}</p>
-        <h2 style="font-size:17px">💭 ${esc(q.data.wonder||"")}</h2>
-        ${q.data.create && q.data.create.format ? `<span class="kindtag">${esc(q.data.create.format)}</span>` : ""}</div>`).join("")
-      : `<div class="card center"><div style="font-size:44px">🖼️</div><p style="font-weight:700">No adventures shared yet. Be the first!</p></div>`}</div>`;
+  if(screen === "gallery") return app.innerHTML = head("Our class garden 🌸", "Wonders that have bloomed", "var(--coral)") + `<div class="body">
+    ${gallery.length ? `<div class="card gardencard"><div class="sky"><span class="sun">☀️</span></div><div class="bed">${gallery.map(q => `<button class="plant" onclick="viewGallery('${q.id}')"><span class="pl g5">${q.data.share && q.data.share.format === "radio" ? "🎙️" : "🌸"}</span><span class="ptag">${esc(mateName(q.student_id))}${q.student_id === me.student_id ? " (me)" : ""}</span></button>`).join("")}</div><div class="soil"></div></div>
+      <p style="text-align:center;font-weight:700;color:var(--muted)">Tap a flower to visit a friend's wonder.</p>`
+      : `<div class="card center"><div style="font-size:44px">🌱</div><p style="font-weight:700">No flowers yet. Finish a wonder and share it to make the first one bloom!</p></div>`}</div>`;
 
   if(screen === "gview"){ const q = gallery.find(x => x.id === gId); if(!q) return go("gallery");
     const mine = q.student_id === me.student_id;
-    return app.innerHTML = head(esc(mateName(q.student_id)) + "'s adventure", "Class gallery", "var(--coral)") + `<div class="body">
-      ${inqSummary(q)}
+    return app.innerHTML = head(esc(mateName(q.student_id)) + "'s wonder", "Our class garden", "var(--coral)") + `<div class="body">
+      ${shareView(q)}
       ${mine ? "" : `<div class="card"><h2>⭐⭐ Two stars and a wish 🪄<button class="speak" onclick="speak('Tell your friend two things you like, and one wish.')">🔊</button></h2>
         <p style="font-weight:700;color:var(--muted);margin-bottom:8px">⭐ I like how you…</p>
         <div class="mic-row" style="margin-bottom:10px">${micBtn("star1", true)}<textarea id="star1" style="min-height:56px"></textarea></div>
@@ -295,78 +337,111 @@ function draw(){
         <p style="font-weight:700;color:var(--muted);margin-bottom:8px">🪄 I wish / I wonder if…</p>
         <div class="mic-row">${micBtn("wish", true)}<textarea id="wish" style="min-height:56px"></textarea></div>
         <button class="btn wide" style="margin-top:12px;background:var(--coral)" onclick="sendStars('${q.id}')">Send to my friend 💌</button></div>`}
-      <button class="btn ghost wide" onclick="go('gallery')">‹ Back to gallery</button></div>`; }
+      <button class="btn ghost wide" onclick="go('gallery')">‹ Back to the garden</button></div>`; }
 
-  if(screen === "inq"){ const q = curInq(); if(!q) return go("adv");
-    return app.innerHTML = head("My adventure map 🗺️", esc(q.data.wonder || "A new adventure"), "linear-gradient(135deg,#2f9e6b,#2f6fd6)") + `<div class="body">
-      <div class="map">${STOPS.map((s,i)=>{ const n = i+1, done = (q.data.stamps||[]).includes(n), here = q.stage === n, locked = n > q.stage;
-        return `<button class="stop ${done?"done":""} ${here?"here":""} ${locked?"locked":""}" ${locked?"disabled":""} onclick="go('s${n}')" style="--c:${s.c}">
-          <span class="sic">${done ? "✅" : s.ic}</span><span class="snm">${n}. ${s.name}</span><span class="sds">${locked ? "🔒" : done ? "Stamp collected!" : here ? "You are here ➜" : ""}</span></button>`; }).join(`<div class="pathdot"></div>`)}</div>
-      ${q.stage > 5 ? `<div class="card center"><div style="font-size:46px">🏆</div><h2 style="justify-content:center">Adventure complete!</h2><p style="font-weight:700">You collected all 5 stamps. Amazing inquirer!</p></div>` : ""}
+  if(screen === "inq"){ const q = curInq(); if(!q) return go("adv"); const n = growth(q);
+    return app.innerHTML = head("My wonder journey", esc(q.data.wonder || "A new seed"), "linear-gradient(135deg,#2f9e6b,#7cc36b)") + `<div class="body">
+      <div class="card center growcard"><div class="bigplant g${n}">${PLANTS[n]}</div><p style="font-weight:800;color:var(--muted)">${["Plant your seed to begin!","Your seed is planted!","It's sprouting!","Look how it's growing!","A bud is opening…","It bloomed! 🎉"][n]}</p></div>
+      <div class="map">${STOPS.map((s,i)=>{ const k = i+1, done = (q.data.stamps||[]).includes(k), here = q.stage === k, locked = k > q.stage;
+        return `<button class="stop ${done?"done":""} ${here?"here":""} ${locked?"locked":""}" ${locked?"disabled":""} onclick="go('s${k}')" style="--c:${s.c}">
+          <span class="sic">${done ? "✅" : s.ic}</span><span class="snm">${s.name}<small>${s.sub}</small></span><span class="sds">${locked ? "🔒" : here ? "Go ➜" : ""}</span></button>`; }).join(`<div class="pathdot"></div>`)}</div>
       ${notesBox(q)}
-      <button class="btn ghost wide" onclick="go('adv')">‹ All my adventures</button></div>`; }
+      <button class="btn ghost wide" onclick="go('adv')">‹ My Wonder Garden</button></div>`; }
 
   if(screen === "s1"){ const q = curInq(); const myW = entries.filter(e => e.kind === "wonder");
     return app.innerHTML = stopHead(1) + `<div class="body">
-      <div class="card"><h2>What do you wonder about?<button class="speak" onclick="speak('What do you wonder about? Choose a wonder or say a new one.')">🔊</button></h2>
-        <div class="mic-row">${micBtn("w1")}<textarea id="w1" placeholder="I wonder…">${esc(q.data.wonder||"")}</textarea></div>${langSwitch()}</div>
+      <div class="card"><h2>🌰 What do you wonder?<button class="speak" onclick="speak('What do you wonder about? Write or say your question.')">🔊</button></h2>
+        <div class="mic-row">${micBtn("w1")}<textarea id="w1" placeholder="I wonder…">${esc(q.data.wonder||"")}</textarea></div>${langSwitch()}
+        ${aiOn() ? `<button class="btn wide ghost" style="margin-top:10px" onclick="askCoach()">🐦 Help me make my question stronger</button>` : ""}
+        ${coach ? `<div class="birdsays"><img src="bird.png" alt=""><div><b>${esc(coach.praise||"")}</b>${(coach.tips||[]).map(t=>`<p>💡 ${esc(t)}</p>`).join("")}</div></div>` : ""}</div>
       ${myW.length ? `<div class="card"><h2>From my wonder wall</h2><div class="wall">${myW.slice(0,12).map((w,i)=>`<button class="bub" style="background:${BUBBLE_COLOURS[i%6]}" onclick="$('#w1').value=${esc(JSON.stringify(w.content.text))}">${esc(w.content.text)}</button>`).join("")}</div></div>` : ""}
-      ${provs.length ? `<div class="card"><h2>🫙 From the wonder jar</h2><div class="wall">${provs.map((p,i)=>`<button class="bub" style="background:${BUBBLE_COLOURS[(i+2)%6]}" onclick="$('#w1').value=${esc(JSON.stringify(p.title))}">${esc(p.emoji)} ${esc(p.title)}</button>`).join("")}</div></div>` : ""}
-      <button class="btn wide leaf" onclick="finishStop(1,{wonder:$('#w1').value.trim()}, 'Choose or write a wonder first!')">Collect my stamp ➜</button></div>`; }
+      <button class="btn wide leaf" onclick="coach=null;finishStop(1,{wonder:$('#w1').value.trim()}, 'Write or say your wonder first!')">🌱 Plant my seed</button></div>`; }
 
-  if(screen === "s2"){ const q = curInq(), d = q.data, m = d.methods || [];
+  if(screen === "s2"){ const q = curInq(), tw = twigs(q);
     return app.innerHTML = stopHead(2) + `<div class="body">
-      <div class="card"><h2>💭 What I think now<button class="speak" onclick="speak('What do you think the answer might be?')">🔊</button></h2>
-        <div class="mic-row">${micBtn("think")}<textarea id="think" placeholder="I think…">${esc(d.think||"")}</textarea></div></div>
-      <div class="card"><h2>🧭 How will I find out?<button class="speak" onclick="speak('How will you find out? Choose as many as you like.')">🔊</button></h2>
-        <div class="methods">${METHODS.map(([ic,l])=>`<button class="method ${m.includes(l)?"on":""}" onclick="toggleMethod(${esc(JSON.stringify(l))})"><span>${ic}</span>${l}</button>`).join("")}</div></div>
-      ${experts.length ? `<div class="card"><h2>🧑‍🔬 Ask an expert</h2>
-        <div class="wall" style="margin-bottom:10px">${experts.map(x=>`<button class="bub" style="background:${(d.expertIds||[]).includes(x.id)?"#e6f7ec":"#f6f2ff"};border:2px solid ${(d.expertIds||[]).includes(x.id)?"var(--leaf)":"transparent"}" onclick="toggleExpert('${x.id}')">${esc(x.emoji)} ${esc(x.name)} · ${esc(x.topic)}</button>`).join("")}</div>
-        <p style="font-weight:700;color:var(--muted);margin-bottom:6px">My question for the expert:</p>
-        <div class="mic-row">${micBtn("expQ", true)}<textarea id="expQ" style="min-height:56px">${esc(d.expertQ||"")}</textarea></div></div>` : ""}
-      <button class="btn wide leaf" onclick="finishStop(2,{think:$('#think').value.trim(), expertQ:$('#expQ')?$('#expQ').value.trim():''}, 'Tell me what you think first!', d => (d.methods||[]).length ? '' : 'Choose how you will find out!')">Collect my stamp ➜</button></div>`; }
-
-  if(screen === "s3"){ const q = curInq(), nb = q.data.notebook || [];
-    return app.innerHTML = stopHead(3) + `<div class="body">
-      <div class="card"><h2>📓 My field notebook<button class="speak" onclick="speak('Add what you find out. You can write, talk, take photos, count things or test your ideas.')">🔊</button></h2>
-        <div class="tiles">
-          <button class="tile" style="background:var(--blue);min-height:74px" onclick="nbMode='note';draw()"><span>✏️</span>Note</button>
-          <label class="tile" style="background:var(--coral);min-height:74px;cursor:pointer"><span>📷</span>Photo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhoto(this)"></label>
-          <button class="tile" style="background:#f59e0b;min-height:74px" onclick="nbMode='tally';draw()"><span>🔢</span>Count</button>
-          <button class="tile" style="background:var(--leaf);min-height:74px" onclick="nbMode='try';draw()"><span>🧪</span>Test it</button>
+      <div class="card center"><div class="nestscene"><img src="bird.png" class="birdfly" alt=""><div class="nest">${tw.slice(0,12).map((t,i)=>`<span class="twig" style="--a:${(i*47)%60-30}deg;--x:${(i%6)*18-45}px;--y:${Math.floor(i/6)*-12}px"></span>`).join("")}</div></div>
+        <p style="font-weight:800;color:var(--navy);font-size:16px">${tw.length ? `${tw.length} twig${tw.length===1?"":"s"} in your nest!` : "Fly out and find twigs for your nest!"}</p>
+        <p style="font-size:13.5px;color:var(--muted);font-weight:700">Every clue you find is a twig.</p></div>
+      <div class="card"><h2>🐦 Add a twig<button class="speak" onclick="speak('What did you find out? You can write, talk, take a photo, count, test or interview.')">🔊</button></h2>
+        <div class="twigbtns">
+          <button class="twigbtn" style="--c:var(--blue)" onclick="nbMode='note';draw()"><span>✏️</span>Note</button>
+          <label class="twigbtn" style="--c:var(--coral)"><span>📷</span>Photo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhoto(this)"></label>
+          <button class="twigbtn" style="--c:#f59e0b" onclick="nbMode='tally';draw()"><span>🔢</span>Count</button>
+          <button class="twigbtn" style="--c:var(--leaf)" onclick="nbMode='try';draw()"><span>🧪</span>Test</button>
+          <button class="twigbtn" style="--c:var(--lilac)" onclick="nbMode='interview';draw()"><span>🎤</span>Interview</button>
+          ${aiOn() ? `<button class="twigbtn" style="--c:#0ea5e9" onclick="nbMode='read';draw()"><span>📖</span>Hard text</button>` : ""}
         </div>
-        ${nbMode === "note" ? `<div style="margin-top:12px"><div class="mic-row">${micBtn("nbText")}<textarea id="nbText" placeholder="I found out…"></textarea></div>${langSwitch()}<button class="btn wide" style="margin-top:8px" onclick="addNote()">Add to notebook</button></div>` : ""}
-        ${nbMode === "tally" ? `<div style="margin-top:12px"><input class="title" id="tLabel" placeholder="What are you counting? e.g. birds I saw">
-          <div class="tallies">${tally.map((t,i)=>`<div class="trow"><input class="title" style="margin:0;flex:1" value="${esc(t.label)}" oninput="tally[${i}].label=this.value" placeholder="Thing ${i+1}"><button class="tbtn" onclick="tally[${i}].count=Math.max(0,tally[${i}].count-1);draw()">−</button><b class="tcount">${t.count}</b><button class="tbtn" onclick="tally[${i}].count++;draw()">+</button></div>`).join("")}</div>
+        ${nbMode === "note" ? `<div style="margin-top:12px"><div class="mic-row">${micBtn("nbText")}<textarea id="nbText" placeholder="I found out…"></textarea></div>${langSwitch()}<button class="btn wide" style="margin-top:8px" onclick="addNote()">🪵 Add twig</button></div>` : ""}
+        ${nbMode === "tally" ? `<div style="margin-top:12px"><input class="title" id="tLabel" placeholder="What are you counting?">
+          <div>${tally.map((t,i)=>`<div class="trow"><input class="title" style="margin:0;flex:1" value="${esc(t.label)}" oninput="tally[${i}].label=this.value" placeholder="Thing ${i+1}"><button class="tbtn" onclick="tally[${i}].count=Math.max(0,tally[${i}].count-1);draw()">−</button><b class="tcount">${t.count}</b><button class="tbtn" onclick="tally[${i}].count++;draw()">+</button></div>`).join("")}</div>
           <button class="link" onclick="tally.push({label:'',count:0});draw()" style="font-weight:800;color:var(--blue);margin:6px 0">＋ Add another thing</button>
-          <button class="btn wide" onclick="addTally()">Add to notebook</button></div>` : ""}
+          <button class="btn wide" onclick="addTally()">🪵 Add twig</button></div>` : ""}
         ${nbMode === "try" ? `<div style="margin-top:12px">
-          <p style="font-weight:800;color:var(--navy);margin-bottom:6px">🧪 I tried…</p><div class="mic-row" style="margin-bottom:8px">${micBtn("tried", true)}<textarea id="tried" style="min-height:60px"></textarea></div>
-          <p style="font-weight:800;color:var(--navy);margin-bottom:6px">👀 I noticed…</p><div class="mic-row">${micBtn("noticed", true)}<textarea id="noticed" style="min-height:60px"></textarea></div>
-          <button class="btn wide" style="margin-top:8px" onclick="addTry()">Add to notebook</button></div>` : ""}
+          <p class="lbl">🧪 I tried…</p><div class="mic-row" style="margin-bottom:8px">${micBtn("tried", true)}<textarea id="tried" style="min-height:60px"></textarea></div>
+          <p class="lbl">👀 I noticed…</p><div class="mic-row">${micBtn("noticed", true)}<textarea id="noticed" style="min-height:60px"></textarea></div>
+          <button class="btn wide" style="margin-top:8px" onclick="addTry()">🪵 Add twig</button></div>` : ""}
+        ${nbMode === "interview" ? `<div style="margin-top:12px">
+          <p class="lbl">🙋 Who did I ask?</p><input class="title" id="ivWho" placeholder="For example: my grandma, the school nurse">
+          <p class="lbl">❓ My question</p><div class="mic-row" style="margin-bottom:8px">${micBtn("ivQ", true)}<textarea id="ivQ" style="min-height:56px"></textarea></div>
+          <p class="lbl">💬 What they said</p><div class="mic-row">${micBtn("ivA", true)}<textarea id="ivA" style="min-height:70px"></textarea></div>
+          <button class="btn wide" style="margin-top:8px" onclick="addInterview()">🪵 Add twig</button></div>` : ""}
+        ${nbMode === "read" ? `<div style="margin-top:12px"><p class="lbl">📖 Paste or type the hard text you found</p><textarea id="rdText" style="min-height:100px"></textarea>
+          <button class="btn wide" style="margin-top:8px;background:#0ea5e9" onclick="readHelp()">🐦 Make it easier to read</button>
+          ${readOut ? `<div class="birdsays"><img src="bird.png" alt=""><div><p style="font-size:16px">${esc(readOut.simple||"")}</p>${(readOut.words||[]).map(w=>`<p>🔤 <b>${esc(w.word)}</b>: ${esc(w.meaning)}</p>`).join("")}<button class="btn" style="margin-top:8px;padding:9px 14px;font-size:14px" onclick="speak(${esc(JSON.stringify(readOut.simple||""))})">🔊 Read it to me</button></div></div>` : ""}</div>` : ""}
       </div>
-      ${nb.length ? `<div class="card"><h2>What I found out (${nb.length})</h2>${nb.map((e,i)=>nbItem(e,i,true)).join("")}</div>` : ""}
-      <button class="btn wide leaf" onclick="finishStop(3,{}, '', d => (d.notebook||[]).length ? '' : 'Add something to your notebook first!')">Collect my stamp ➜</button></div>`; }
+      ${experts.length ? `<div class="card"><h2>🧑‍🔬 Ask an expert</h2>
+        <div class="wall" style="margin-bottom:10px">${experts.map(x=>`<button class="bub" style="background:${(q.data.expertIds||[]).includes(x.id)?"#e6f7ec":"#f6f2ff"};border:2px solid ${(q.data.expertIds||[]).includes(x.id)?"var(--leaf)":"transparent"}" onclick="toggleExpert('${x.id}')">${esc(x.emoji)} ${esc(x.name)} · ${esc(x.topic)}</button>`).join("")}</div>
+        <div class="mic-row">${micBtn("expQ", true)}<textarea id="expQ" style="min-height:56px" placeholder="My question for the expert…" onblur="saveExpQ()">${esc(q.data.expertQ||"")}</textarea></div></div>` : ""}
+      ${aiOn() ? `<button class="btn wide ghost" onclick="askNudge()">🐦 I'm stuck! Help me think</button>${nudge ? `<div class="birdsays"><img src="bird.png" alt=""><div><p style="font-size:16px">${esc(nudge)}</p></div></div>` : ""}` : ""}
+      ${tw.length ? `<div class="card" style="margin-top:14px"><h2>🪵 My twigs (${tw.length})</h2>${tw.map((e,i)=>nbItem(e,i,true)).join("")}</div>` : ""}
+      <button class="btn wide leaf" style="margin-top:14px" onclick="nudge=null;readOut=null;finishStop(2,{}, '', d => (d.notebook||[]).length >= 2 ? '' : 'Find at least 2 twigs first!')">🪺 My nest is ready!</button></div>`; }
 
-  if(screen === "s4"){ const q = curInq(), c = q.data.create || {};
+  if(screen === "s3"){ const q = curInq(), tw = twigs(q), b = q.data.board || { links: [] }, skills = (me.current_unit && me.current_unit.atl) || [], badges = q.data.badges || {};
+    return app.innerHTML = stopHead(3) + `<div class="body">
+      <div class="card"><h2>🧵 My evidence board<button class="speak" onclick="speak('Tap two clues that go together to tie them with string.')">🔊</button></h2>
+        <p style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:8px">Tap two clues that go together to tie them with string.</p>
+        <div class="cork" id="cork">${tw.map((e,i)=>`<button class="clue ${pickClue===i?"picked":""}" id="clue${i}" onclick="tapClue(${i})" style="--r:${((i*41)%9)-4}deg"><span class="pin"></span>${clueText(e)}</button>`).join("")}<svg class="strings" id="strings"></svg></div>
+        ${b.links.length ? `<p style="font-size:13px;font-weight:700;color:var(--muted);margin-top:8px">🧵 ${b.links.length} connection${b.links.length===1?"":"s"} · tap the same two clues again to untie</p>` : ""}</div>
+      <div class="card"><h2>💡 What does it all mean?<button class="speak" onclick="speak('Look at your clues. What do they tell you about your wonder?')">🔊</button></h2>
+        <p style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:8px">My wonder: ${esc(q.data.wonder||"")}</p>
+        <div class="mic-row">${micBtn("meaning")}<textarea id="meaning" placeholder="My clues tell me that…" onblur="curInq().data.board=Object.assign(curInq().data.board||{links:[]},{meaning:this.value})">${esc(b.meaning||"")}</textarea></div>${langSwitch()}</div>
+      ${skills.length ? `<div class="card"><h2>🏅 Detective badges</h2><p style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:10px">Which skills did you use? Tap to earn a badge.</p>
+        <div class="badges">${skills.map(sk=>{const nm = sk.split(" · ")[1] || sk, on = badges[sk]; return `<button class="badge ${on?"on":""}" onclick="toggleBadge(${esc(JSON.stringify(sk))})"><span>${on?"🏅":"⚪"}</span>${esc(KID_SKILLS[nm]||nm)}</button>`;}).join("")}</div>
+        ${Object.keys(badges).filter(k=>badges[k]).map(sk=>`<p class="lbl" style="margin-top:10px">${esc(KID_SKILLS[sk.split(" · ")[1]]||sk)}: how did you do?</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${FACES.map(([f,l],i)=>`<button onclick="rateBadge(${esc(JSON.stringify(sk))},${i+1})" style="background:${badges[sk]===i+1?"#fff1c9":"var(--cream)"};border:2.5px solid ${badges[sk]===i+1?"var(--sun)":"#f0e6d0"};border-radius:16px;padding:6px 2px;font-size:11.5px;font-weight:800;color:var(--navy)"><span style="font-size:24px;display:block">${f}</span>${l}</button>`).join("")}</div>`).join("")}</div>` : ""}
+      <button class="btn wide leaf" onclick="finishCase()">🔍 Case cracked!</button></div>`; }
+
+  if(screen === "s4"){ const q = curInq(), sh = q.data.share || {};
+    if(!sh.format) return app.innerHTML = stopHead(4) + `<div class="body"><div class="card center"><h2 style="justify-content:center">How will you share what you found?<button class="speak" onclick="speak('Will you make a museum exhibit or a radio show?')">🔊</button></h2></div>
+      <div class="tiles"><button class="tile" style="background:#8a6cf0;min-height:170px" onclick="setShare('museum')"><span style="font-size:52px">🏛️</span>Make a museum exhibit</button>
+        <button class="tile" style="background:#ff7a59;min-height:170px" onclick="setShare('radio')"><span style="font-size:52px">🎙️</span>Make a radio show</button></div></div>`;
+    if(sh.format === "museum") return app.innerHTML = stopHead(4) + `<div class="body">
+      <div class="card"><h2>🏛️ My museum exhibit</h2>
+        <p class="lbl">Exhibit title</p><input class="title" id="exT" value="${esc(sh.title||"")}" placeholder="For example: The Secret Life of Bees">
+        <p class="lbl">📸 A photo of what I made or found</p>
+        ${sh.img ? `<img src="${sh.img}" style="width:100%;border-radius:16px;margin-bottom:10px">` : ""}
+        <label class="btn wide" style="background:var(--coral);cursor:pointer;margin-bottom:12px">${sh.img ? "Change photo" : "📷 Add a photo"}<input type="file" accept="image/*" capture="environment" style="display:none" onchange="sharePhoto(this)"></label>
+        <p class="lbl">🏷️ My museum label: what visitors should know</p><div class="mic-row">${micBtn("exL", true)}<textarea id="exL">${esc(sh.label||"")}</textarea></div>
+        <p class="lbl" style="margin-top:10px">✋ Touch and try: something visitors can do</p><div class="mic-row">${micBtn("exA", true)}<textarea id="exA" style="min-height:56px" placeholder="For example: Smell the honey and guess which flower it came from">${esc(sh.activity||"")}</textarea></div>
+        ${langSwitch()}</div>
+      <button class="btn ghost wide" style="margin-bottom:10px" onclick="setShare('')">↺ Choose radio instead</button>
+      <button class="btn wide leaf" onclick="finishShare()">🏛️ Open my exhibit!</button></div>`;
     return app.innerHTML = stopHead(4) + `<div class="body">
-      <div class="card"><h2>🎨 How will you show what you found?<button class="speak" onclick="speak('Choose how you will show what you found out.')">🔊</button></h2>
-        <div class="methods">${FORMATS.map(([ic,l])=>`<button class="method ${c.format===l?"on":""}" onclick="setFormat(${esc(JSON.stringify(l))})"><span>${ic}</span>${l}</button>`).join("")}</div></div>
-      <div class="card"><h2>📸 A photo of what I made</h2>
-        ${c.img ? `<img src="${c.img}" style="width:100%;border-radius:16px;margin-bottom:10px">` : ""}
-        <label class="btn wide" style="background:var(--coral);cursor:pointer">${c.img ? "Change photo" : "📷 Add a photo"}<input type="file" accept="image/*" capture="environment" style="display:none" onchange="createPhoto(this)"></label></div>
-      <div class="card"><h2>💬 Tell us about it</h2><div class="mic-row">${micBtn("ctext")}<textarea id="ctext" placeholder="I made… It shows…">${esc(c.text||"")}</textarea></div>${langSwitch()}</div>
-      <button class="btn wide leaf" onclick="finishCreate()">Collect my stamp ➜</button></div>`; }
+      <div class="card"><h2>🎙️ My radio show</h2>
+        <p class="lbl">Show name</p><input class="title" id="raT" value="${esc(sh.title||"")}" placeholder="For example: Wonder Radio: Bee Special">
+        <p class="lbl">📝 What I will say</p><div class="mic-row">${micBtn("raS")}<textarea id="raS" style="min-height:130px" placeholder="Hello listeners! Today I found out…">${esc(sh.script||"")}</textarea></div>${langSwitch()}
+        <p class="lbl" style="margin-top:12px">🔴 Record my show (up to 45 seconds)</p>
+        <div class="tiles"><button class="btn ${recOn?"":"leaf"}" style="${recOn?"background:#b42318":""}" onclick="${recOn?"stopRec()":"startRec()"}">${recOn ? "⏹ Stop recording" : "🔴 Record"}</button>
+          ${sh.audio ? `<button class="btn ghost" onclick="new Audio(curInq().data.share.audio).play()">▶ Play</button>` : `<button class="btn ghost" onclick="speak($('#raS').value)">🔊 Hear my script</button>`}</div>
+        ${recOn ? `<p style="text-align:center;font-weight:900;color:#b42318;margin-top:8px">● Recording…</p>` : sh.audio ? `<p style="text-align:center;font-weight:800;color:var(--leaf);margin-top:8px">✅ Recording saved</p>` : ""}</div>
+      <button class="btn ghost wide" style="margin-bottom:10px" onclick="setShare('')">↺ Choose museum instead</button>
+      <button class="btn wide leaf" onclick="finishShare()">🎙️ On air!</button></div>`; }
 
-  if(screen === "s5"){ const q = curInq(), r = q.data.reflect || {}, skills = (me.current_unit && me.current_unit.atl) || [];
+  if(screen === "s5"){ const q = curInq(), r = q.data.reflect || {};
     return app.innerHTML = stopHead(5) + `<div class="body">
-      ${[["learned","🌟 What I learned","What did you learn?"],["surprised","😮 What surprised me","What surprised you?"],["wonderNow","❓ What I wonder now","What do you wonder now?"]].map(([k,l,s])=>`<div class="step" style="border-color:var(--sun)"><h3>${l}<span style="display:flex;gap:8px"><button class="speak" onclick="speak('${s}')">🔊</button>${micBtn("r_"+k, true)}</span></h3><textarea id="r_${k}" style="min-height:60px">${esc(r[k]||"")}</textarea></div>`).join("")}
-      ${skills.length ? `<div class="card"><h2>💪 Which learning skill did I use?</h2>
-        <div class="wall">${skills.map(sk=>{ const nm = sk.split(" · ")[1] || sk; return `<button class="bub" style="background:${r.skill===sk?"#e6f7ec":"#fff1c9"};border:2px solid ${r.skill===sk?"var(--leaf)":"transparent"}" onclick="curInq().data.reflect=Object.assign(curInq().data.reflect||{}, readReflect(), {skill:${esc(JSON.stringify(sk))}});draw()">${esc(KID_SKILLS[nm]||nm)}</button>`; }).join("")}</div>
-        ${r.skill ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">${FACES.map(([f,l],i)=>`<button onclick="curInq().data.reflect=Object.assign(curInq().data.reflect||{}, readReflect(), {level:${i+1}});draw()" style="background:${r.level===i+1?"#fff1c9":"var(--cream)"};border:2.5px solid ${r.level===i+1?"var(--sun)":"#f0e6d0"};border-radius:16px;padding:8px 4px;font-size:12px;font-weight:800;color:var(--navy)"><span style="font-size:26px;display:block">${f}</span>${l}</button>`).join("")}</div>` : ""}</div>` : ""}
-      <div class="card"><label style="display:flex;gap:12px;align-items:center;font-weight:800;font-size:16px;color:var(--navy);cursor:pointer"><input type="checkbox" id="shareIt" ${q.shared?"checked":""} style="width:26px;height:26px"> 🖼️ Share my adventure in the class gallery</label></div>
+      ${[["learned","🌟 What I learned","What did you learn?"],["surprised","😮 What surprised me","What surprised you?"],["proud","💪 What I'm proud of","What are you proud of?"],["wonderNow","❓ What I wonder now","What do you wonder now?"]].map(([k,l,s])=>`<div class="step" style="border-color:var(--sun)"><h3>${l}<span style="display:flex;gap:8px"><button class="speak" onclick="speak('${s}')">🔊</button>${micBtn("r_"+k, true)}</span></h3><textarea id="r_${k}" style="min-height:60px">${esc(r[k]||"")}</textarea></div>`).join("")}
+      <div class="card"><label style="display:flex;gap:12px;align-items:center;font-weight:800;font-size:16px;color:var(--navy);cursor:pointer"><input type="checkbox" id="shareIt" ${q.shared?"checked":""} style="width:26px;height:26px"> 🌸 Let my flower bloom in our class garden</label></div>
       ${langSwitch()}
-      <button class="btn wide leaf" onclick="finishReflect()">Collect my last stamp 🏆</button></div>`; }
+      <button class="btn wide leaf" onclick="finishReflect()">🌸 Make my flower bloom!</button></div>`; }
 
   if(screen === "shelf") return app.innerHTML = head("Class bookshelf 📚", "Stories to read and enjoy", "linear-gradient(135deg,#8a6cf0,#ff7a59)") + `<div class="body">
     ${shelf.teacher.length ? `<div class="card"><h2>📘 From my teacher</h2><div class="shelfrow">${shelf.teacher.map((t,i)=>`<button class="bookspine" style="--b:${["#2f6fd6","#8a6cf0","#2f9e6b","#ff7a59","#f59e0b"][i%5]}" onclick="readBook('t',${i})"><span>📖</span>${esc(t.title)}</button>`).join("")}</div></div>` : ""}
@@ -524,31 +599,43 @@ function shakeJar(){
 }
 function useSlip(){ const t = slipOpen.title; slipOpen = null; newInquiry(t); }
 
-/* ---------- open inquiry adventure ---------- */
+/* ---------- Wonder Garden open inquiry ---------- */
 const STOPS = [
-  {ic:"💭", name:"Choose a wonder", c:"#f59e0b"}, {ic:"🧭", name:"Plan", c:"#2f6fd6"}, {ic:"🔍", name:"Explore", c:"#8a6cf0"},
-  {ic:"🎨", name:"Create", c:"#ff7a59"}, {ic:"🌟", name:"Share & reflect", c:"#2f9e6b"}
+  {ic:"🌰", name:"Plant a wonder", sub:"Ask your question", c:"#2f9e6b"},
+  {ic:"🐦", name:"Expedition", sub:"Collect twigs for your nest", c:"#2f6fd6"},
+  {ic:"🔍", name:"Crack the case", sub:"Connect your clues", c:"#8a6cf0"},
+  {ic:"🏛️", name:"Share it", sub:"Museum or radio", c:"#ff7a59"},
+  {ic:"🌸", name:"Bloom", sub:"Reflect and grow", c:"#f59e0b"}
 ];
-const METHODS = [["🧑‍🔬","Ask an expert"],["🧪","Do an experiment"],["👀","Observe"],["📚","Read books"],["🧱","Build or make"],["🎤","Interview someone"],["📊","Do a survey"],["🚶","Go on a visit"],["🎬","Watch a video"],["🗺️","Look at maps"]];
-const FORMATS = [["🧱","Model"],["💬","Comic"],["🎵","Song"],["🗺️","Map"],["🖼️","Poster"],["🧸","Puppet show"],["🎬","Video"],["💡","Invention"],["📖","Story"],["🎤","Talk"],["🎨","Artwork"],["📊","Chart"]];
+const PLANTS = ["🌰","🌱","🌿","🪴","🌷","🌸"];
+const WORKER_URL = "https://wondernest-ai.thinknest2026.workers.dev";
 let inqs = [], provs = [], experts = [], gallery = [], mates = [], myNotes = [], curId = null, gId = null, nbMode = "note", tally = [{label:"",count:0},{label:"",count:0}];
+let coach = null, nudge = null, readOut = null, pickClue = null, recOn = false, recorder = null;
 const curInq = () => inqs.find(q => q.id === curId);
 const mateName = id => (mates.find(m => m.id === id) || {}).first_name || "A friend";
+const growth = q => Math.min(5, (q.data.stamps || []).length);
+const twigs = q => q.data.notebook || [];
+const aiOn = () => me && me.kid_ai !== false && !!WORKER_URL;
+function normInq(q){
+  const d = q.data = q.data || {};
+  if(!d.share && d.create && (d.create.format || d.create.img || d.create.text)) d.share = { format: "museum", title: d.create.format || "", img: d.create.img || "", label: d.create.text || "" };
+  return q;
+}
 async function loadInquiry(){
-  const [a, b, c, d] = await Promise.all([
+  const [a, b, c, d, m] = await Promise.all([
     db.from("inquiries").select("*").eq("student_id", me.student_id).order("updated_at", { ascending: false }),
     db.from("class_provocations").select("*").eq("class_id", me.class_id).order("created_at", { ascending: false }),
     db.from("class_experts").select("*").eq("class_id", me.class_id).order("name"),
-    db.from("inquiry_notes").select("*").order("created_at", { ascending: true })
+    db.from("inquiry_notes").select("*").order("created_at", { ascending: true }),
+    db.rpc("my_classmates")
   ]);
-  inqs = a.data || []; provs = b.data || []; experts = c.data || []; myNotes = d.data || [];
-  const m = await db.rpc("my_classmates"); mates = m.data || [];
+  inqs = (a.data || []).map(normInq); provs = b.data || []; experts = c.data || []; myNotes = d.data || []; mates = m.data || [];
 }
 async function goAdventures(){ await loadInquiry(); go("adv"); }
 async function newInquiry(wonder){
   const { data, error } = await db.from("inquiries").insert({ student_id: me.student_id, class_id: me.class_id, stage: 1, data: { wonder: wonder || "", stamps: [] } }).select().single();
   if(error || !data){ toast("Oh no, it didn't start. Try again."); return; }
-  inqs.unshift(data); curId = data.id; go(wonder ? "s1" : "s1");
+  inqs.unshift(normInq(data)); curId = data.id; coach = null; go("s1");
 }
 function openInq(id){ curId = id; go("inq"); }
 async function saveInq(q){
@@ -562,14 +649,34 @@ async function finishStop(n, patch, emptyMsg, check){
   const problem = check ? check(q.data) : ""; if(problem) return toast(problem);
   q.data.stamps = [...new Set([...(q.data.stamps||[]), n])];
   if(q.stage <= n) q.stage = n + 1;
-  if(await saveInq(q)){ speak("You collected a stamp!"); stampToast(STOPS[n-1].ic); go("inq"); }
+  if(await saveInq(q)){ speak(["Your seed is planted!","Your nest is ready!","Case cracked!","Your work is shared!","Your flower bloomed!"][n-1]); stampToast(PLANTS[Math.min(5, n)]); go("inq"); }
 }
 function stampToast(ic){ const el = document.createElement("div"); el.className = "stampfly"; el.textContent = ic; document.body.appendChild(el); setTimeout(()=>el.remove(), 1600); }
-function stopHead(n){ const s = STOPS[n-1]; return `<div class="head" style="background:${s.c}"><div class="hi">Stop ${n} of 5</div><h1>${s.ic} ${s.name}</h1><button class="back" onclick="go('inq')">‹ My map</button></div>`; }
-function toggleMethod(l){ const q = curInq(); q.data.think = ($("#think")||{}).value ?? q.data.think; if($("#expQ")) q.data.expertQ = $("#expQ").value; const m = q.data.methods = q.data.methods || []; const i = m.indexOf(l); i >= 0 ? m.splice(i,1) : m.push(l); draw(); }
-function toggleExpert(id){ const q = curInq(); q.data.think = ($("#think")||{}).value ?? q.data.think; if($("#expQ")) q.data.expertQ = $("#expQ").value; const m = q.data.expertIds = q.data.expertIds || []; const i = m.indexOf(id); i >= 0 ? m.splice(i,1) : m.push(id); draw(); }
-function setFormat(l){ const q = curInq(); q.data.create = Object.assign(q.data.create || {}, { format: l, text: ($("#ctext")||{}).value ?? (q.data.create||{}).text }); draw(); }
-function readReflect(){ const g = k => ($("#r_"+k)||{}).value || ""; return { learned: g("learned"), surprised: g("surprised"), wonderNow: g("wonderNow") }; }
+function stopHead(n){ const s = STOPS[n-1]; return `<div class="head" style="background:${s.c}"><div class="hi">Step ${n} of 5 · ${s.sub}</div><h1>${s.ic} ${s.name}</h1><button class="back" onclick="go('inq')">‹ My journey</button></div>`; }
+// ---- AI helpers (only where meaningful) ----
+async function kidAI(task, extra){
+  const u = { theme: (me.current_unit && me.current_unit.themeName) || "", description: "", ageBand: me.grade || "", duration: "", languages: "", centralIdea: (me.current_unit && me.current_unit.centralIdea) || "", lines: [], keyConcepts: [], atl: [] };
+  const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task, unit: Object.assign(u, extra) }) });
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(data.error || "The bird is resting. Try again soon!");
+  return data;
+}
+async function askCoach(){
+  const w = $("#w1").value.trim(); if(w.length < 3) return toast("Write your wonder first!");
+  curInq().data.wonder = w; toast("🐦 The bird is thinking…");
+  try{ coach = await kidAI("question_coach", { wonder: w }); draw(); speak((coach.praise||"") + " " + (coach.tips||[]).join(" ")); }catch(e){ toast(e.message); }
+}
+async function askNudge(){
+  const q = curInq(); toast("🐦 The bird is thinking…");
+  const ev = twigs(q).map(clueText).map(t => t.replace(/<[^>]+>/g, "")).join(" | ");
+  try{ const d = await kidAI("bird_nudge", { wonder: q.data.wonder, evidence: ev }); nudge = d.nudge || ""; draw(); speak(nudge); }catch(e){ toast(e.message); }
+}
+async function readHelp(){
+  const t = $("#rdText").value.trim(); if(t.length < 20) return toast("Paste the text you found first!");
+  toast("🐦 The bird is reading…");
+  try{ readOut = await kidAI("reading_helper", { text: t }); draw(); }catch(e){ toast(e.message); }
+}
+// ---- twigs ----
 function resizeImage(file){
   return new Promise((ok, bad) => {
     const r = new FileReader(); r.onerror = bad;
@@ -580,46 +687,97 @@ function resizeImage(file){
     r.readAsDataURL(file);
   });
 }
-const photoCount = q => (q.data.notebook || []).filter(e => e.type === "photo").length + (q.data.create && q.data.create.img ? 1 : 0);
+const photoCount = q => twigs(q).filter(e => e.type === "photo").length + (q.data.share && q.data.share.img ? 1 : 0);
+async function pushTwig(t, msg){ const q = curInq(); (q.data.notebook = q.data.notebook || []).push(Object.assign({ at: Date.now() }, t)); if(await saveInq(q)){ toast(msg || "🪵 Twig added to your nest!"); draw(); } }
 async function addPhoto(input){
   const q = curInq(), f = input.files && input.files[0]; if(!f) return;
   if(photoCount(q) >= 8) return toast("You can add up to 8 photos.");
-  try{ const img = await resizeImage(f); (q.data.notebook = q.data.notebook || []).push({ type: "photo", img, at: Date.now() }); if(await saveInq(q)) { toast("📷 Photo added!"); draw(); } }
-  catch(e){ toast("That photo didn't work. Try another one."); }
+  try{ pushTwig({ type: "photo", img: await resizeImage(f) }, "📷 Photo twig added!"); }catch(e){ toast("That photo didn't work. Try another one."); }
 }
-async function createPhoto(input){
-  const q = curInq(), f = input.files && input.files[0]; if(!f) return;
-  try{ const img = await resizeImage(f); q.data.create = Object.assign(q.data.create || {}, { img, text: ($("#ctext")||{}).value ?? (q.data.create||{}).text }); if(await saveInq(q)) draw(); }
-  catch(e){ toast("That photo didn't work. Try another one."); }
-}
-async function addNote(){ const t = $("#nbText").value.trim(); if(!t) return toast("Write or say what you found first!"); const q = curInq(); (q.data.notebook = q.data.notebook || []).push({ type: "note", text: t, at: Date.now() }); if(await saveInq(q)){ toast("✏️ Added!"); draw(); } }
-async function addTally(){ const items = tally.filter(t => t.label.trim()); if(!items.length) return toast("Name the things you counted!"); const q = curInq(); (q.data.notebook = q.data.notebook || []).push({ type: "tally", title: $("#tLabel").value.trim(), items: items.map(t => ({ label: t.label.trim(), count: t.count })), at: Date.now() }); if(await saveInq(q)){ tally = [{label:"",count:0},{label:"",count:0}]; toast("🔢 Added!"); draw(); } }
-async function addTry(){ const tr = $("#tried").value.trim(), no = $("#noticed").value.trim(); if(!tr || !no) return toast("Fill in both boxes!"); const q = curInq(); (q.data.notebook = q.data.notebook || []).push({ type: "try", tried: tr, noticed: no, at: Date.now() }); if(await saveInq(q)){ toast("🧪 Added!"); draw(); } }
-async function delNb(i){ if(!confirm("Remove this from your notebook?")) return; const q = curInq(); q.data.notebook.splice(i,1); if(await saveInq(q)) draw(); }
+function addNote(){ const t = $("#nbText").value.trim(); if(!t) return toast("Write or say what you found first!"); pushTwig({ type: "note", text: t }); }
+function addTally(){ const items = tally.filter(t => t.label.trim()); if(!items.length) return toast("Name the things you counted!"); pushTwig({ type: "tally", title: $("#tLabel").value.trim(), items: items.map(t => ({ label: t.label.trim(), count: t.count })) }); tally = [{label:"",count:0},{label:"",count:0}]; }
+function addTry(){ const tr = $("#tried").value.trim(), no = $("#noticed").value.trim(); if(!tr || !no) return toast("Fill in both boxes!"); pushTwig({ type: "try", tried: tr, noticed: no }); }
+function addInterview(){ const w = $("#ivWho").value.trim(), qq = $("#ivQ").value.trim(), a = $("#ivA").value.trim(); if(!w || !a) return toast("Who did you ask, and what did they say?"); pushTwig({ type: "interview", who: w, q: qq, a }); }
+async function delNb(i){ if(!confirm("Take this twig out of your nest?")) return; const q = curInq(); q.data.notebook.splice(i,1); q.data.board = { links: [], meaning: (q.data.board||{}).meaning || "" }; if(await saveInq(q)) draw(); }
+function toggleExpert(id){ const q = curInq(); if($("#expQ")) q.data.expertQ = $("#expQ").value; const m = q.data.expertIds = q.data.expertIds || []; const i = m.indexOf(id); i >= 0 ? m.splice(i,1) : m.push(id); saveInq(q); draw(); }
+function saveExpQ(){ const q = curInq(); q.data.expertQ = $("#expQ").value.trim(); saveInq(q); }
 function nbItem(e, i, canDel){
   const del = canDel ? `<button onclick="delNb(${i})" style="float:right;color:#b42318;font-weight:800">✕</button>` : "";
   if(e.type === "photo") return `<div class="item">${del}<img src="${e.img}" style="width:100%;border-radius:12px"></div>`;
   if(e.type === "tally") return `<div class="item">${del}<h4>🔢 ${esc(e.title || "I counted")}</h4>${e.items.map(t=>`<p>${esc(t.label)}: <b>${"|".repeat(Math.min(t.count,40))}</b> ${t.count}</p>`).join("")}</div>`;
   if(e.type === "try") return `<div class="item">${del}<h4>🧪 I tried…</h4><p>${esc(e.tried)}</p><h4 style="margin-top:6px">👀 I noticed…</h4><p>${esc(e.noticed)}</p></div>`;
+  if(e.type === "interview") return `<div class="item">${del}<h4>🎤 I asked ${esc(e.who)}</h4>${e.q?`<p><b>Q:</b> ${esc(e.q)}</p>`:""}<p><b>They said:</b> ${esc(e.a)}</p></div>`;
   return `<div class="item">${del}<p>✏️ ${esc(e.text)}</p></div>`;
 }
-async function finishCreate(){
-  const q = curInq(); q.data.create = Object.assign(q.data.create || {}, { text: $("#ctext").value.trim() });
-  if(!q.data.create.format) return toast("Choose how you will show it!");
-  if(!q.data.create.text && !q.data.create.img) return toast("Add a photo or tell us about it!");
+function clueText(e){
+  if(e.type === "photo") return `<img src="${e.img}" alt="">`;
+  if(e.type === "tally") return `🔢 ${esc(e.title || "I counted")}: ${e.items.map(t => esc(t.label) + " " + t.count).join(", ")}`;
+  if(e.type === "try") return `🧪 ${esc(e.noticed)}`;
+  if(e.type === "interview") return `🎤 ${esc(e.who)}: ${esc(e.a)}`;
+  return `✏️ ${esc(e.text)}`;
+}
+// ---- evidence board ----
+async function tapClue(i){
+  const q = curInq(); const b = q.data.board = q.data.board || { links: [] }; b.meaning = ($("#meaning")||{}).value ?? b.meaning;
+  if(pickClue === null){ pickClue = i; return draw(); }
+  if(pickClue === i){ pickClue = null; return draw(); }
+  const a = Math.min(pickClue, i), c = Math.max(pickClue, i), k = b.links.findIndex(l => l[0] === a && l[1] === c);
+  if(k >= 0) b.links.splice(k, 1); else { b.links.push([a, c]); speak("Tied!"); }
+  pickClue = null; await saveInq(q); draw();
+}
+function drawStrings(){
+  const svg = document.getElementById("strings"), cork = document.getElementById("cork"); const q = curInq(); if(!svg || !cork || !q) return;
+  const box = cork.getBoundingClientRect(); svg.setAttribute("width", box.width); svg.setAttribute("height", cork.scrollHeight);
+  const pt = i => { const el = document.getElementById("clue" + i); if(!el) return null; const r = el.getBoundingClientRect(); return [r.left - box.left + r.width / 2, r.top - box.top + 8]; };
+  svg.innerHTML = ((q.data.board || {}).links || []).map(([a, c]) => { const p = pt(a), s = pt(c); if(!p || !s) return ""; const my = Math.max(p[1], s[1]) + 30;
+    return `<path d="M${p[0]},${p[1]} Q${(p[0]+s[0])/2},${my} ${s[0]},${s[1]}" stroke="#d62828" stroke-width="3" fill="none" stroke-linecap="round"/>`; }).join("");
+}
+function toggleBadge(sk){ const q = curInq(); q.data.board = Object.assign(q.data.board || { links: [] }, { meaning: ($("#meaning")||{}).value ?? (q.data.board||{}).meaning }); const b = q.data.badges = q.data.badges || {}; b[sk] ? delete b[sk] : (b[sk] = 3); if(b[sk]) speak("You earned a badge!"); draw(); }
+function rateBadge(sk, lv){ const q = curInq(); q.data.board = Object.assign(q.data.board || { links: [] }, { meaning: ($("#meaning")||{}).value ?? (q.data.board||{}).meaning }); q.data.badges[sk] = lv; draw(); }
+async function finishCase(){
+  const q = curInq(); const m = $("#meaning").value.trim(); if(!m) return toast("Tell us what your clues mean!");
+  q.data.board = Object.assign(q.data.board || { links: [] }, { meaning: m });
+  const badges = q.data.badges || {}, saved = q.data.badgesSaved || {}, unit = me.current_unit ? (me.current_unit.centralIdea || "") : "";
+  for(const sk of Object.keys(badges)){ if(saved[sk]) continue;
+    const { error } = await db.from("atl_records").insert({ student_id: me.student_id, class_id: me.class_id, skill: sk, level: badges[sk], level_label: FACES[badges[sk]-1][1], source: "self", note: "Open inquiry: " + (q.data.wonder || "").slice(0, 200), unit_label: unit });
+    if(!error){ saved[sk] = true; } }
+  q.data.badgesSaved = saved; pickClue = null;
+  finishStop(3, {});
+}
+// ---- share: museum or radio ----
+function keepShareFields(){ const q = curInq(), s = q.data.share = q.data.share || {}; const g = id => ($("#"+id)||{}).value;
+  if(s.format === "museum"){ if(g("exT") !== undefined) s.title = g("exT").trim(); if(g("exL") !== undefined) s.label = g("exL").trim(); if(g("exA") !== undefined) s.activity = g("exA").trim(); }
+  if(s.format === "radio"){ if(g("raT") !== undefined) s.title = g("raT").trim(); if(g("raS") !== undefined) s.script = g("raS").trim(); } return s; }
+function setShare(f){ const q = curInq(); keepShareFields(); q.data.share = Object.assign(q.data.share || {}, { format: f }); saveInq(q); draw(); }
+async function sharePhoto(input){ const f = input.files && input.files[0]; if(!f) return; const q = curInq(); keepShareFields();
+  try{ q.data.share.img = await resizeImage(f); if(await saveInq(q)) draw(); }catch(e){ toast("That photo didn't work. Try another one."); } }
+async function startRec(){
+  keepShareFields();
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const chunks = []; recorder = new MediaRecorder(stream);
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = async () => { stream.getTracks().forEach(t => t.stop()); recOn = false;
+      const blob = new Blob(chunks, { type: recorder.mimeType || "audio/mp4" }); const r = new FileReader();
+      r.onload = async () => { const q = curInq(); keepShareFields(); q.data.share.audio = r.result; if(await saveInq(q)) toast("🎙️ Saved!"); draw(); }; r.readAsDataURL(blob); };
+    recorder.start(); recOn = true; draw(); setTimeout(() => { if(recOn) stopRec(); }, 45000);
+  }catch(e){ toast("I can't use the microphone. Ask your teacher to allow it."); }
+}
+function stopRec(){ if(recorder && recorder.state !== "inactive") recorder.stop(); }
+async function finishShare(){
+  const q = curInq(), s = keepShareFields();
+  if(!s.title) return toast("Give it a title!");
+  if(s.format === "museum" && !s.label && !s.img) return toast("Add a photo or a museum label!");
+  if(s.format === "radio" && !s.script && !s.audio) return toast("Write your script or record your show!");
   finishStop(4, {});
 }
 async function finishReflect(){
-  const q = curInq(); q.data.reflect = Object.assign(q.data.reflect || {}, readReflect());
+  const q = curInq(); const g = k => ($("#r_"+k)||{}).value.trim();
+  q.data.reflect = { learned: g("learned"), surprised: g("surprised"), proud: g("proud"), wonderNow: g("wonderNow") };
   if(!q.data.reflect.learned) return toast("Tell us what you learned!");
   q.shared = $("#shareIt").checked;
-  const r = q.data.reflect;
-  if(r.skill && r.level && !r.atlSaved){
-    const unit = me.current_unit ? (me.current_unit.centralIdea || "") : "";
-    const { error } = await db.from("atl_records").insert({ student_id: me.student_id, class_id: me.class_id, skill: r.skill, level: r.level, level_label: FACES[r.level-1][1], source: "self", note: "Open inquiry: " + (q.data.wonder || "").slice(0, 200), unit_label: unit });
-    if(!error) r.atlSaved = true;
-  }
   await finishStop(5, {});
+  if(q.data.reflect.wonderNow && confirm("🌰 Plant \"" + q.data.reflect.wonderNow + "\" as a new wonder?")) newInquiry(q.data.reflect.wonderNow);
 }
 function notesBox(q){
   const ns = myNotes.filter(n => n.inquiry_id === q.id); if(!ns.length) return "";
@@ -627,16 +785,17 @@ function notesBox(q){
     ? `<div class="item" style="background:#fff1c9"><h4>From ${esc(mateName(n.author_student))}</h4><p>⭐ ${esc(n.content.star1||"")}<br>⭐ ${esc(n.content.star2||"")}<br>🪄 ${esc(n.content.wish||"")}</p></div>`
     : `<div class="item" style="background:#e3f1ff"><h4>From my teacher</h4><p style="font-size:${n.kind==="sticker"?"18px":"15px"}">${esc(n.content.text||"")}</p></div>`).join("")}</div>`;
 }
-function inqSummary(q){
-  const d = q.data, c = d.create || {}, r = d.reflect || {};
-  return `<div class="card"><h2>💭 ${esc(d.wonder||"")}</h2>${d.think?`<p style="margin-bottom:6px"><b>I thought:</b> ${esc(d.think)}</p>`:""}${(d.methods||[]).length?`<p style="font-size:14px;color:var(--muted)">🧭 ${esc(d.methods.join(" · "))}</p>`:""}</div>
-    ${(d.notebook||[]).length ? `<div class="card"><h2>🔍 What they found</h2>${d.notebook.map((e,i)=>nbItem(e,i,false)).join("")}</div>` : ""}
-    ${c.format || c.img || c.text ? `<div class="card"><h2>🎨 ${esc(c.format || "What I made")}</h2>${c.img?`<img src="${c.img}" style="width:100%;border-radius:16px;margin-bottom:8px">`:""}<p>${esc(c.text||"")}</p></div>` : ""}
-    ${r.learned ? `<div class="card"><h2>🌟 Reflection</h2><p><b>I learned:</b> ${esc(r.learned)}</p>${r.surprised?`<p><b>It surprised me that:</b> ${esc(r.surprised)}</p>`:""}${r.wonderNow?`<p><b>Now I wonder:</b> ${esc(r.wonderNow)}</p>`:""}</div>` : ""}`;
+function shareView(q){
+  const d = q.data, s = d.share || {}, r = d.reflect || {};
+  return `<div class="card"><p style="font-size:13px;font-weight:800;color:var(--muted)">🌰 Wonder</p><h2>${esc(d.wonder||"")}</h2></div>
+    ${s.format === "radio" ? `<div class="card radio"><div class="onair">● ON AIR</div><h2>🎙️ ${esc(s.title||"Radio show")}</h2>${s.audio ? `<audio controls src="${s.audio}" style="width:100%;margin:8px 0"></audio>` : ""}${s.script ? `<p style="white-space:pre-wrap;line-height:1.6">${esc(s.script)}</p>` : ""}</div>`
+      : `<div class="card exhibit"><div class="plaque">🏛️ ${esc(s.title||"Exhibit")}</div>${s.img ? `<img src="${s.img}" class="exhibitimg">` : ""}${s.label ? `<div class="label">${esc(s.label)}</div>` : ""}${s.activity ? `<div class="touch">✋ Touch and try: ${esc(s.activity)}</div>` : ""}</div>`}
+    ${d.board && d.board.meaning ? `<div class="card"><h2>🔍 What the clues showed</h2><p>${esc(d.board.meaning)}</p></div>` : ""}
+    ${r.learned ? `<div class="card"><h2>🌸 Reflection</h2><p><b>I learned:</b> ${esc(r.learned)}</p>${r.surprised?`<p><b>It surprised me:</b> ${esc(r.surprised)}</p>`:""}${r.wonderNow?`<p><b>Now I wonder:</b> ${esc(r.wonderNow)}</p>`:""}</div>` : ""}`;
 }
 async function loadGallery(){
   const [g, m] = await Promise.all([db.from("inquiries").select("*").eq("class_id", me.class_id).eq("shared", true).order("updated_at", { ascending: false }), db.rpc("my_classmates")]);
-  gallery = g.data || []; mates = m.data || []; go("gallery");
+  gallery = (g.data || []).map(normInq); mates = m.data || []; go("gallery");
 }
 function viewGallery(id){ gId = id; go("gview"); }
 async function sendStars(id){
@@ -695,6 +854,9 @@ async function saveRoutine(){
 async function saveStory(){ const t = $("#s_text").value.trim(); if(!t) return toast("Tell me your story first!"); if(await addEntry("story", $("#s_title").value.trim() || "My story", {text:t})) draw(); }
 async function saveReflection(){ const b = $("#g_before").value.trim(), n = $("#g_now").value.trim(); if(!b || !n) return toast("Fill in both boxes!"); if(await addEntry("reflection", "I used to think… Now I think…", {before:b, now:n})) draw(); }
 
+const _draw = draw;
+draw = function(){ _draw(); if(screen === "s3") requestAnimationFrame(drawStrings); };
+window.addEventListener("resize", () => { if(screen === "s3") drawStrings(); });
 start();
 </script>
 </body>
