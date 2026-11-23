@@ -58,11 +58,11 @@
   @keyframes floatA{0%,100%{translate:0 0}50%{translate:0 -10px}}
   @keyframes floatB{0%,100%{translate:0 0}50%{translate:6px -8px}}
   .birdzone{position:absolute;left:64%;top:-10px;width:250px;height:260px;transform:translateX(-25%)}
-  .halo{position:absolute;left:30px;top:70px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#eef7fb,#d9eef4);animation:breathe 5s ease-in-out infinite}
+  .halo{position:absolute;left:24px;top:24px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffffff,#eaf3f6);box-shadow:0 10px 30px rgba(22,50,95,.08);animation:breathe 5s ease-in-out infinite}
   @keyframes breathe{50%{transform:scale(1.06)}}
-  .bird{position:absolute;left:20px;top:0;width:210px;filter:drop-shadow(0 14px 18px rgba(22,50,95,.18));animation:bob 3.2s ease-in-out infinite;transform-origin:50% 90%}
+  .bird{position:absolute;left:0;top:-6px;width:250px;filter:drop-shadow(0 10px 12px rgba(22,50,95,.12));animation:bob 3.2s ease-in-out infinite;transform-origin:50% 90%}
   .bird.fallback{font-size:150px;line-height:1;text-align:center;filter:none}
-  @keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
   .deco{position:absolute}
   .spark{right:2px;top:20px;color:var(--sun);animation:twinkle 2.4s ease-in-out infinite}
   .star{left:-6px;top:80px;color:var(--coral);animation:twinkle 3s ease-in-out .6s infinite}
@@ -192,7 +192,6 @@
       <div class="birdzone" aria-hidden="true">
         <div class="halo"></div>
         <img class="bird" src="bird.png" alt="" onerror="this.outerHTML='<div class=&quot;bird fallback&quot;>🐦</div>'">
-        <span class="deco note">♪</span><span class="deco note n2">♫</span>
         <svg class="i deco spark" style="width:30px;height:30px"><use href="#spk"/></svg>
         <svg class="i deco star"><use href="#star"/></svg>
         <svg class="i deco cloud" style="width:30px;height:30px"><use href="#cloud"/></svg>

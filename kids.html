@@ -155,7 +155,7 @@ function go(s){ screen = s; draw(); window.scrollTo(0,0); }
 function draw(){
   const app = $("#app");
   if(screen === "code") return app.innerHTML = `<div class="body">
-    <div class="big-title"><img src="bird.png" alt="" style="width:110px;display:block;margin:0 auto 6px;animation:hop 2.4s ease-in-out infinite" onerror="this.replaceWith('🐦')">Wonder Nest</div><p class="sub">Type your class code</p>
+    <div class="big-title"><img src="bird.png" alt="" style="width:110px;display:block;margin:0 auto 6px;animation:hop 3s ease-in-out infinite" onerror="this.replaceWith('🐦')">Wonder Nest</div><p class="sub">Type your class code</p>
     <input class="code-input" id="code" maxlength="6" autocomplete="off" autocapitalize="characters" value="${esc(classCode)}">
     <div class="center"><button class="btn" onclick="classCode=$('#code').value.trim(); loadRoster()">Let's go! →</button></div>
     <div class="msg"></div><p class="center" style="margin-top:26px"><a href="./" style="color:var(--navy);font-weight:800">← WonderNest home</a></p></div>`;
