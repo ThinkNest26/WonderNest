@@ -168,6 +168,26 @@
   .entry .del{position:absolute;top:10px;right:12px}
   .themebox{background:linear-gradient(135deg,#effaf4,#fff);border-color:#bfe8cf}
   .themebox p{font-size:15px;line-height:1.6;color:var(--ink)}
+  /* ATL growth */
+  .atl-grid{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+  .atl-grid th{background:var(--navy);color:#fff;padding:10px;text-align:left;font-size:12.5px;position:sticky;top:0}
+  .atl-grid th:first-child{border-radius:10px 0 0 0} .atl-grid th:last-child{border-radius:0 10px 0 0}
+  .atl-grid td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:middle}
+  .atl-grid td.nm{font-weight:800;color:var(--navy);white-space:nowrap}
+  .cell{width:100%;min-height:44px;border:1.5px dashed #d6dcea;border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;text-align:left}
+  .cell:hover{border-color:var(--blue);background:var(--sky)}
+  .lvl{display:inline-block;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;color:#fff}
+  .lvl0{background:#cbd2e0;color:#475066}
+  .selfx{font-size:18px}
+  .modal-bg{position:fixed;inset:0;background:rgba(20,50,92,.35);display:grid;place-items:center;z-index:40}
+  .modal{background:#fff;border-radius:18px;padding:22px;width:min(520px,92vw);max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .lvlbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin:12px 0}
+  .lvlbtn{border:2px solid var(--line);border-radius:12px;padding:12px 8px;font-weight:800;color:var(--navy);background:#fff}
+  .lvlbtn.on{border-color:var(--blue);background:var(--sky)}
+  .bar{height:12px;border-radius:8px;background:#eef1f7;overflow:hidden;flex:1}
+  .bar i{display:block;height:100%;border-radius:8px}
+  .hist{font-size:13px;border-left:3px solid var(--line);padding:6px 0 6px 12px;margin-left:4px}
+  .hist b{color:var(--navy)}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -210,7 +230,7 @@
     <div class="nav soon">📚 Story library <span class="pill">Soon</span></div>
     <div class="nav soon">🔍 Open inquiry <span class="pill">Soon</span></div>
     <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
-    <div class="nav soon">📈 ATL growth <span class="pill">Soon</span></div>
+    <button class="nav" data-view="atl">📈 ATL growth</button>
     <button class="nav" data-view="summative">🎯 Summative tasks</button>
     <div class="foot" id="footSchool">Your school's programme of inquiry</div>
   </aside>
@@ -281,7 +301,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 };
-let settings = (s => { if(s.conceptLabel === "Key concepts") s.conceptLabel = "Specified concepts"; return s; })(Object.assign({school:"", conceptLabel:"Specified concepts", rubricLevels:"Beginning, Developing, Achieving, Extending"}, store.get("wn_settings", {})));
+let settings = (s => { if(s.conceptLabel === "Key concepts") s.conceptLabel = "Specified concepts"; return s; })(Object.assign({school:"", conceptLabel:"Specified concepts", rubricLevels:"Beginning, Developing, Achieving, Extending", atlLevels:"Novice, Learner, Practitioner, Expert"}, store.get("wn_settings", {})));
 function newUnit(){
   return {id:"u"+Date.now(), theme:"", description:"", grade:"", ageBand:"", duration:"6 weeks", languages:"English",
     centralIdeaOptions:[], centralIdea:"", lines:[], keyConcepts:[], relatedConcepts:[], atl:[], atlWhy:{},
@@ -364,6 +384,7 @@ function render(){
   else if(view === "settings") m.innerHTML = settingsView();
   else if(view === "summative") m.innerHTML = summativeView();
   else if(view === "classes") m.innerHTML = classesView();
+  else if(view === "atl") m.innerHTML = atlView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
   if(view === "builder" && unit.step === 5) checkBooks();
@@ -494,6 +515,7 @@ function settingsView(){
       <div><label>What does your school call the concepts (form, function, causation…)?</label><input type="text" id="setConcept" value="${esc(settings.conceptLabel)}" placeholder="Specified concepts"><div class="hint" style="margin-top:6px">WonderNest uses "Specified concepts" unless your school uses another term.</div></div>
       <div><label>Transdisciplinary theme descriptions</label><div class="hint" style="margin-bottom:8px">The updated theme descriptions are filled in. You can change the wording for your school. Leave a box empty to go back to WonderNest's wording.</div>
         ${THEMES.map(t=>`<div style="margin-bottom:10px"><div style="font-weight:800;color:var(--navy);font-size:13.5px;margin-bottom:4px">${t.ic} ${t.name}</div><textarea id="tt_${t.id}" style="min-height:110px;font-size:14px">${esc(themeText(t.id))}</textarea></div>`).join("")}</div>
+      <div><label>ATL skill levels (from lowest to highest, separated by commas)</label><input type="text" id="setAtl" value="${esc(settings.atlLevels)}"><div class="hint" style="margin-top:6px">Used when teachers record ATL growth. For example "Novice, Learner, Practitioner, Expert".</div></div>
       <div><label>Rubric levels (from lowest to highest, separated by commas)</label><input type="text" id="setLevels" value="${esc(settings.rubricLevels)}"><div class="hint" style="margin-top:6px">For example "Beginning, Developing, Achieving, Extending" or "1, 2, 3, 4, 5, 6, 7". Used for new summative task rubrics.</div></div>
     </div>
     <div class="actions"><span></span><button class="btn" onclick="saveSettings()">Save settings</button></div>
@@ -757,7 +779,7 @@ async function tJoin(){
 async function tSetUnit(){
   const u = savedUnits().find(x => x.id === $("#cu").value); if(!u) return;
   const t = themeOf(u.theme) || {};
-  const cu = { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", storySpark: u.spark || "" };
+  const cu = { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", atl: u.atl || [], storySpark: u.spark || "" };
   const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", tc.cls.id);
   if(e){ error = tcErr(e); return render(); } tc.cls.current_unit = cu; toast("Current unit set ✓"); render();
 }
@@ -801,6 +823,105 @@ function tPrintCards(){
   ${tc.students.map(s=>`<div class="c"><b>${esc(s.first_name)}</b><div class="p">${s.picture}</div><small>Class code: <b style="display:inline;font-size:14px">${esc(c.code)}</b><br>${esc(link)}</small></div>`).join("")}
   </div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
   w.document.close();
+}
+
+/* ---------- ATL growth ---------- */
+const LVL_COLOURS = ["#f59e0b","#3b82f6","#8b5cf6","#10b981","#ef4444","#0ea5e9","#14b8a6","#a855f7","#f97316","#22c55e"];
+const SELF_FACES = ["🌱","🌿","🌳","🌟"];
+const atlS = {classes:null, cls:null, students:[], records:[], skills:[], kid:null, modal:null, comment:"", loading:false};
+const atlLevels = () => settings.atlLevels.split(",").map(x => x.trim()).filter(Boolean);
+const allSkills = () => Object.entries(ATL).flatMap(([c, ss]) => ss.map(x => c + " · " + x));
+async function atlLoadClasses(){
+  atlS.loading = true; const { data, error: e } = await db.from("classes").select("*").order("created_at");
+  atlS.loading = false; if(e) error = tcErr(e); atlS.classes = data || [];
+  if(atlS.classes.length === 1 && !atlS.cls) return atlOpen(atlS.classes[0].id);
+  render();
+}
+async function atlOpen(id){
+  if(!id){ atlS.cls = null; return render(); }
+  const c = atlS.classes.find(x => x.id === id); atlS.cls = c; atlS.kid = null; atlS.comment = "";
+  const [s, r] = await Promise.all([
+    db.from("students").select("id, first_name, picture").eq("class_id", id).order("first_name"),
+    db.from("atl_records").select("*").eq("class_id", id).order("created_at", {ascending:false})
+  ]);
+  if(r.error){ error = tcErr(r.error) + " (has the ATL database update been run?)"; }
+  atlS.students = s.data || []; atlS.records = r.data || [];
+  const unitSkills = (c.current_unit && c.current_unit.atl) || [];
+  atlS.skills = unitSkills.length ? unitSkills.slice() : [...new Set(atlS.records.map(x => x.skill))].slice(0, 4);
+  render();
+}
+function latest(kid, skill, source){ return atlS.records.find(r => r.student_id === kid && r.skill === skill && r.source === source); }
+function lvlBadge(r){ if(!r) return `<span class="lvl lvl0">Not yet</span>`; return `<span class="lvl" style="background:${LVL_COLOURS[(r.level-1)%10]}">${esc(r.level_label || r.level)}</span>`; }
+function atlView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>📈 ATL growth</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(atlS.classes === null){ if(!atlS.loading) atlLoadClasses(); return top + `<div class="card">Loading…</div>`; }
+  if(!atlS.classes.length) return top + `<div class="card empty">📈<br><br>Create a class in <b>Classes & portfolios</b> first.</div>`;
+  const pick = `<div class="card"><div class="edit-row"><select onchange="atlOpen(this.value)"><option value="">Choose a class…</option>${atlS.classes.map(c=>`<option value="${c.id}" ${atlS.cls && atlS.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div></div>`;
+  if(!atlS.cls) return top + pick;
+  if(atlS.kid) return top + atlKidView();
+  const L = atlLevels();
+  const avail = allSkills().filter(x => !atlS.skills.includes(x));
+  return top + pick + `<div class="card">
+    <div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">Skills for ${esc(atlS.cls.name)}${atlS.cls.current_unit && atlS.cls.current_unit.atl && atlS.cls.current_unit.atl.length ? " (from the current unit)" : ""}</div>
+      <div class="edit-row" style="max-width:420px"><select id="addSkill"><option value="">＋ Show another skill…</option>${avail.map(x=>`<option>${esc(x)}</option>`).join("")}</select><button class="btn small ghost" onclick="const v=$('#addSkill').value; if(v){atlS.skills.push(v); render();}">Add</button></div></div>
+    <div class="chips" style="margin-bottom:6px">${atlS.skills.map((x,i)=>`<span class="chip atl on">${esc(x)} <button title="Hide" onclick="atlS.skills.splice(${i},1);render()">✕</button></span>`).join("") || `<span class="hint">Choose the skills to track, or set a current unit with ATL skills.</span>`}</div>
+    <div class="hint" style="margin-bottom:12px">Levels: ${L.map((l,i)=>`<span class="lvl" style="background:${LVL_COLOURS[i%10]}">${esc(l)}</span>`).join(" ")} &nbsp; Children's own rating: ${SELF_FACES.join(" ")}</div>
+    ${atlS.students.length && atlS.skills.length ? `<div class="rubric-wrap"><table class="atl-grid"><tr><th>Child</th>${atlS.skills.map(x=>`<th>${esc(x.split(" · ")[1]||x)}<br><span style="opacity:.7;font-weight:600">${esc(x.split(" · ")[0])}</span></th>`).join("")}</tr>
+      ${atlS.students.map(k=>`<tr><td class="nm"><button class="link" style="font-size:14px" onclick="atlS.kid='${k.id}';atlS.comment='';render()">${esc(k.picture)} ${esc(k.first_name)}</button></td>
+        ${atlS.skills.map((x,j)=>{const t=latest(k.id,x,"teacher"), sf=latest(k.id,x,"self"); return `<td><button class="cell" onclick="atlModal('${k.id}',${j})">${lvlBadge(t)}<span class="selfx" title="Child's own rating">${sf ? SELF_FACES[Math.min(sf.level,4)-1] : ""}</span></button></td>`;}).join("")}</tr>`).join("")}
+    </table></div>` : `<div class="hint">${atlS.students.length ? "" : "Add children to this class first."}</div>`}
+  </div>
+  ${atlS.modal ? atlModalHTML() : ""}`;
+}
+function atlModal(kid, j){ atlS.modal = {kid, skill: atlS.skills[j], level: 0}; render(); }
+function atlModalHTML(){
+  const m = atlS.modal, k = atlS.students.find(x => x.id === m.kid), L = atlLevels();
+  const hist = atlS.records.filter(r => r.student_id === m.kid && r.skill === m.skill).slice(0, 5);
+  return `<div class="modal-bg" onclick="if(event.target===this){atlS.modal=null;render()}"><div class="modal">
+    <div class="label">${esc(m.skill)}</div><h3 style="color:var(--navy)">${esc(k.picture)} ${esc(k.first_name)}</h3>
+    <div class="lvlbtns">${L.map((l,i)=>`<button class="lvlbtn ${m.level===i+1?"on":""}" onclick="atlS.modal.level=${i+1};render()">${esc(l)}</button>`).join("")}</div>
+    <label class="hint">What did you notice? (optional)</label>
+    <textarea id="atlNote" style="min-height:70px;margin-top:6px" placeholder="For example: asked 'how do we know?' and checked two sources"></textarea>
+    <div class="actions"><button class="link" onclick="atlS.modal=null;render()">Cancel</button><button class="btn" ${m.level?"":"disabled"} onclick="atlSave()">Save</button></div>
+    ${hist.length ? `<div class="label" style="margin-top:14px">Recent</div>${hist.map(r=>`<div class="hist">${r.source==="self"?"🧒 Self: "+SELF_FACES[Math.min(r.level,4)-1]+" ":"👩‍🏫 "}<b>${esc(r.level_label)}</b> · ${new Date(r.created_at).toLocaleDateString("en-GB")}${r.note?`<br>${esc(r.note)}`:""}</div>`).join("")}` : ""}
+  </div></div>`;
+}
+async function atlSave(){
+  const m = atlS.modal, L = atlLevels(), note = ($("#atlNote").value || "").trim().slice(0, 500);
+  const row = { student_id: m.kid, class_id: atlS.cls.id, skill: m.skill, level: m.level, level_label: L[m.level-1], source: "teacher", note, unit_label: (atlS.cls.current_unit && atlS.cls.current_unit.centralIdea) || "" };
+  const { error: e } = await db.from("atl_records").insert(row);
+  if(e){ error = tcErr(e); atlS.modal = null; return render(); }
+  atlS.records.unshift(Object.assign({ created_at: new Date().toISOString() }, row)); atlS.modal = null; toast("Saved ✓"); render();
+}
+function atlKidView(){
+  const k = atlS.students.find(x => x.id === atlS.kid), L = atlLevels();
+  const mine = atlS.records.filter(r => r.student_id === k.id);
+  const skills = [...new Set([...atlS.skills, ...mine.map(r => r.skill)])];
+  return `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="atlS.kid=null;render()">‹ Back to ${esc(atlS.cls.name)}</button></div>
+  <div class="grid2"><div class="card"><div class="label">${esc(k.picture)} ${esc(k.first_name)} · ATL growth</div>
+    ${skills.map(x=>{const t=latest(k.id,x,"teacher"), sf=latest(k.id,x,"self"), hist=mine.filter(r=>r.skill===x);
+      return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b style="color:var(--navy)">${esc(x)}</b>${lvlBadge(t)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0"><div class="bar"><i style="width:${t?Math.round(t.level/L.length*100):0}%;background:${t?LVL_COLOURS[(t.level-1)%10]:"#ccc"}"></i></div><span class="selfx">${sf?SELF_FACES[Math.min(sf.level,4)-1]:""}</span></div>
+        ${hist.slice(0,4).map(r=>`<div class="hist">${r.source==="self"?"🧒 "+SELF_FACES[Math.min(r.level,4)-1]+" ":"👩‍🏫 "}<b>${esc(r.level_label)}</b> · ${new Date(r.created_at).toLocaleDateString("en-GB")}${r.note?` · ${esc(r.note)}`:""}</div>`).join("") || `<div class="hint">No evidence yet.</div>`}</div>`;}).join("")}
+  </div>
+  <div class="card"><div class="label">✨ Report comment (ATL / inquiry)</div>
+    <p class="hint" style="margin-bottom:10px">WonderNest drafts a comment from this child's ATL evidence. The child's name is not sent to the AI. Always read and edit before using it.</p>
+    <textarea id="atlComment" style="min-height:190px" placeholder="Click Draft comment">${esc(atlS.comment)}</textarea>
+    <div class="actions"><button class="link" onclick="navigator.clipboard.writeText($('#atlComment').value).then(()=>toast('Copied ✓'))">📋 Copy</button><button class="btn" onclick="atlDraft()">✨ Draft comment</button></div>
+  </div></div>`;
+}
+async function atlDraft(){
+  const k = atlS.students.find(x => x.id === atlS.kid), cu = atlS.cls.current_unit || {};
+  const ev = atlS.records.filter(r => r.student_id === k.id).slice(0, 40).map(r => ({ skill: r.skill, level: r.level_label, by: r.source === "self" ? "child" : "teacher", note: r.note, date: r.created_at.slice(0,10) }));
+  if(!ev.length){ error = "Record some ATL evidence for this child first."; return render(); }
+  error = ""; loading(true, "Drafting the comment…");
+  try{
+    const u = { theme:"", description:"", grade: atlS.cls.grade, centralIdea: cu.centralIdea || "", lines:[], keyConcepts:[], atl: atlS.skills };
+    const d = await ai("atl_comment", u, { evidence: ev, levels: atlLevels() });
+    atlS.comment = String(d.comment || "").replace(/\[Name\]/g, k.first_name);
+  }catch(e){ error = e.message || "Something went wrong. Please try again."; }
+  finally{ loading(false); render(); }
 }
 
 /* ---------- actions ---------- */
@@ -854,7 +975,7 @@ function saveUnit(){
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
 function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); render(); } }
-function saveSettings(){ settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Specified concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== defaultThemeText(t.id)) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
+function saveSettings(){ settings.atlLevels = ($("#setAtl").value.trim() || "Novice, Learner, Practitioner, Expert"); settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Specified concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== defaultThemeText(t.id)) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
 
 function downloadWord(){
   const t = themeOf(unit.theme), cl = settings.conceptLabel || "Specified concepts";
@@ -885,10 +1006,11 @@ function downloadWord(){
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
-document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; tc.msg = ""; if(view === "summative"){ sumId = null; sumDraft = null; } if(view === "classes"){ tc.cls = null; tc.kid = null; tc.loaded = false; } render(); }));
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; tc.msg = ""; if(view === "summative"){ sumId = null; sumDraft = null; } if(view === "classes"){ tc.cls = null; tc.kid = null; tc.loaded = false; } if(view === "atl"){ atlS.classes = null; atlS.cls = null; atlS.kid = null; atlS.modal = null; } render(); }));
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  atl_comment: {comment: "[Name] is growing as a researcher. During our inquiry, [Name] gathered information from books and photographs and began to record it in simple notes. [Name] is becoming more confident in asking \"How do we know?\" before accepting an idea. Next, [Name] will practise comparing two sources to check that information is reliable."},
   summative: {
     title:"Habitat Helpers",
     childBrief:"You are a Habitat Helper! Choose a habitat you care about. Show us who lives there, what they need, and how people's choices can harm or help it. Then share one action our class could take to protect it.",
