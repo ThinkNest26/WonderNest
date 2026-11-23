@@ -250,8 +250,142 @@
     .step{min-width:130px}
     .sdgs{grid-template-columns:repeat(3,1fr)}
   }
+
+  .sdgb{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:6px;color:#fff;font-size:11px;font-weight:900;margin-right:3px;padding:0 4px}
+  .sdgchips{display:flex;flex-wrap:wrap;gap:5px}
+  .sdgchip{width:34px;height:34px;border-radius:9px;font-weight:900;color:var(--c);background:#fff;border:2px solid var(--c)}
+  .sdgchip.on{background:var(--c);color:#fff}
+  .chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .storygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .storycard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;transition:.15s}
+  .storycard:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(20,50,92,.1)}
+  .storycard b{color:var(--navy);font-size:15.5px}
+  .semoji{font-size:34px}
+  .storytext{background:#fffaf0;border-radius:14px;padding:16px 18px;margin:12px 0;font-size:15.5px;line-height:1.65}
+  .storytext p{margin-bottom:10px}
+  .statrow{display:flex;gap:12px}.statrow div{flex:1;background:var(--bg);border-radius:12px;padding:12px;text-align:center}.statrow b{display:block;font-size:26px;color:var(--navy)}.statrow span{font-size:12px;color:var(--muted);font-weight:700}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{background:var(--navy);color:#fff;text-align:left;padding:8px;font-size:12px}.tbl td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top}
+  .exgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:10px}
+  .exmini{background:#fffaf0;border:1px solid #f0e2c0;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:4px;text-align:left}
+  .exmini img,.exph{width:100%;height:110px;object-fit:cover;border-radius:10px;background:#f3ead6;display:grid;place-items:center;font-size:34px}
+  .exmini b{color:var(--navy);font-size:13px}.exmini span{font-size:12px;color:var(--muted)}
+  .museum{background:#2b1d12;border:10px solid #6b4423;border-radius:18px;padding:22px;width:min(820px,95vw);max-height:92vh;overflow:auto;color:#fff;text-align:center}
+  .museum .plaque{background:linear-gradient(#e9c46a,#c99a2e);color:#3d2a00;font-weight:900;padding:10px;border-radius:10px;font-size:22px;margin-bottom:14px}
+  .museum img{max-width:100%;max-height:50vh;border:10px solid #c99a2e;border-radius:6px}
+  .mlabel{background:#fff8ec;color:#1d2433;border-radius:12px;padding:12px;margin-top:12px;font-size:17px;font-weight:700}
+  .mtouch{background:#e7f7ef;color:#1d7a4e;border-radius:12px;padding:10px;margin-top:10px;font-weight:800}
+  .mby{opacity:.8;margin-top:10px;font-weight:700}
+  .mile{display:flex;gap:8px;align-items:center;margin-bottom:8px}.mile.done input:not([type=checkbox]){color:var(--muted);text-decoration:line-through}
+  .kidpick{display:flex;flex-wrap:wrap;gap:8px}.kidpick label{background:var(--bg);border-radius:10px;padding:6px 10px;font-weight:700;display:flex;gap:6px;align-items:center}
+  .aibox{background:#f4f0ff;border-radius:12px;padding:12px;margin-top:8px;font-size:13.5px}.aibox p{margin-bottom:6px}
+  .exg label{display:block;margin-top:8px}.exg input,.exg textarea,.exg select{width:100%}.exg .kidpick label{display:flex;margin:0}.exg .kidpick input{width:auto}
+  .qrph{width:66px;height:66px;border-radius:10px;background:var(--bg);display:grid;place-items:center;font-size:26px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// WonderNest: true SDG stories. Each story was checked against the sources listed. Retold in WonderNest's own words for children.
+const SDG_STORIES = [
+{id:"hannah-taylor", sdgs:[1,10], title:"Hannah and the Ladybug Jars", who:"Hannah Taylor", place:"Winnipeg, Canada", when:"2004", ages:"5+", emoji:"🐞",
+ story:"On a freezing winter day in Winnipeg, Canada, five-year-old Hannah saw a man looking for food in a rubbish bin. She could not stop thinking about him. \"Why doesn't he have a home?\" she asked her mum. \"If everyone shared what they had, would that help?\"\n\nHannah decided to do something. In Grade 1 she talked to her teacher, and her class raised money for a local shelter. Hannah painted jars with ladybugs, because ladybugs mean good luck, and asked people to fill them with coins.\n\nWhen she was eight, Hannah started the Ladybug Foundation. It helps charities give food, shelter and care to people who have no home. Hannah gave speeches all over Canada. Her big message was simple: people who are homeless are just like you and me, and they need us to care.",
+ questions:["What did Hannah notice, and how did it make her feel?","Why do you think Hannah chose a ladybug?","Who in our community might need care, and how could we find out?"],
+ actions:["Find out about a charity near your school that helps people in need.","Make a kindness jar for a cause your class cares about."],
+ sources:[["The Ladybug Foundation story (NFB film, Hannah's Story)","https://www.nfb.ca/film/hannahs_story"],["McGill Reporter","https://reporter.mcgill.ca/hannah-taylor-wrong-turn-sets-her-on-the-right-path/"]]},
+
+{id:"ryan-hreljac", sdgs:[6,3], title:"Ryan's Well", who:"Ryan Hreljac", place:"Kemptville, Canada and Angolo, Uganda", when:"1998", ages:"5+", emoji:"💧",
+ story:"In January 1998, six-year-old Ryan was sitting in his Grade 1 class in Canada. His teacher explained that many children in the world get sick because they do not have clean water to drink. Some walk a very long way every day to fetch it.\n\nRyan was shocked. He did extra jobs at home to earn money, because he thought 70 dollars would be enough to build a well. It wasn't! A well cost much more. But Ryan did not give up. He talked to classes and clubs and anyone who would listen.\n\nIn 1999, Ryan's first well was built at Angolo Primary School in Uganda. In 2001, with his family's help, he started Ryan's Well Foundation. It has helped build hundreds of wells and toilets in many countries. Ryan's motto: little kids really can have big ideas.",
+ questions:["How far do you walk to get a drink of water? How would life change if you had to walk for hours?","Ryan's first plan did not work. What did he do next?","Why is clean water connected to health and to going to school?"],
+ actions:["Measure how much water your class uses in one day, and find ways to save some.","Make posters about why clean water matters."],
+ sources:[["Ryan's Well Foundation: Our Story","https://ryanswell.ca/about-us/our-story"],["World of Children: Ryan Hreljac","https://worldofchildren.org/honoree/ryan-hreljac/"]]},
+
+{id:"william-kamkwamba", sdgs:[7,9,4], title:"The Boy Who Harnessed the Wind", who:"William Kamkwamba", place:"Masitala, Malawi", when:"2002", ages:"7+", emoji:"🌬️",
+ story:"William lived in a farming village in Malawi. When he was a teenager, a terrible drought made the crops fail, and his family could not pay for school. William had to stop going.\n\nBut William loved science. He went to a small library and found a book called Using Energy. It had a picture of a windmill. William thought: if the wind can turn a windmill, maybe it can make electricity!\n\nHe collected scrap metal, an old bicycle, plastic pipes and tractor parts from a scrapyard. People laughed and called him crazy. William kept building. At 14, his windmill made enough electricity to light his family's house. Later, another windmill pumped water for the crops.\n\nWilliam went on to study at university and helps young people in his village to become inventors too.",
+ questions:["What problem was William trying to solve?","How did a library book change William's life?","What materials could you reuse to build something useful?"],
+ actions:["Design and build a model windmill from recycled materials.","Find out where the electricity in your school comes from."],
+ sources:[["Britannica: William Kamkwamba","https://www.britannica.com/biography/William-Kamkwamba"],["TED: William Kamkwamba","https://www.ted.com/speakers/william_kamkwamba"]]},
+
+{id:"kehkashan-basu", sdgs:[13,15,16], title:"Kehkashan's Green Hope", who:"Kehkashan Basu", place:"Dubai, United Arab Emirates", when:"2012", ages:"7+", emoji:"🌱",
+ story:"Kehkashan was born in Dubai on 5 June, which is World Environment Day. Maybe that is why she has always cared about the planet!\n\nKehkashan began campaigning for the environment when she was very young. When she was 12, she started Green Hope, a group where children and young people learn about the environment and take action. They clean beaches, collect waste and plant trees, and they teach other children about the Sustainable Development Goals.\n\nGreen Hope grew and grew. Soon it was active in many countries with more than a thousand young volunteers. In 2016, when she was 16 and a student in Dubai, Kehkashan won the International Children's Peace Prize. Her message: children should have a say in how we protect the planet, because it is their future.",
+ questions:["Why does Kehkashan think children should help make decisions about the planet?","What problems did Green Hope work on?","What could children in our school take care of?"],
+ actions:["Organise a clean-up of your playground or a nearby beach or park.","Write a letter to your school leaders with one idea to help the environment."],
+ sources:[["The National: UAE teen wins International Children's Peace Prize","https://www.thenationalnews.com/uae-teen-wins-international-children-s-peace-prize-1.227530"],["Gulf News","https://gulfnews.com/going-out/society/schoolgirl-from-uae-wins-childrens-peace-prize-1.1938880"]]},
+
+{id:"felix-finkbeiner", sdgs:[13,15], title:"Felix and a Million Trees", who:"Felix Finkbeiner", place:"Bavaria, Germany", when:"2007", ages:"5+", emoji:"🌳",
+ story:"When Felix was nine years old, his teacher asked the class to give a presentation about climate change. While he was researching, Felix read about Wangari Maathai, a woman in Kenya who had helped plant millions of trees. Trees, he learned, take in carbon dioxide and help to cool our planet.\n\nAt the end of his talk, Felix said: \"Let's plant one million trees in every country of the world!\" He had no idea how many a million trees was!\n\nA few weeks later, on 28 March 2007, Felix and his classmates planted a crab apple tree in front of their school. Other schools joined in. Within three years, children in Germany had planted one million trees. Felix's idea became Plant-for-the-Planet, which helps children around the world plant trees and speak up for the climate. At 13, Felix spoke at the United Nations.",
+ questions:["Whose story inspired Felix?","Why are trees important for our planet?","Felix's goal sounded impossible. Why did it work?"],
+ actions:["Plant a tree or seeds at school and look after them.","Count the trees around your school and make a map."],
+ sources:[["UNEP: Felix Finkbeiner","https://www.unep.org/blogs/2019-09/climate-leadership-inspires/felix-finkbeiner"],["Plant-for-the-Planet: Felix Finkbeiner","https://www.plant-for-the-planet.org/felix-finkbeiner/"]]},
+{id:"katie-stagliano", sdgs:[2,12], title:"Katie's Giant Cabbage", who:"Katie Stagliano", place:"Summerville, South Carolina, USA", when:"2008", ages:"5+", emoji:"🥬",
+ story:"When Katie was nine and in Grade 3, her teacher gave every child a tiny cabbage seedling to plant at home. Katie planted hers in the garden and looked after it every single day. It grew, and grew, and grew, until it weighed about 18 kilograms (40 pounds)! Most cabbages weigh only one or two kilograms.\n\nKatie knew her cabbage was special. She gave it to a soup kitchen, a place that serves free meals to people who need them. The cooks made it into a meal with ham and rice, and Katie helped to serve it. Her one cabbage helped feed 275 people!\n\nKatie thought: \"If one cabbage can feed this many people, imagine how many a whole garden could feed!\" So she started Katie's Krops. Today children all over the USA grow vegetable gardens and give the food to people who are hungry.",
+ questions:["Why did Katie's cabbage grow so big?","What did Katie notice when she visited the soup kitchen?","What could we grow at school, and who could we share it with?"],
+ actions:["Plant a class vegetable garden, even in pots.","Find out about food banks or community fridges near you."],
+ sources:[["girlshealth.gov: Katie's Krops","https://girlshealth.gov/node/7315"],["College of Charleston: Meet Katie Stagliano","https://today.cofc.edu/2019/01/17/meet-katie-stagliano-cabbage-patch-kid/"]]},
+
+{id:"bye-bye-plastic-bags", sdgs:[12,14,17], title:"Bye Bye Plastic Bags", who:"Melati and Isabel Wijsen", place:"Bali, Indonesia", when:"2013", ages:"6+", emoji:"🛍️",
+ story:"Melati and Isabel are sisters who grew up on the beautiful island of Bali. But everywhere they looked they saw plastic bags: on the beaches, in the sea and even in the rice fields. They learned that only a tiny number of plastic bags in Bali were recycled.\n\nAt school they had been learning about people who changed the world. \"Why wait until we are older?\" they asked. In 2013, when they were just 12 and 10, they started a campaign called Bye Bye Plastic Bags.\n\nThey organised beach clean-ups, gave talks in schools and asked shops to stop handing out plastic bags. They collected 100,000 signatures asking for a ban, and kept meeting the leaders of Bali. Bali's governor promised to work towards a ban. Their campaign has spread to teams of young people in many countries around the world.",
+ questions:["What problem did the sisters see?","Why do you think 100,000 signatures made leaders listen?","How many plastic bags does your family use in a week?"],
+ actions:["Count the single-use plastic in your classroom bin for one week.","Make reusable bags from old T-shirts."],
+ sources:[["NPR: How teenage sisters pushed Bali to say bye-bye to plastic bags","https://www.npr.org/688168838"],["CNN: The teenagers getting plastic bags banned in Bali","https://amp.cnn.com/cnn/2017/08/16/asia/melati-isabel-wijsen-bali"]]},
+
+{id:"kelvin-doe", sdgs:[9,7,4], title:"DJ Focus and the Scrap-Metal Radio", who:"Kelvin Doe", place:"Freetown, Sierra Leone", when:"2009", ages:"7+", emoji:"📻",
+ story:"In Kelvin's neighbourhood in Freetown, Sierra Leone, the electricity hardly ever came on. Sometimes it worked only once a week. Batteries cost too much for most families.\n\nKelvin was about 13 and he loved taking things apart. He searched rubbish bins for scrap metal, old wires and broken electronics. Teaching himself, he built his own battery to make lights for his neighbours. Then he built a generator, and then a radio transmitter!\n\nWith it, Kelvin started his own community radio station. He called himself DJ Focus, because, he said, if you focus you can make an invention work. He played music and shared local news, and his friends helped too.\n\nKelvin entered a competition for young inventors in Sierra Leone. Soon after, at 15, he was invited to visit MIT in the USA, one of the most famous science universities in the world.",
+ questions:["What problems did Kelvin solve for his neighbourhood?","Why do you think Kelvin called himself DJ Focus?","What could you invent from things other people throw away?"],
+ actions:["Set up an inventors' table with recycled materials.","Make a class radio show or podcast about your community."],
+ sources:[["MIT Alumni: From Sierra Leone, Focus Comes to MIT","https://alum.mit.edu/node/1292"],["The World (PRX): DJ Focus at MIT","https://theworld.org/stories/2013/08/15/dj-focus-becomes-youngest-visiting-practitioner-mit"]]},
+
+{id:"shubham-banerjee", sdgs:[10,4,9], title:"Shubham's Braille Printer", who:"Shubham Banerjee", place:"Santa Clara, California, USA", when:"2014", ages:"7+", emoji:"⠃",
+ story:"One day, 12-year-old Shubham saw a leaflet asking for donations for people who are blind. He asked his parents a simple question: \"How do blind people read?\" They told him to look it up.\n\nShubham learned about Braille, a way of reading with your fingers by feeling patterns of raised dots. He also learned that Braille printers cost 2,000 dollars or more. Many people could not afford one.\n\nShubham decided to build a cheaper one for his school science fair, using his favourite toy: a Lego robotics kit! He built and broke seven different models, working late into the night. Finally his printer, called Braigo (Braille + Lego), printed its first letter. It cost about 350 dollars to make.\n\nShubham shared his design for free so anyone could build one, and went on to start a company to make low-cost Braille printers.",
+ questions:["What question started Shubham's invention?","Why does the cost of something matter for fairness?","Shubham failed six times. What helped him keep going?"],
+ actions:["Learn the Braille alphabet and make a Braille message with glue dots.","Check how easy your school is to use for someone who cannot see."],
+ sources:[["NPR: Boy builds Braille printer out of Lego","https://www.npr.org/transcripts/281113200"],["Live Science: 12-year-old invents Braille printer","https://www.livescience.com/43455-lego-braille-printer.html"]]},
+
+{id:"babar-ali", sdgs:[4,1], title:"The School Under the Guava Tree", who:"Babar Ali", place:"Murshidabad, West Bengal, India", when:"2002", ages:"6+", emoji:"📚",
+ story:"Babar was lucky: he went to school. But on his way home, he saw many children from his village who could not go, because their families were poor and they had to work, collecting rubbish to sell.\n\nWhen he was nine, Babar had an idea. Every afternoon after his own lessons, he would teach them! He started in the backyard of his family's home, under a guava tree, with eight children, including his sister. He collected broken pieces of chalk to use, and he was the headmaster, teacher and helper all at once.\n\nMore and more children came. His school was named Ananda Shiksha Niketan, which means Home of Joyful Learning. When Babar was 16, the BBC called him the youngest headmaster in the world. Today his free school teaches hundreds of children.",
+ questions:["What did Babar notice on his way home from school?","Why do you think he called it the Home of Joyful Learning?","What is something you know well enough to teach someone else?"],
+ actions:["Run a 'learning swap' where children teach each other a skill.","Collect books or stationery for a school or library that needs them."],
+ sources:[["TED: Babar Ali, Education for all","https://www.ted.com/talks/babar_ali_education_for_all"],["Onmanorama: How the world's youngest headmaster began at 9","https://www.onmanorama.com/lifestyle/news/2018/10/01/how-world-youngest-headmaster-began-his-crusade-at-9.html"]]},
+
+{id:"moziah-bridges", sdgs:[8], title:"Mo's Bows", who:"Moziah \"Mo\" Bridges", place:"Memphis, Tennessee, USA", when:"2011", ages:"5+", emoji:"🎀",
+ story:"Mo loved dressing up, even on the playground! When he was nine, he wanted a cool bow tie, but the ones in the shops were boring or too expensive.\n\nSo Mo asked his grandmother, who had been a seamstress, to teach him to sew. Using her leftover scraps of fabric, he made colourful bow ties at the kitchen table. Family and friends wanted them too, and Mo started a business called Mo's Bows.\n\nIt was hard work. Mo, his mum and his grandmother stitched every tie by hand. Mo learned about prices, customers and saying yes to good chances. He even appeared on a TV show for business people, where a famous businessman offered to be his mentor instead of just giving him money.\n\nMo's Bows grew into a real company that gives people jobs. Mo's motto: \"If you look good, you feel good.\"",
+ questions:["What problem did Mo want to solve?","Who helped Mo, and what did he learn from them?","What makes a job a good job?"],
+ actions:["Plan a small class business or market stall and decide what to do with the money.","Interview a family member about their job."],
+ sources:[["Inc.: How this 16-year-old founder built a bow tie business","https://www.inc.com/emily-canal/how-this-young-entrepreneur-got-the-best-deal-on-shark-tank-with-daymond-john.html"],["NPR: 15-year-old CEO of Mo's Bows","https://www.npr.org/2017/07/21/538608499/15-year-old-ceo-of-mos-bows-enters-licensing-deal-with-nba"]]},
+{id:"boyan-slat", sdgs:[14,12,9], title:"More Plastic Than Fish", who:"Boyan Slat", place:"Delft, the Netherlands", when:"2011", ages:"6+", emoji:"🌊",
+ story:"When Boyan was 16, he went scuba diving on holiday in Greece. He hoped to see beautiful fish. Instead, he saw more plastic bags than fish!\n\nBoyan came up out of the water with one question: \"Why can't we just clean this up?\" Many grown-ups said it was impossible, because the ocean is so big and the plastic keeps moving.\n\nFor a school science project, Boyan spent half a year studying the problem. He had an idea: instead of chasing the rubbish around the ocean, why not let the ocean currents carry the plastic to a cleaning machine that waits in one place?\n\nIn 2012 he shared his idea in a TEDx talk. At first, hardly anyone noticed. Then the video was shared millions of times. Boyan started The Ocean Cleanup, a team of engineers and scientists who build systems to collect plastic from the ocean and from rivers before it reaches the sea.",
+ questions:["What question did Boyan ask?","Why did people think his idea was impossible?","Where does the plastic in the ocean come from?"],
+ actions:["Track how much plastic your class throws away and set a goal to reduce it.","Design a model that uses moving water to collect floating rubbish."],
+ sources:[["The Ocean Cleanup: How it all began","https://theoceancleanup.com/milestones/how-it-all-began/"],["UNEP Champions of the Earth: Boyan Slat","https://www.unep.org/championsofearth/laureates/2014/boyan-slat"]]},
+
+{id:"wangari-maathai", sdgs:[15,5,13], title:"Wangari, Mother of Trees", who:"Wangari Maathai", place:"Kenya", when:"1977", ages:"5+", emoji:"🌳",
+ story:"Wangari grew up in Kenya surrounded by green hills, streams and fig trees. As a grown-up she became a scientist, the first woman in East and Central Africa to earn a doctorate degree.\n\nWangari listened to women in the countryside. They told her that the streams were drying up, there was not enough firewood, and the soil was washing away. The trees had been cut down.\n\nWangari had a simple answer: plant trees! On World Environment Day in 1977, she and a group of women planted seven trees in Nairobi. That was the start of the Green Belt Movement. Wangari taught women to collect seeds, grow seedlings and plant them, and they were paid for every tree that survived.\n\nThe movement spread, and tens of millions of trees were planted. In 2004 Wangari became the first African woman to win the Nobel Peace Prize.",
+ questions:["What problems did the women tell Wangari about?","How do trees help people, animals and the soil?","Why do you think planting trees was linked to peace?"],
+ actions:["Grow seedlings from seeds in class and give them to families.","Find out which trees are native to your country."],
+ sources:[["NobelPrize.org: Wangari Maathai","https://www.nobelprize.org/prizes/peace/2004/maathai/"],["Britannica: Wangari Maathai","https://www.britannica.com/biography/Wangari-Maathai"]]},
+
+{id:"montreal-protocol", sdgs:[17,13,3], title:"How the World Fixed the Sky", who:"Every country in the world", place:"Worldwide", when:"1987", ages:"7+", emoji:"🌍",
+ story:"High above us is the ozone layer, an invisible shield of gas that protects living things from the sun's harmful rays. In the 1980s, scientists discovered something worrying: there was a hole in the ozone layer!\n\nThey found out why. Some chemicals used in fridges, air conditioners and spray cans were floating up into the sky and destroying the ozone.\n\nIn 1987, countries met and signed an agreement called the Montreal Protocol. They promised to stop using the harmful chemicals and to find safer ones. Over the years, every single country in the world signed it. It was the first UN agreement that every country agreed to!\n\nIt worked. Almost all of the harmful chemicals have now stopped being used, and scientists say the ozone layer is slowly healing. It should recover by around the middle of this century. It shows what can happen when the whole world works together.",
+ questions:["What is the ozone layer, and why do we need it?","Why was it important that every country joined in?","What other problem could the world solve by working together?"],
+ actions:["Hold a class 'summit' where groups agree on one rule to help the planet.","Make a poster for World Ozone Day on 16 September."],
+ sources:[["UNEP Ozone Secretariat","https://ozone.unep.org/node/13112"],["UNEP: Thirty years on, the Montreal Protocol","https://www.unep.org/news-and-stories/story/thirty-years-what-montreal-protocol-doing-protect-ozone"]]},
+
+{id:"masdar-city", sdgs:[11,7,13], title:"A Cool City in the Desert", who:"Masdar City", place:"Abu Dhabi, United Arab Emirates", when:"2006", ages:"6+", emoji:"🏙️",
+ story:"Abu Dhabi is one of the hottest places on Earth. How can people build a city there that uses less energy and stays cool? That was the big question behind Masdar City, which began in 2006.\n\nThe designers looked at clever ideas from the past. Old towns in the Gulf had narrow, shady streets and wind towers called barjeel that catch breezes. So Masdar City has narrow streets that point towards the cooling winds, buildings close together to make shade, and a 45-metre-tall modern wind tower.\n\nThe streets can feel several degrees cooler than the open desert. Solar panels on roofs and in a nearby solar farm make clean electricity. The city is designed for walking and cycling, and its buildings use materials that save energy and water.\n\nMasdar City is still growing, and people from around the world visit to learn from it.",
+ questions:["What ideas from the past did the designers use?","Why is it important for cities in hot places to stay cool without using lots of energy?","What would you change in your neighbourhood to make it better for people and the planet?"],
+ actions:["Measure the temperature in sunny and shady places around school.","Design your own model of an eco-friendly street."],
+ sources:[["Masdar City: Sustainable design","https://masdarcity.ae/sustainable-urban-development/sustainable-design"],["AramcoWorld: Chasing Zero","https://www.aramcoworld.com/articles/2017/chasing-zero"]]},
+
+{id:"malala-yousafzai", sdgs:[4,5,16], title:"Malala's Voice for Girls' Education", who:"Malala Yousafzai", place:"Swat Valley, Pakistan", when:"2009", ages:"8+", emoji:"✏️",
+ story:"Malala grew up in the beautiful Swat Valley in Pakistan. She loved school, and her father ran a school too. But when she was 11, a group that had taken control of the area said that girls were not allowed to go to school.\n\nMalala did not stay quiet. She wrote a diary for the BBC, under a different name, about how much she wanted to learn. Later she spoke on television and in newspapers: every girl has the right to an education.\n\nWhen she was 15, people who wanted to stop her attacked her on her school bus. She was badly hurt, but she recovered, and she kept speaking out even more strongly.\n\nIn 2014, when she was 17, Malala became the youngest person ever to win the Nobel Peace Prize. She heard the news at school, and finished her school day first! Her Malala Fund helps girls around the world go to school.",
+ questions:["Why did Malala think education was worth speaking up for?","What does it mean to have a right?","How can we make sure everyone in our school has a fair chance to learn?"],
+ actions:["Write a class charter about everyone's right to learn.","Find out how many children in the world do not go to school, and share it."],
+ sources:[["NobelPrize.org: Malala Yousafzai biography","https://www.nobelprize.org/prizes/peace/2014/yousafzai/biographical/"],["History.com: Malala wins the Nobel Prize","https://www.history.com/this-day-in-history/malala-wins-nobel-prize"]]},
+
+{id:"gitanjali-rao", sdgs:[3,6,9], title:"Gitanjali's Water Detective", who:"Gitanjali Rao", place:"Colorado, USA", when:"2017", ages:"7+", emoji:"🔬",
+ story:"When Gitanjali was about 10, she heard about a town called Flint in the USA. The water coming out of people's taps there had become unsafe, because it contained lead, a metal that can make people ill. Testing water was slow and needed a laboratory.\n\nGitanjali thought: what if families could test their own water, quickly, at home? She read about tiny tubes made of carbon that can sense different chemicals, and she began to design a small device.\n\nShe entered a science challenge for young people and worked with a scientist mentor for three months. Her invention, called Tethys after the Greek goddess of fresh water, sends its results to a phone.\n\nIn 2017, when she was 11, Gitanjali was named America's Top Young Scientist. Later she started workshops to help other children become problem solvers too.",
+ questions:["What problem was Gitanjali trying to solve?","Why did she need a mentor?","Where does the water in your school come from, and how do we know it is safe?"],
+ actions:["Investigate how water is cleaned in your city.","Pick a problem in school and follow Gitanjali's steps: observe, brainstorm, research, build, share."],
+ sources:[["NPR: 11-year-old girl invents lead-detecting device","https://www.npr.org/sections/thetwo-way/2017/10/20/559071028/troubled-by-flint-water-crisis-11-year-old-girl-invents-lead-detecting-device"],["Good Morning America (ABC)","https://www.goodmorningamerica.com/news/story/11-year-girl-inspired-flint-water-crisis-creates-50559884"]]},
+];
+</script>
 </head>
 <body>
 <div class="app">
@@ -263,9 +397,12 @@
     <button class="nav" data-view="settings">⚙️ School settings</button>
     <button class="nav" data-view="stories">📚 Story library</button>
     <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
+    <button class="nav" data-view="sdg">🌍 SDG stories</button>
+    <button class="nav" data-view="exh">🏆 PYP Exhibition</button>
     <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
     <button class="nav" data-view="atl">📈 ATL growth</button>
     <button class="nav" data-view="summative">🎯 Summative tasks</button>
+    <button class="nav" data-view="school">🏫 My school</button>
     <div class="foot" id="footSchool">Your school's programme of inquiry</div>
   </aside>
   <main class="main" id="main"></main>
@@ -414,6 +551,7 @@ function render(){
   document.querySelectorAll(".nav[data-view]").forEach(n => n.classList.toggle("on", n.dataset.view === view));
   $("#footSchool").innerHTML = esc(settings.school || "Your school") + "<br>Programme of inquiry";
   const m = $("#main");
+  if(db && tc.user && sch.loaded && !sch.school && tc.mode !== "newpass"){ m.innerHTML = schoolSetupView(); window.scrollTo(0,0); return; }
   if(view === "home") m.innerHTML = homeView();
   else if(view === "settings") m.innerHTML = settingsView();
   else if(view === "summative") m.innerHTML = summativeView();
@@ -422,6 +560,9 @@ function render(){
   else if(view === "library") m.innerHTML = libView();
   else if(view === "inquiry") m.innerHTML = oiView();
   else if(view === "stories") m.innerHTML = storiesView();
+  else if(view === "sdg") m.innerHTML = sdgView();
+  else if(view === "exh") m.innerHTML = exView();
+  else if(view === "school") m.innerHTML = sch.school ? schoolView() : schoolSetupView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
   if(view === "builder" && unit.step === 5) checkBooks();
@@ -727,7 +868,7 @@ async function initAuth(){
   tc.user = session && !session.user.is_anonymous ? session.user : null; tc.ready = true;
   const recovering = location.hash.includes("type=recovery");
   if(!tc.user && !recovering){ location.replace("./"); return; }
-  syncUnits();
+  syncUnits(); loadSchool();
   $("#footSchool").insertAdjacentHTML("afterend", `<button class="nav" style="margin-top:8px" onclick="tSignOut()">🚪 Sign out</button>`);
   db.auth.onAuthStateChange((ev, session) => {
     tc.user = session ? session.user : null;
@@ -1554,7 +1695,7 @@ async function oiLoadClasses(){
 }
 async function oiOpen(id){
   if(!id){ oi.cls = null; return render(); }
-  oi.cls = oi.classes.find(x => x.id === id); oi.open = null;
+  oi.cls = oi.classes.find(x => x.id === id); oi.open = null; oi2.fam = null; oi2.walk = null;
   const [s, q, n, p, x] = await Promise.all([
     db.from("students").select("id, first_name, picture").eq("class_id", id).order("first_name"),
     db.from("inquiries").select("*").eq("class_id", id).order("updated_at", { ascending: false }),
@@ -1575,8 +1716,10 @@ function oiView(){
   const pick = `<div class="card"><select onchange="oiOpen(this.value)"><option value="">Choose a class…</option>${oi.classes.map(c=>`<option value="${c.id}" ${oi.cls && oi.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
   if(!oi.cls) return top + pick;
   const qCount = oi.inqs.filter(q => q.data && q.data.expertQ && (q.data.expertIds||[]).length).length;
-  const tabs = `<div class="tabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar & mystery parcels"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar & mystery parcels"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`],["museum","🏛️ Museum & radio"],["families","👪 Families"]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
   let body = "";
+  if(oi.tab === "museum") body = oiMuseumTab();
+  if(oi.tab === "families") body = oiFamiliesTab();
   if(oi.tab === "board"){
     const kids = oi.students.map(k => ({ k, qs: oi.inqs.filter(q => q.student_id === k.id) }));
     const counts = [0,1,2,3,4,5,6].map(st => oi.inqs.filter(q => q.stage === st).length);
@@ -1947,7 +2090,7 @@ async function saveUnit(quiet){
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
 function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); if(db && isUuid(id)) db.from("units").delete().eq("id", id).then(()=>{}); render(); } }
-function saveSettings(){ settings.atlLevels = ($("#setAtl").value.trim() || "Novice, Learner, Practitioner, Expert"); settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Specified concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== defaultThemeText(t.id)) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
+function saveSettings(){ settings.atlLevels = ($("#setAtl").value.trim() || "Novice, Learner, Practitioner, Expert"); settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Specified concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== defaultThemeText(t.id)) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); schoolSaveSettings(); render(); }
 
 function downloadWord(){
   const t = themeOf(unit.theme), cl = settings.conceptLabel || "Specified concepts";
@@ -1982,6 +2125,8 @@ document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("cl
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  exh_group_ideas:{centralIdeas:["People's choices about water affect communities near and far.","Access to clean water shapes the opportunities people have.","Communities can work together to protect their water."],lines:["Where our water comes from","How water use affects people and places","Our responsibility to protect water"],concepts:["Causation","Responsibility"],actions:["Run a water-saving campaign in school","Fix or report dripping taps","Raise funds for a water charity","Make a family water pledge"]},
+  sdg_story_questions:{questions:["What problem did the person notice, and why did it matter to them?","What helped them keep going when things were hard?","How could an idea like this work in our community?"],actions:["Find out about a similar problem near school","Make a poster to share the story","Plan one small action as a class"]},
   feedback_starter: {comment:"You asked a great question and collected clues in lots of ways, especially your interview. Next, can you compare two of your clues and explain what they tell you together?"},
   atl_inquiry_summary: {skills:[{skill:"Research · Information literacy",evidence:"The child gathered information through notes, a photo and an interview, and recorded each clearly."},{skill:"Thinking · Critical thinking",evidence:"The child connected clues on the evidence board and explained what they mean."}]},
   parcel_ideas: {ideas:[{kind:"provocation",emoji:"📦",title:"The empty nest",body:"Place an empty bird's nest on a table with a magnifying glass and a sign: Who lived here?"},{kind:"maker",emoji:"🛠️",title:"Build a bee hotel",body:"Children design a home for solitary bees from recycled tubes."},{kind:"wonder",emoji:"💭",title:"Why do some animals live together?",body:""}]},
@@ -2055,6 +2200,423 @@ const DEMO = {
     ]
   }
 };
+
+
+/* =====================================================================
+   SHARED HELPERS (new sections)
+   ===================================================================== */
+function wordDownload(name, bodyHTML){
+  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt;color:#1d2433}h1{color:#14325c;font-size:20pt}h2{color:#2f6fd6;font-size:14pt;margin-top:16pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #c9d1de;padding:5pt;vertical-align:top;font-size:10pt}th{background:#14325c;color:#fff}</style></head><body>${bodyHTML}</body></html>`;
+  const blob = new Blob(["﻿", h], {type:"application/msword"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function printWin(title, bodyHTML, extraCSS = ""){
+  const w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to print");
+  w.document.write(`<html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;color:#1d2433;padding:24px;line-height:1.5}h1{color:#14325c}h2{color:#2f6fd6}.pb{page-break-after:always}${extraCSS}</style></head><body>${bodyHTML}<script>setTimeout(()=>print(),400)<\/script></body></html>`);
+  w.document.close();
+}
+let qrLoading = null;
+function loadQR(){
+  if(window.qrcode) return Promise.resolve(true);
+  if(!qrLoading) qrLoading = new Promise(res => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"; s.onload = () => res(!!window.qrcode); s.onerror = () => res(false); document.head.appendChild(s); });
+  return qrLoading;
+}
+function qrImg(text, size = 4){
+  try{ if(!window.qrcode) return ""; const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createImgTag(size, 8); }catch(e){ return ""; }
+}
+const sdgBadge = n => { const g = SDGS.find(x => x[0] === n); return g ? `<span class="sdgb" style="background:${g[2]}" title="${esc(g[1])}">${n}</span>` : ""; };
+async function myClasses(){ const { data, error: e } = await db.from("classes").select("*").order("created_at"); if(e) error = tcErr(e); return data || []; }
+
+/* =====================================================================
+   SCHOOL: sign-up, joining, settings, overview
+   ===================================================================== */
+const sch = { loaded: false, school: null, role: null, overview: null, mode: "create" };
+async function loadSchool(){
+  if(!db || !tc.user){ sch.loaded = true; return; }
+  const m = await db.from("school_members").select("school_id, role").eq("user_id", tc.user.id);
+  const mine = (m.data || [])[0];
+  if(mine){
+    const s = await db.from("schools").select("*").eq("id", mine.school_id).single();
+    sch.school = s.data || null; sch.role = mine.role;
+    if(sch.school){ settings = Object.assign(settings, sch.school.settings || {}); if(!settings.school) settings.school = sch.school.name; store.set("wn_settings", settings); }
+  }
+  sch.loaded = true; render();
+}
+const schoolAdmin = () => sch.school && sch.role === "admin";
+function schoolSetupView(){
+  return `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏫 Set up your school</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
+  <div class="card" style="max-width:820px"><p style="margin-bottom:6px">WonderNest works best when your whole school is together: one set of school settings, shared stories, and an overview for leaders.</p><p class="hint">You only do this once.</p></div>
+  <div class="grid2" style="max-width:820px;grid-template-columns:1fr 1fr">
+    <div class="card"><div class="label">🌱 My school is new to WonderNest</div><label>School name</label><input id="schName" placeholder="For example: Ajman Academy" value="${esc(settings.school||"")}">
+      <p class="hint" style="margin:8px 0">You become the school admin. You can make other teachers admins later.</p><button class="btn wide" onclick="schCreate()">Create my school</button></div>
+    <div class="card"><div class="label">🤝 My school already uses WonderNest</div><label>School code (8 characters, from your school admin)</label><input id="schCode" placeholder="ABCD1234" style="text-transform:uppercase;letter-spacing:2px">
+      <p class="hint" style="margin:8px 0">Ask your coordinator or another teacher for the code. It is on their 🏫 My school page.</p><button class="btn wide ghost" onclick="schJoin()">Join my school</button></div>
+  </div>`;
+}
+async function schCreate(){
+  const name = $("#schName").value.trim(); if(name.length < 2) return toast("Please type your school's name");
+  const s = Object.assign({}, settings, { school: name });
+  const { data, error: e } = await db.rpc("create_school", { p_name: name, p_settings: s });
+  if(e || !data || !data.ok){ error = tcErr(e); return render(); }
+  error = ""; toast("Your school is ready ✓"); await loadSchool(); view = "school"; render();
+}
+async function schJoin(){
+  const code = $("#schCode").value.trim(); if(code.length < 6) return toast("Please type the school code");
+  const { data, error: e } = await db.rpc("join_school", { p_code: code });
+  if(e){ error = tcErr(e); return render(); }
+  if(!data.ok){ error = data.reason === "member" ? "You already belong to a school." : "We couldn't find that school code. Please check it."; return render(); }
+  error = ""; toast("Welcome to " + data.name + " ✓"); await loadSchool(); render();
+}
+async function schLoadOverview(){ const { data } = await db.rpc("school_overview"); sch.overview = data || { teachers: [], classes: [] }; render(); }
+function schoolView(){
+  const s = sch.school;
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏫 ${esc(s.name)}</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  const codeCard = `<div class="card"><div class="label">School code for teachers</div><div class="codebox"><b style="font-size:28px;letter-spacing:4px">${esc(s.code)}</b></div>
+    <p class="hint" style="margin-top:8px">New teachers create an account on the WonderNest front page, then type this code to join ${esc(s.name)}. Share it only with staff.</p>
+    <p style="margin-top:10px">Your role: <b>${sch.role === "admin" ? "School admin" : "Teacher"}</b></p></div>`;
+  if(!schoolAdmin()) return top + codeCard + `<div class="card"><p class="hint">Your school admin manages school settings and can see the whole-school overview.</p></div>`;
+  if(!sch.overview){ schLoadOverview(); return top + codeCard + `<div class="card">Loading…</div>`; }
+  const o = sch.overview;
+  return top + `<div class="grid2">${codeCard}
+    <div class="card"><div class="label">At a glance</div><div class="statrow"><div><b>${o.teachers.length}</b><span>teachers</span></div><div><b>${o.classes.length}</b><span>classes</span></div><div><b>${o.classes.reduce((a,c)=>a+c.children,0)}</b><span>children</span></div></div></div></div>
+  <div class="card"><div class="label">Teachers</div>${o.teachers.map(t=>`<div class="unit-row"><div><h4>${esc(t.email||"Teacher")}</h4><p>${t.role==="admin"?"School admin":"Teacher"} · ${t.classes} class${t.classes==1?"":"es"}</p></div>
+    ${t.user_id === tc.user.id ? `<span class="hint">You</span>` : `<div style="display:flex;gap:8px"><button class="btn small ghost" onclick="schRole('${t.user_id}','${t.role==="admin"?"teacher":"admin"}')">${t.role==="admin"?"Make teacher":"Make admin"}</button><button class="link" style="color:var(--coral)" onclick="schRemove('${t.user_id}')">Remove</button></div>`}</div>`).join("")}</div>
+  <div class="card"><div class="label">Classes</div>${o.classes.length ? `<table class="tbl"><tr><th>Grade</th><th>Class</th><th>Children</th><th>Current unit</th></tr>${o.classes.map(c=>`<tr><td>${esc(c.grade)}</td><td>${esc(c.name)}</td><td>${c.children}</td><td>${esc(c.unit||"–")}</td></tr>`).join("")}</table>` : `<p class="hint">No classes yet.</p>`}</div>`;
+}
+async function schRole(uid, role){ const { error: e } = await db.from("school_members").update({ role }).eq("user_id", uid); if(e) error = tcErr(e); sch.overview = null; render(); }
+async function schRemove(uid){ if(!confirm("Remove this teacher from your school? Their classes stay with them.")) return; const { error: e } = await db.from("school_members").delete().eq("user_id", uid); if(e) error = tcErr(e); sch.overview = null; render(); }
+async function schoolSaveSettings(){
+  if(!schoolAdmin()) return;
+  const { error: e } = await db.from("schools").update({ settings }).eq("id", sch.school.id);
+  if(e) toast("Saved on this device only: " + tcErr(e)); else toast("School settings saved for everyone ✓");
+}
+
+/* =====================================================================
+   OPEN INQUIRY STAGE 2: museum & radio for the board, family links
+   ===================================================================== */
+const oi2 = { walk: null, fam: null };
+function oiMuseumTab(){
+  const shared = oi.inqs.filter(q => q.shared && q.data && q.data.share);
+  const ex = shared.filter(q => q.data.share.format !== "radio"), radio = shared.filter(q => q.data.share.format === "radio");
+  const nm = id => { const k = oi.students.find(x => x.id === id); return k ? esc(k.picture + " " + k.first_name) : ""; };
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">🏛️ Class museum (${ex.length})</div><p class="hint">Every exhibit children shared in the class garden. Open the museum walk on the board for a gallery walk.</p></div>${ex.length?`<button class="btn" onclick="oi2.walk=0;render()">▶ Museum walk</button>`:""}</div>
+    <div class="exgrid">${ex.map((q,i)=>`<button class="exmini" onclick="oi2.walk=${i};render()">${q.data.share.img?`<img src="${q.data.share.img}">`:`<div class="exph">🏛️</div>`}<b>${esc(q.data.share.title||q.data.wonder||"Exhibit")}</b><span>${nm(q.student_id)}</span></button>`).join("") || `<p class="hint">No exhibits yet.</p>`}</div></div>
+  <div class="card"><div class="label">📻 Class radio (${radio.length})</div>${radio.map(q=>`<div class="unit-row"><div style="flex:1"><h4>🎙️ ${esc(q.data.share.title||"Radio show")}</h4><p>${nm(q.student_id)} · ${esc(q.data.wonder||"")}</p>${q.data.share.audio?`<audio controls src="${q.data.share.audio}" style="width:100%;margin-top:6px"></audio>`:`<p class="hint">Script only</p>`}</div></div>`).join("") || `<p class="hint">No radio shows yet.</p>`}</div>
+  ${oi2.walk !== null && ex[oi2.walk] ? museumWalk(ex, oi2.walk, nm) : ""}`;
+}
+function museumWalk(ex, i, nm){
+  const q = ex[i], s = q.data.share;
+  return `<div class="modal-bg" style="background:rgba(20,30,50,.88)" onclick="if(event.target===this){oi2.walk=null;render()}"><div class="museum">
+    <div class="plaque">🏛️ ${esc(s.title||"Exhibit")}</div>${s.img?`<img src="${s.img}">`:""}${s.label?`<p class="mlabel">${esc(s.label)}</p>`:""}${s.activity?`<p class="mtouch">✋ Touch and try: ${esc(s.activity)}</p>`:""}
+    <p class="mby">By ${nm(q.student_id)} · Wonder: ${esc(q.data.wonder||"")}</p>
+    <div class="actions"><button class="btn ghost" ${i?"":"disabled"} onclick="oi2.walk=${i-1};render()">◀ Back</button><span class="hint" style="color:#fff">${i+1} of ${ex.length}</span><button class="btn" ${i<ex.length-1?"":"disabled"} onclick="oi2.walk=${i+1};render()">Next exhibit ▶</button></div>
+    <button class="link" style="color:#fff;margin-top:8px" onclick="oi2.walk=null;render()">Close</button></div></div>`;
+}
+async function oiLoadFamilies(){ const { data } = await db.from("students").select("id, first_name, picture, family_code").eq("class_id", oi.cls.id).order("first_name"); oi2.fam = data || []; await loadQR(); render(); }
+const famLink = c => `${SITE_URL}/visit.html?f=${c}`;
+function oiFamiliesTab(){
+  if(!oi2.fam){ oiLoadFamilies(); return `<div class="card">Loading…</div>`; }
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">👪 Family visits</div><p class="hint">Each child has a private family link. Families see only their own child's garden, and can leave two stars and a wish on flowers the child shared. No account needed.</p></div><button class="btn" onclick="oiFamLetters()">🖨️ Print family letters</button></div>
+    ${oi2.fam.map(k=>`<div class="unit-row"><div><h4>${esc(k.picture)} ${esc(k.first_name)}</h4><p class="hint" style="word-break:break-all">${esc(famLink(k.family_code||""))}</p></div><div style="display:flex;gap:8px"><button class="btn small ghost" onclick="navigator.clipboard.writeText('${famLink(k.family_code||"")}').then(()=>toast('Link copied ✓'))">📋 Copy link</button><button class="link" onclick="oiFamNew('${k.id}')">New link</button></div></div>`).join("")}</div>`;
+}
+async function oiFamNew(id){
+  if(!confirm("Make a new family link? The old link will stop working.")) return;
+  const code = Array.from(crypto.getRandomValues(new Uint8Array(5))).map(b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
+  const { error: e } = await db.from("students").update({ family_code: code }).eq("id", id); if(e){ error = tcErr(e); } oi2.fam = null; render();
+}
+function oiFamLetters(){
+  const sch = settings.school || "our school";
+  printWin("Family letters", oi2.fam.map(k => `<div class="pb" style="max-width:640px;margin:auto"><h1>🌸 Visit ${esc(k.first_name)}'s Wonder Garden</h1>
+    <p>Dear family,</p><p>In class, ${esc(k.first_name)} has been planting wonders: questions they chose to investigate. Each wonder grows into a flower as ${esc(k.first_name)} collects clues, makes sense of them, shares what they found and reflects.</p>
+    <p>You can visit ${esc(k.first_name)}'s garden at home, see their museum exhibits or radio shows, and leave <b>two stars and a wish</b>.</p>
+    <div style="text-align:center;margin:18px 0">${qrImg(famLink(k.family_code||""), 5)}<p style="font-size:13px;word-break:break-all">${esc(famLink(k.family_code||""))}</p></div>
+    <p class="hint">This link is private to your family. Please do not share it.</p><p>With thanks,<br>${esc(oi.cls.name)} · ${esc(sch)}</p></div>`).join(""));
+}
+
+/* =====================================================================
+   SDG REAL-LIFE STORIES
+   ===================================================================== */
+const sdgS = { filter: 0, unitOnly: false, q: "", mine: null, open: null, edit: null, shareKey: null, classes: null, shared: {} };
+async function sdgLoad(){
+  const [m, c] = await Promise.all([db.from("sdg_stories").select("*").order("created_at", { ascending: false }), db.from("classes").select("id, name, grade").order("created_at")]);
+  sdgS.mine = (m.data || []).map(r => Object.assign({ id: r.id, custom: true, owner: r.created_by, share_school: r.share_school }, r.data || {}));
+  sdgS.classes = c.data || [];
+  const ids = sdgS.classes.map(x => x.id); sdgS.shared = {};
+  if(ids.length){ const cs = await db.from("class_sdg_stories").select("*").in("class_id", ids); (cs.data || []).forEach(r => (sdgS.shared[r.story_key] = sdgS.shared[r.story_key] || []).push(r.class_id)); }
+  render();
+}
+const sdgAll = () => [...(sdgS.mine || []), ...SDG_STORIES];
+const sdgFind = id => sdgAll().find(s => s.id === id);
+function sdgView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🌍 SDG real-life stories</h1></div><button class="btn" onclick="sdgS.edit={sdgs:[],questions:[],actions:[]};render()">✍️ Add a true story</button></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(sdgS.mine === null){ sdgLoad(); return top + `<div class="card">Loading…</div>`; }
+  const uSdgs = (unit.sdgs || []).map(Number);
+  let list = sdgAll().filter(s => (!sdgS.filter || (s.sdgs||[]).includes(sdgS.filter)) && (!sdgS.unitOnly || (s.sdgs||[]).some(g => uSdgs.includes(g))));
+  if(sdgS.q){ const q = sdgS.q.toLowerCase(); list = list.filter(s => [s.title, s.who, s.place, s.story].join(" ").toLowerCase().includes(q)); }
+  return top + `<div class="card"><p class="hint" style="margin-bottom:10px">True stories of children and communities taking action for the Sustainable Development Goals, retold for children, with the sources we checked. Share them with a class and children can read and listen in their Wonder Nest.</p>
+    <div class="sdgchips"><button class="chip ${!sdgS.filter?"on":""}" onclick="sdgS.filter=0;render()">All goals</button>${SDGS.map(g=>`<button class="sdgchip ${sdgS.filter===g[0]?"on":""}" style="--c:${g[2]}" title="${esc(g[1])}" onclick="sdgS.filter=${g[0]};render()">${g[0]}</button>`).join("")}</div>
+    <div class="actions" style="margin-top:10px"><input id="sdgQ" placeholder="Search: water, trees, invention…" value="${esc(sdgS.q)}" oninput="sdgS.q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{render();const i=$('#sdgQ');i.focus();i.setSelectionRange(i.value.length,i.value.length)},300)" style="max-width:340px">
+    ${uSdgs.length ? `<label style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" ${sdgS.unitOnly?"checked":""} onchange="sdgS.unitOnly=this.checked;render()" style="width:auto"> Only SDGs in my current unit (${uSdgs.join(", ")})</label>` : ""}</div>
+    ${sdgS.filter ? `<p style="margin-top:10px;font-weight:800;color:var(--navy)">${sdgBadge(sdgS.filter)} ${esc(SDGS[sdgS.filter-1][1])}</p>` : ""}</div>
+  <div class="storygrid">${list.map(s=>`<button class="storycard" onclick="sdgS.open='${s.id}';render()"><span class="semoji">${esc(s.emoji||"🌍")}</span><b>${esc(s.title)}</b><span class="hint">${esc(s.who||"")}${s.place?" · "+esc(s.place):""}${s.when?" · "+esc(s.when):""}</span><span>${(s.sdgs||[]).map(sdgBadge).join("")}${s.custom?` <span class="tag">Added by ${s.owner===tc.user.id?"you":"a colleague"}</span>`:""}${(sdgS.shared[s.id]||[]).length?` <span class="tag" style="background:#e7f7ef;color:#1d7a4e">✓ shared</span>`:""}</span></button>`).join("") || `<div class="card empty">No stories match. Try another goal.</div>`}</div>
+  ${sdgS.open ? sdgReader() : ""}${sdgS.edit ? sdgEditor() : ""}`;
+}
+function sdgReader(){
+  const s = sdgFind(sdgS.open); if(!s) return "";
+  const sharedTo = sdgS.shared[s.id] || [];
+  return `<div class="modal-bg" onclick="if(event.target===this){speechSynthesis.cancel();sdgS.open=null;render()}"><div class="modal" style="width:min(780px,96vw)">
+    <div class="actions" style="margin-top:0"><div>${(s.sdgs||[]).map(sdgBadge).join("")}</div><button class="btn small" onclick="speechSynthesis.cancel();sdgS.open=null;render()">Close</button></div>
+    <h2 style="color:var(--navy);margin:8px 0 2px">${esc(s.emoji||"")} ${esc(s.title)}</h2><p class="hint">${esc(s.who||"")} · ${esc(s.place||"")} · ${esc(s.when||"")} · Ages ${esc(s.ages||"all")}</p>
+    <div class="storytext">${esc(s.story||"").split("\n\n").map(p=>`<p>${p}</p>`).join("")}</div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><div><div class="label">💬 Talk about it</div><ul>${(s.questions||[]).map(q=>`<li>${esc(q)}</li>`).join("")}</ul></div><div><div class="label">🌱 Take action</div><ul>${(s.actions||[]).map(q=>`<li>${esc(q)}</li>`).join("")}</ul></div></div>
+    <div class="label" style="margin-top:12px">📎 Sources we checked</div>${(s.sources||[]).map(x=>`<a class="blink" href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])}</a>`).join(" ") || `<p class="hint">No source added.</p>`}
+    <div class="actions"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small ghost" onclick="speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(sdgFind(sdgS.open).story);u.rate=.92;speechSynthesis.speak(u)">🔊 Read aloud</button><button class="btn small ghost" onclick="sdgPrint()">🖨️ Print</button><button class="btn small ghost" onclick="sdgWord()">⬇️ Word</button>${s.custom && s.owner===tc.user.id?`<button class="link" onclick="sdgS.edit=JSON.parse(JSON.stringify(sdgFind(sdgS.open)));sdgS.open=null;render()">✏️ Edit</button><button class="link" style="color:var(--coral)" onclick="sdgDelete()">Delete</button>`:""}</div></div>
+    <div class="card" style="margin:12px 0 0;background:var(--bg)"><div class="label">🏫 Share with a class</div>${(sdgS.classes||[]).length ? sdgS.classes.map(c=>`<label style="display:flex;gap:8px;align-items:center;margin:4px 0;font-weight:700"><input type="checkbox" style="width:auto" ${sharedTo.includes(c.id)?"checked":""} onchange="sdgShare('${c.id}',this.checked)"> ${esc(c.name)} · ${esc(c.grade)}</label>`).join("") + `<p class="hint">Children see shared stories in 🌍 Real-life heroes, with read-aloud.</p>` : `<p class="hint">Create a class first.</p>`}</div>
+  </div></div>`;
+}
+async function sdgShare(classId, on){
+  const key = sdgS.open;
+  const r = on ? await db.from("class_sdg_stories").insert({ class_id: classId, story_key: key }) : await db.from("class_sdg_stories").delete().eq("class_id", classId).eq("story_key", key);
+  if(r.error){ error = tcErr(r.error); return render(); }
+  const a = sdgS.shared[key] = sdgS.shared[key] || []; if(on) a.push(classId); else sdgS.shared[key] = a.filter(x => x !== classId);
+  toast(on ? "Shared with the class ✓" : "Removed from the class"); render();
+}
+function sdgDocHTML(s){ return `<h1>${esc(s.title)}</h1><p><i>${esc(s.who||"")} · ${esc(s.place||"")} · ${esc(s.when||"")} · SDG ${(s.sdgs||[]).join(", ")}</i></p>${esc(s.story||"").split("\n\n").map(p=>`<p>${p}</p>`).join("")}<h2>Talk about it</h2><ul>${(s.questions||[]).map(q=>`<li>${esc(q)}</li>`).join("")}</ul><h2>Take action</h2><ul>${(s.actions||[]).map(q=>`<li>${esc(q)}</li>`).join("")}</ul><h2>Sources</h2><ul>${(s.sources||[]).map(x=>`<li>${esc(x[0])}: ${esc(x[1])}</li>`).join("")}</ul>`; }
+function sdgPrint(){ const s = sdgFind(sdgS.open); printWin(s.title, sdgDocHTML(s), "p{font-size:15pt}"); }
+function sdgWord(){ const s = sdgFind(sdgS.open); wordDownload("WonderNest SDG story - " + s.title, sdgDocHTML(s)); }
+async function sdgDelete(){ if(!confirm("Delete this story?")) return; const { error: e } = await db.from("sdg_stories").delete().eq("id", sdgS.open); if(e){ error = tcErr(e); } sdgS.open = null; sdgS.mine = null; render(); }
+function sdgEditor(){
+  const s = sdgS.edit;
+  return `<div class="modal-bg"><div class="modal" style="width:min(820px,96vw)">
+    <h2 style="color:var(--navy)">✍️ ${s.id?"Edit":"Add"} a true story</h2><p class="hint" style="margin-bottom:10px">Only add stories that really happened, and add where you checked them. A local story from your community is perfect.</p>
+    <div class="grid2" style="grid-template-columns:2fr 1fr 1fr"><div><label>Title</label><input id="seT" value="${esc(s.title||"")}"></div><div><label>Emoji</label><input id="seE" value="${esc(s.emoji||"🌍")}"></div><div><label>Ages</label><input id="seA" value="${esc(s.ages||"6+")}"></div></div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;margin-top:8px"><div><label>Who</label><input id="seW" value="${esc(s.who||"")}"></div><div><label>Where</label><input id="seP" value="${esc(s.place||"")}"></div><div><label>When</label><input id="seN" value="${esc(s.when||"")}"></div></div>
+    <label style="margin-top:8px">SDGs</label><div class="sdgchips">${SDGS.map(g=>`<button class="sdgchip ${(s.sdgs||[]).includes(g[0])?"on":""}" style="--c:${g[2]}" onclick="sdgKeep();toggle(sdgS.edit.sdgs,${g[0]});render()">${g[0]}</button>`).join("")}</div>
+    <label style="margin-top:8px">The story, for children (leave a blank line between paragraphs)</label><textarea id="seS" style="min-height:180px">${esc(s.story||"")}</textarea>
+    <div class="grid2" style="grid-template-columns:1fr 1fr;margin-top:8px"><div><label>Questions to talk about (one per line)</label><textarea id="seQ">${esc((s.questions||[]).join("\n"))}</textarea></div><div><label>Action ideas (one per line)</label><textarea id="seX">${esc((s.actions||[]).join("\n"))}</textarea></div></div>
+    <button class="link" onclick="sdgSuggest()">✨ Suggest questions and action ideas</button>
+    <div class="grid2" style="grid-template-columns:1fr 2fr;margin-top:8px"><div><label>Source name</label><input id="seSN" value="${esc(((s.sources||[])[0]||[])[0]||"")}"></div><div><label>Source link</label><input id="seSU" placeholder="https://" value="${esc(((s.sources||[])[0]||[])[1]||"")}"></div></div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:700"><input type="checkbox" id="seSh" style="width:auto" ${s.share_school?"checked":""}> Share with all teachers in my school</label>
+    <div class="actions"><button class="link" onclick="sdgS.edit=null;render()">Cancel</button><button class="btn" onclick="sdgSave()">💾 Save story</button></div></div></div>`;
+}
+function sdgKeep(){
+  const s = sdgS.edit, g = id => ($("#"+id)||{}).value;
+  Object.assign(s, { title: g("seT").trim(), emoji: g("seE").trim(), ages: g("seA").trim(), who: g("seW").trim(), place: g("seP").trim(), when: g("seN").trim(), story: g("seS").trim(),
+    questions: g("seQ").split("\n").map(x=>x.trim()).filter(Boolean), actions: g("seX").split("\n").map(x=>x.trim()).filter(Boolean),
+    sources: g("seSU").trim() ? [[g("seSN").trim() || "Source", g("seSU").trim()]] : [], share_school: $("#seSh").checked });
+}
+async function sdgSuggest(){
+  sdgKeep(); const s = sdgS.edit; if(!s.story) return toast("Write the story first");
+  loading(true, "Thinking of questions…");
+  try{ const r = await ai("sdg_story_questions", unit, { story: s.story, title: s.title, sdgs: s.sdgs }); s.questions = r.questions || s.questions; s.actions = r.actions || s.actions; }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+async function sdgSave(){
+  sdgKeep(); const s = sdgS.edit;
+  if(!s.title || !s.story) return toast("Add a title and the story");
+  if(!s.sdgs.length) return toast("Choose at least one SDG");
+  if(s.sources.length && !/^https?:\/\//.test(s.sources[0][1])) return toast("The source link should start with https://");
+  const data = { title: s.title, emoji: s.emoji, ages: s.ages, who: s.who, place: s.place, when: s.when, sdgs: s.sdgs, story: s.story, questions: s.questions, actions: s.actions, sources: s.sources };
+  const r = s.id ? await db.from("sdg_stories").update({ data, share_school: s.share_school }).eq("id", s.id) : await db.from("sdg_stories").insert({ data, share_school: s.share_school });
+  if(r.error){ error = tcErr(r.error); return render(); }
+  sdgS.edit = null; sdgS.mine = null; sdgS.filter = 0; sdgS.unitOnly = false; sdgS.q = ""; toast("Story saved ✓"); render();
+}
+
+/* =====================================================================
+   PYP EXHIBITION
+   ===================================================================== */
+const EXH_MILESTONES = ["Launch the exhibition and inform families","Explore passions and interests","Find issues and form groups","Write the central idea and lines of inquiry","Research and meet mentors","Plan and take action","Prepare the exhibition","Exhibition day","Reflect and celebrate"];
+const EXH_CRITERIA = [
+  ["Inquiry and research","Asks rich questions and gathers information from a range of sources, including people."],
+  ["Concepts and understanding","Uses the central idea, lines of inquiry and specified concepts to deepen understanding."],
+  ["Approaches to learning","Shows growth in thinking, research, communication, social and self-management skills."],
+  ["Action","Plans and takes meaningful action connected to the issue."],
+  ["Presentation","Shares learning clearly and creatively with different audiences."],
+  ["Reflection","Reflects on the learning process, challenges and growth throughout the exhibition."]
+];
+const ACTION_TYPES = [["participation","🤝 Participation"],["advocacy","📣 Advocacy"],["social-justice","⚖️ Social justice"],["social-entrepreneurship","💡 Social entrepreneurship"],["lifestyle","🌿 Lifestyle choices"]];
+const exS = { classes: null, cls: null, exh: null, groups: [], mentors: [], kids: [], entries: [], grades: [], feedback: [], tab: "timeline", group: null, kid: null };
+async function exOpen(id){
+  if(!id){ exS.cls = null; return render(); }
+  exS.cls = exS.classes.find(c => c.id === id); exS.group = null; exS.kid = null;
+  const [e, g, m, k, en, gr, fb] = await Promise.all([
+    db.from("exhibitions").select("*").eq("class_id", id), db.from("exh_groups").select("*").eq("class_id", id).order("name"),
+    db.from("exh_mentors").select("*").eq("class_id", id).order("name"), db.from("students").select("id, first_name, picture").eq("class_id", id).order("first_name"),
+    db.from("entries").select("*").eq("class_id", id).in("kind", ["passion","journal","exh_self","exh_reflect"]).order("created_at", { ascending: false }),
+    db.from("exh_grades").select("*").eq("class_id", id), db.from("exh_feedback").select("*").eq("class_id", id).order("created_at")]);
+  exS.exh = (e.data || [])[0] || null; exS.groups = g.data || []; exS.mentors = m.data || []; exS.kids = k.data || []; exS.entries = en.data || []; exS.grades = gr.data || []; exS.feedback = fb.data || [];
+  await loadQR(); render();
+}
+async function exStart(){
+  const data = { timeline: EXH_MILESTONES.map(t => ({ title: t, date: "", done: false, notes: "" })), rubric: EXH_CRITERIA.map(([c, d]) => ({ criterion: c, desc: d })) };
+  const { error: e } = await db.from("exhibitions").insert({ class_id: exS.cls.id, data, active: true });
+  if(e){ error = tcErr(e); return render(); } toast("Exhibition started ✓"); exOpen(exS.cls.id);
+}
+async function exSaveExh(){ const { error: e } = await db.from("exhibitions").update({ data: exS.exh.data, active: exS.exh.active, updated_at: new Date().toISOString() }).eq("class_id", exS.cls.id); if(e){ error = tcErr(e); render(); } }
+const kidName = id => { const k = exS.kids.find(x => x.id === id); return k ? k.picture + " " + k.first_name : "?"; };
+function exView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏆 PYP Exhibition</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(exS.classes === null){ myClasses().then(c => { exS.classes = c; render(); }); return top + `<div class="card">Loading…</div>`; }
+  if(!exS.classes.length) return top + `<div class="card empty">🏆<br><br>Create a class in <b>Classes & portfolios</b> first.</div>`;
+  const pick = `<div class="card"><select onchange="exOpen(this.value)"><option value="">Choose your exhibition class…</option>${exS.classes.map(c=>`<option value="${c.id}" ${exS.cls&&exS.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
+  if(!exS.cls) return top + pick + `<div class="card"><p>The PYP Exhibition space helps you guide the whole journey: passions, issues and groups, mentors, process journals, action, a digital exhibition with family feedback, and assessment.</p></div>`;
+  if(!exS.exh) return top + pick + `<div class="card empty">🏆<br><br><b>Start the PYP Exhibition for ${esc(exS.cls.name)}</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Children will see a 🏆 My Exhibition space in their Wonder Nest with the timeline, their passions, their group, a process journal, booths to visit and self-assessment.</p><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`;
+  const tabs = [["timeline","🗓️ Timeline"],["groups","💡 Passions & groups"],["mentors","🧑‍🏫 Mentors"],["journals","📓 Journals"],["day","🏛️ Exhibition day"],["assess","✅ Assessment"]];
+  let body = "";
+  if(exS.group) body = exGroupView(); else if(exS.kid) body = exKidView();
+  else body = ({ timeline: exTimeline, groups: exGroups, mentors: exMentors, journals: exJournals, day: exDay, assess: exAssess })[exS.tab]();
+  return top + pick + `<div class="tabs" style="max-width:none">${tabs.map(([k,l])=>`<button class="${exS.tab===k&&!exS.group&&!exS.kid?"on":""}" onclick="exS.tab='${k}';exS.group=null;exS.kid=null;render()">${l}</button>`).join("")}</div>` + body;
+}
+function exTimeline(){
+  const t = exS.exh.data.timeline || [], done = t.filter(x => x.done).length;
+  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">Exhibition journey · ${done}/${t.length} done</div><label style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" style="width:auto" ${exS.exh.active?"checked":""} onchange="exS.exh.active=this.checked;exSaveExh();toast(this.checked?'Children can see the exhibition':'Hidden from children')"> Children can see it</label></div>
+    <div class="bar" style="margin:8px 0 14px"><i style="width:${t.length?Math.round(done/t.length*100):0}%;background:var(--leaf)"></i></div>
+    ${t.map((m,i)=>`<div class="mile ${m.done?"done":""}"><input type="checkbox" style="width:auto" ${m.done?"checked":""} onchange="exS.exh.data.timeline[${i}].done=this.checked;exSaveExh();render()"><input value="${esc(m.title)}" onchange="exS.exh.data.timeline[${i}].title=this.value;exSaveExh()" style="flex:2"><input type="date" value="${esc(m.date)}" onchange="exS.exh.data.timeline[${i}].date=this.value;exSaveExh()" style="width:160px"><input placeholder="Notes" value="${esc(m.notes||"")}" onchange="exS.exh.data.timeline[${i}].notes=this.value;exSaveExh()" style="flex:2"><button class="link" style="color:var(--coral)" onclick="exS.exh.data.timeline.splice(${i},1);exSaveExh();render()">✕</button></div>`).join("")}
+    <button class="link" onclick="exS.exh.data.timeline.push({title:'New milestone',date:'',done:false,notes:''});exSaveExh();render()">＋ Add a milestone</button></div>`;
+}
+function latestEntry(kid, kind){ return exS.entries.find(e => e.student_id === kid && e.kind === kind); }
+function exGroups(){
+  const inGroup = new Set(exS.groups.flatMap(g => g.members || []));
+  return `<div class="grid2"><div class="card"><div class="label">💡 Children's passions and issues</div><p class="hint" style="margin-bottom:8px">Children add these in 🏆 My Exhibition → My passions. Use them to form groups around shared issues.</p>
+    ${exS.kids.map(k => { const p = latestEntry(k.id, "passion"), c = p ? p.content : {};
+      return `<div class="unit-row" style="align-items:flex-start"><div><h4>${esc(k.picture)} ${esc(k.first_name)} ${inGroup.has(k.id)?`<span class="tag" style="background:#e7f7ef;color:#1d7a4e">in a group</span>`:""}</h4>${p ? `<p>❤️ ${esc((c.passions||[]).join(", "))}</p>${(c.issues||[]).map(i=>`<p>🌍 ${esc(i.text)} ${i.sdg?sdgBadge(Number(i.sdg)):""}</p>`).join("")}` : `<p class="hint">Not added yet</p>`}</div></div>`; }).join("")}</div>
+  <div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👥 Groups (${exS.groups.length})</div><button class="btn small" onclick="exNewGroup()">＋ New group</button></div>
+    <button class="link" onclick="exSuggestGroups()">✨ Suggest groups from shared SDGs</button>
+    ${exS.groups.map(g=>`<div class="unit-row"><div><h4>${esc(g.name)}</h4><p>${(g.members||[]).map(kidName).map(esc).join(", ") || "No children yet"}</p><p class="hint">${esc((g.data&&g.data.issue)||"")}${g.mentor?" · Mentor: "+esc(g.mentor):""}</p></div><button class="btn small ghost" onclick="exS.group='${g.id}';render()">Open</button></div>`).join("") || `<p class="hint" style="margin-top:8px">No groups yet.</p>`}</div></div>`;
+}
+async function exNewGroup(name, members){
+  const { error: e } = await db.from("exh_groups").insert({ class_id: exS.cls.id, name: name || "New group", members: members || [], data: { issue: "", sdgs: [], lines: ["","",""], concepts: [], questions: [], sources: [], action: { type: "", plan: "", steps: [] }, booth: {}, meetings: [] } });
+  if(e){ error = tcErr(e); return render(); } await exOpen(exS.cls.id); if(!name){ const ng = exS.groups.filter(g => g.name === "New group").pop(); if(ng){ exS.group = ng.id; render(); } }
+}
+async function exSuggestGroups(){
+  const by = {};
+  exS.kids.forEach(k => { const p = latestEntry(k.id, "passion"); const s = p && (p.content.issues||[]).map(i => Number(i.sdg)).filter(Boolean)[0]; if(s && !exS.groups.some(g => (g.members||[]).includes(k.id))) (by[s] = by[s] || []).push(k.id); });
+  const keys = Object.keys(by); if(!keys.length) return toast("No passions with SDGs to group yet");
+  if(!confirm(`Make ${keys.length} group(s) from children's chosen SDGs? You can change them after.`)) return;
+  for(const s of keys) await exNewGroup("SDG " + s + ": " + SDGS[s-1][1], by[s]);
+  toast("Groups created ✓");
+}
+function exGroupView(){
+  const g = exS.groups.find(x => x.id === exS.group); if(!g) return "";
+  const d = g.data || {}, fb = exS.feedback.filter(f => f.group_id === g.id);
+  const ta = (k, label, ph) => `<label>${label}</label><textarea id="eg_${k}" placeholder="${ph||""}">${esc(d[k]||"")}</textarea>`;
+  return `<div class="crumb" style="margin:-6px 0 12px"><button class="link" onclick="exS.group=null;render()">‹ All groups</button></div>
+  <div class="grid2"><div class="card exg"><div class="label">Group</div><label>Group name</label><input id="eg_name" value="${esc(g.name)}">
+    <label style="margin-top:8px">Children</label><div class="kidpick">${exS.kids.map(k=>`<label><input type="checkbox" style="width:auto" ${(g.members||[]).includes(k.id)?"checked":""} data-kid="${k.id}"> ${esc(k.picture)} ${esc(k.first_name)}</label>`).join("")}</div>
+    <label style="margin-top:8px">Mentor</label><select id="eg_mentor"><option value="">No mentor yet</option>${exS.mentors.map(m=>`<option ${g.mentor===m.name?"selected":""}>${esc(m.name)}</option>`).join("")}</select>
+    ${ta("issue","The issue","What problem or issue are we inquiring into?")}
+    <label style="margin-top:8px">SDGs</label><div class="sdgchips">${SDGS.map(s=>`<button class="sdgchip ${(d.sdgs||[]).map(Number).includes(s[0])?"on":""}" style="--c:${s[2]}" onclick="exKeep();toggle(exS.groups.find(x=>x.id==='${g.id}').data.sdgs,${s[0]});render()">${s[0]}</button>`).join("")}</div>
+    ${ta("centralIdea","Central idea")}
+    <label style="margin-top:8px">Lines of inquiry</label>${[0,1,2].map(i=>`<input id="eg_line${i}" value="${esc((d.lines||[])[i]||"")}" placeholder="Line ${i+1}" style="margin-bottom:6px">`).join("")}
+    <label>${esc(settings.conceptLabel||"Specified concepts")}</label><div class="chips">${KEY_CONCEPTS.map(c=>`<button class="chip ${(d.concepts||[]).includes(c)?"on":""}" onclick="exKeep();toggle(exS.groups.find(x=>x.id==='${g.id}').data.concepts,'${c}');render()">${c}</button>`).join("")}</div>
+    <button class="link" onclick="exIdeas('${g.id}')">✨ Ideas for this group (central idea, lines, concepts, action)</button>
+    ${d._ideas ? `<div class="aibox">${(d._ideas.centralIdeas||[]).map(x=>`<p>💡 <button class="link" onclick="exKeep();exS.groups.find(g=>g.id==='${g.id}').data.centralIdea=${esc(JSON.stringify(x))};render()">Use</button> ${esc(x)}</p>`).join("")}${(d._ideas.lines||[]).length?`<p><b>Lines:</b> ${(d._ideas.lines||[]).map(esc).join(" · ")} <button class="link" onclick="exKeep();exS.groups.find(g=>g.id==='${g.id}').data.lines=${esc(JSON.stringify(d._ideas.lines))};render()">Use</button></p>`:""}${(d._ideas.actions||[]).length?`<p><b>Action ideas:</b> ${(d._ideas.actions||[]).map(esc).join(" · ")}</p>`:""}</div>` : ""}
+    <div class="actions"><button class="link" style="color:var(--coral)" onclick="exDelGroup('${g.id}')">Delete group</button><button class="btn" onclick="exSaveGroup('${g.id}')">💾 Save group</button></div></div>
+  <div><div class="card"><div class="label">🔎 Research questions</div>${(d.questions||[]).map(q=>`<p>❓ ${esc(typeof q==="string"?q:q.text)}</p>`).join("") || `<p class="hint">Children add these in their group space.</p>`}</div>
+    <div class="card"><div class="label">📚 Sources log (${(d.sources||[]).length})</div>${(d.sources||[]).map(s=>`<p>📎 <b>${esc(s.title)}</b>${s.where?" · "+esc(s.where):""}${s.learned?`<br><span class="hint">${esc(s.learned)}</span>`:""}</p>`).join("") || `<p class="hint">None yet.</p>`}</div>
+    <div class="card"><div class="label">🌱 Action plan</div>${d.action && d.action.type ? `<p><b>${esc((ACTION_TYPES.find(a=>a[0]===d.action.type)||["",""])[1])}</b></p><p>${esc(d.action.plan||"")}</p>${(d.action.steps||[]).map(s=>`<p>${s.done?"✅":"⬜"} ${esc(s.text)}</p>`).join("")}` : `<p class="hint">Not planned yet.</p>`}</div>
+    <div class="card"><div class="label">🧑‍🏫 Mentor meetings</div>${(d.meetings||[]).map((m,i)=>`<div class="hist"><b>${esc(m.date)}</b> · ${esc(m.notes)}${m.next?`<br>Next steps: ${esc(m.next)}`:""}</div>`).join("") || `<p class="hint">No meetings logged.</p>`}
+      <div class="grid2" style="grid-template-columns:140px 1fr;gap:8px;margin-top:8px"><input type="date" id="mt_d"><input id="mt_n" placeholder="What we talked about"></div><input id="mt_x" placeholder="Next steps" style="margin-top:6px"><button class="btn small ghost" style="margin-top:6px" onclick="exAddMeeting('${g.id}')">＋ Log meeting</button></div>
+    <div class="card"><div class="label">💌 Feedback (${fb.length})</div>${fb.map(f=>`<div class="hist">${f.author_type==="visitor"?"👪 "+esc(f.author_name||"Visitor"):"🧒 "+esc(kidName(f.author_student))}: ⭐ ${esc(f.content.star1||"")} ⭐ ${esc(f.content.star2||"")} 🪄 ${esc(f.content.wish||"")}</div>`).join("") || `<p class="hint">No feedback yet.</p>`}</div></div></div>`;
+}
+function exKeep(){
+  const g = exS.groups.find(x => x.id === exS.group); if(!g || !$("#eg_name")) return; const d = g.data = g.data || {};
+  g.name = $("#eg_name").value.trim() || g.name; g.mentor = $("#eg_mentor").value;
+  g.members = [...document.querySelectorAll(".kidpick input[data-kid]")].filter(x => x.checked).map(x => x.dataset.kid);
+  d.issue = $("#eg_issue").value.trim(); d.centralIdea = $("#eg_centralIdea").value.trim(); d.lines = [0,1,2].map(i => $("#eg_line"+i).value.trim());
+  d.sdgs = d.sdgs || []; d.concepts = d.concepts || [];
+}
+async function exSaveGroup(id){
+  exKeep(); const g = exS.groups.find(x => x.id === id);
+  const fresh = await db.from("exh_groups").select("data").eq("id", id).single();
+  const data = Object.assign({}, (fresh.data && fresh.data.data) || {}, { issue: g.data.issue, sdgs: g.data.sdgs, centralIdea: g.data.centralIdea, lines: g.data.lines, concepts: g.data.concepts });
+  const { error: e } = await db.from("exh_groups").update({ name: g.name, mentor: g.mentor, members: g.members, data }).eq("id", id);
+  if(e){ error = tcErr(e); return render(); } g.data = data; toast("Group saved ✓"); render();
+}
+async function exDelGroup(id){ if(!confirm("Delete this group? Children's journals are kept.")) return; await db.from("exh_groups").delete().eq("id", id); exS.group = null; exOpen(exS.cls.id); }
+async function exAddMeeting(id){
+  const n = $("#mt_n").value.trim(); if(!n) return toast("Write what you talked about");
+  const fresh = await db.from("exh_groups").select("data").eq("id", id).single(); const data = (fresh.data && fresh.data.data) || {};
+  (data.meetings = data.meetings || []).push({ date: $("#mt_d").value || new Date().toISOString().slice(0,10), notes: n, next: $("#mt_x").value.trim() });
+  const { error: e } = await db.from("exh_groups").update({ data }).eq("id", id); if(e){ error = tcErr(e); }
+  exS.groups.find(x => x.id === id).data = data; toast("Meeting logged ✓"); render();
+}
+async function exIdeas(id){
+  exKeep(); const g = exS.groups.find(x => x.id === id); if(!g.data.issue) return toast("Write the issue first");
+  loading(true, "Thinking about this issue…");
+  try{ g.data._ideas = await ai("exh_group_ideas", unit, { issue: g.data.issue, sdgs: g.data.sdgs, grade: exS.cls.grade }); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+function exMentors(){
+  return `<div class="card"><div class="label">🧑‍🏫 Mentors</div><p class="hint" style="margin-bottom:8px">Teachers, staff, parents or community members who guide a group. Assign them inside each group.</p>
+    ${exS.mentors.map(m=>`<div class="unit-row"><div><h4>${esc(m.name)}</h4><p>${esc(m.role)}${m.contact?" · "+esc(m.contact):""} · Groups: ${exS.groups.filter(g=>g.mentor===m.name).map(g=>esc(g.name)).join(", ")||"none"}</p></div><button class="link" style="color:var(--coral)" onclick="exDelMentor('${m.id}')">Remove</button></div>`).join("")}
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:10px"><input id="mn_n" placeholder="Name"><input id="mn_r" placeholder="Role (e.g. Science teacher)"><input id="mn_c" placeholder="Contact (optional)"><button class="btn" onclick="exAddMentor()">＋ Add</button></div></div>`;
+}
+async function exAddMentor(){ const n = $("#mn_n").value.trim(); if(!n) return toast("Type the mentor's name"); const { error: e } = await db.from("exh_mentors").insert({ class_id: exS.cls.id, name: n, role: $("#mn_r").value.trim(), contact: $("#mn_c").value.trim() }); if(e){ error = tcErr(e); return render(); } exOpen(exS.cls.id); }
+async function exDelMentor(id){ await db.from("exh_mentors").delete().eq("id", id); exOpen(exS.cls.id); }
+function exJournals(){
+  return `<div class="card"><div class="label">📓 Process journals</div><p class="hint" style="margin-bottom:8px">Children write a journal entry each week. Open a child to read their journal, self-assessment and reflection.</p>
+    ${exS.kids.map(k=>{ const n = exS.entries.filter(e=>e.student_id===k.id&&e.kind==="journal"); const last = n[0];
+      return `<div class="unit-row"><div><h4>${esc(k.picture)} ${esc(k.first_name)}</h4><p>${n.length} entr${n.length===1?"y":"ies"}${last?" · last "+new Date(last.created_at).toLocaleDateString("en-GB"):""}${latestEntry(k.id,"exh_self")?" · ✅ self-assessed":""}${latestEntry(k.id,"exh_reflect")?" · 🌟 reflected":""}</p></div><button class="btn small ghost" onclick="exS.kid='${k.id}';render()">Open</button></div>`; }).join("")}</div>`;
+}
+function exKidView(){
+  const k = exS.kids.find(x => x.id === exS.kid); if(!k) return "";
+  const j = exS.entries.filter(e => e.student_id === k.id && e.kind === "journal"), self = latestEntry(k.id, "exh_self"), refl = latestEntry(k.id, "exh_reflect");
+  return `<div class="crumb" style="margin:-6px 0 12px"><button class="link" onclick="exS.kid=null;render()">‹ Back</button></div>
+  <div class="grid2"><div class="card"><div class="label">${esc(k.picture)} ${esc(k.first_name)}'s journal</div>${j.map(e=>`<div class="hist"><b>${new Date(e.created_at).toLocaleDateString("en-GB")}</b>${e.content.skill?` · ${esc(e.content.skill)}`:""}${e.content.mood?" "+esc(e.content.mood):""}<br>${esc(e.content.text||"")}${e.content.photo?`<br><img src="${e.content.photo}" style="max-width:100%;border-radius:10px;margin-top:6px">`:""}</div>`).join("") || `<p class="hint">No entries yet.</p>`}</div>
+  <div><div class="card"><div class="label">✅ Self-assessment</div>${self ? Object.entries(self.content.ratings||{}).map(([c,v])=>`<p>${esc(c)}: <b>${"⭐".repeat(v)}</b></p>`).join("") + (self.content.comment?`<p class="hint">${esc(self.content.comment)}</p>`:"") : `<p class="hint">Not yet.</p>`}</div>
+  <div class="card"><div class="label">🌟 Final reflection</div>${refl ? Object.entries(refl.content).map(([q,a])=>`<p><b>${esc(q)}</b><br>${esc(a)}</p>`).join("") : `<p class="hint">Not yet.</p>`}</div></div></div>`;
+}
+const boothLink = g => `${SITE_URL}/visit.html?b=${g.booth_code}`;
+function exDay(){
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">🏛️ Digital exhibition</div><p class="hint">Each group builds a booth page in their group space. Open a booth on exhibition day: visitors scan the QR code, see the booth and leave two stars and a wish. Booths are closed until you open them.</p></div><button class="btn" onclick="exBoothCards()">🖨️ Print QR booth cards</button></div>
+    ${exS.groups.map(g=>{ const b = (g.data||{}).booth||{}, n = exS.feedback.filter(f=>f.group_id===g.id&&f.author_type==="visitor").length;
+      return `<div class="unit-row"><div style="display:flex;gap:14px;align-items:center">${g.booth_open?qrImg(boothLink(g),2):`<div class="qrph">🔒</div>`}<div><h4>${esc(g.name)}</h4><p>${b.title?"🏛️ "+esc(b.title):"<span class='hint'>Booth not built yet</span>"} · ${n} visitor message${n===1?"":"s"}</p>${g.booth_open?`<p class="hint" style="word-break:break-all">${esc(boothLink(g))}</p>`:""}</div></div>
+        <div style="display:flex;gap:8px;align-items:center"><label style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" style="width:auto" ${g.booth_open?"checked":""} onchange="exBooth('${g.id}',this.checked)"> Open</label><button class="btn small ghost" onclick="exS.group='${g.id}';render()">Feedback</button></div></div>`; }).join("") || `<p class="hint">Make groups first.</p>`}</div>`;
+}
+async function exBooth(id, on){ const { error: e } = await db.from("exh_groups").update({ booth_open: on }).eq("id", id); if(e){ error = tcErr(e); return render(); } exS.groups.find(g => g.id === id).booth_open = on; toast(on ? "Booth open for visitors ✓" : "Booth closed"); render(); }
+function exBoothCards(){
+  const open = exS.groups.filter(g => g.booth_open); if(!open.length) return toast("Open at least one booth first");
+  printWin("Booth cards", open.map(g => `<div class="pb" style="text-align:center;padding-top:40px"><h1 style="font-size:34px">🏛️ ${esc(g.name)}</h1><p style="font-size:20px">${esc(((g.data||{}).booth||{}).title||(g.data||{}).issue||"")}</p>${qrImg(boothLink(g), 10)}<p style="font-size:20px">Scan to visit our booth and leave <b>two stars and a wish</b> ⭐⭐🪄</p></div>`).join(""));
+}
+function exAssess(){
+  const crit = exS.exh.data.rubric || [], L = (settings.rubricLevels || "Beginning, Developing, Achieving, Extending").split(",").map(x => x.trim()).filter(Boolean);
+  const grade = id => (exS.grades.find(g => g.student_id === id) || {}).data || {};
+  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">✅ Exhibition rubric</div><button class="btn small ghost" onclick="exRubricWord()">⬇️ Rubric as Word</button></div>
+    <p class="hint" style="margin-bottom:8px">Children rate themselves on the same criteria (⭐ = their own rating). Levels come from School settings.</p>
+    <div style="overflow-x:auto"><table class="tbl"><tr><th>Child</th>${crit.map(c=>`<th title="${esc(c.desc)}">${esc(c.criterion)}</th>`).join("")}</tr>
+    ${exS.kids.map(k=>{ const gd = grade(k.id), self = latestEntry(k.id,"exh_self"), sr = self ? self.content.ratings||{} : {};
+      return `<tr><td><b>${esc(k.picture)} ${esc(k.first_name)}</b></td>${crit.map(c=>`<td><select onchange="exGrade('${k.id}',${esc(JSON.stringify(c.criterion))},this.value)" style="padding:6px"><option value="">–</option>${L.map((l,i)=>`<option value="${i+1}" ${Number(gd[c.criterion])===i+1?"selected":""}>${esc(l)}</option>`).join("")}</select>${sr[c.criterion]?`<div class="hint">⭐${sr[c.criterion]}</div>`:""}</td>`).join("")}</tr>`; }).join("")}</table></div>
+    <div class="label" style="margin-top:14px">Criteria</div>${crit.map((c,i)=>`<div class="mile"><input value="${esc(c.criterion)}" onchange="exS.exh.data.rubric[${i}].criterion=this.value;exSaveExh()" style="flex:1"><input value="${esc(c.desc)}" onchange="exS.exh.data.rubric[${i}].desc=this.value;exSaveExh()" style="flex:3"><button class="link" style="color:var(--coral)" onclick="exS.exh.data.rubric.splice(${i},1);exSaveExh();render()">✕</button></div>`).join("")}
+    <button class="link" onclick="exS.exh.data.rubric.push({criterion:'New criterion',desc:''});exSaveExh();render()">＋ Add criterion</button></div>`;
+}
+async function exGrade(kid, crit, v){
+  let row = exS.grades.find(g => g.student_id === kid);
+  if(!row){ row = { student_id: kid, class_id: exS.cls.id, data: {} }; exS.grades.push(row); }
+  row.data[crit] = v ? Number(v) : undefined;
+  const { error: e } = await db.from("exh_grades").upsert({ student_id: kid, class_id: exS.cls.id, data: row.data, updated_at: new Date().toISOString() });
+  if(e){ error = tcErr(e); render(); } else toast("Saved ✓");
+}
+function exRubricWord(){
+  const crit = exS.exh.data.rubric || [], L = (settings.rubricLevels || "Beginning, Developing, Achieving, Extending").split(",").map(x => x.trim());
+  wordDownload("PYP Exhibition rubric - " + exS.cls.name, `<h1>PYP Exhibition rubric</h1><p>${esc(exS.cls.name)} · ${esc(settings.school||"")}</p><table><tr><th>Criterion</th>${L.map(l=>`<th>${esc(l)}</th>`).join("")}</tr>${crit.map(c=>`<tr><td><b>${esc(c.criterion)}</b><br>${esc(c.desc)}</td>${L.map(()=>"<td></td>").join("")}</tr>`).join("")}</table>`);
+}
+
+/* ---------- wiring ---------- */
+const _settingsViewBase = settingsView;
+settingsView = function(){
+  const note = sch.school ? (schoolAdmin() ? `<div class="ok" style="margin-bottom:12px">🏫 These settings are shared by everyone at ${esc(sch.school.name)}.</div>` : `<div class="demo" style="margin-bottom:12px">🏫 Your school admin manages these settings for ${esc(sch.school.name)}. Changes you make here stay on this device.</div>`) : "";
+  return note + _settingsViewBase();
+};
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => {
+  const v = n.dataset.view;
+  if(v === "sdg"){ sdgS.mine = null; sdgS.open = null; sdgS.edit = null; render(); }
+  if(v === "exh"){ exS.classes = null; exS.cls = null; exS.group = null; exS.kid = null; exS.tab = "timeline"; render(); }
+  if(v === "school"){ sch.overview = null; render(); }
+  if(v === "inquiry"){ oi2.fam = null; oi2.walk = null; }
+}));
 
 render();
 initAuth();

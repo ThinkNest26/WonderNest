@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WonderNest · Visit</title>
+<link rel="icon" href="bird.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14325c;--blue:#2f6fd6;--coral:#ff7a59;--leaf:#3bb07a;--sun:#ffc83d;--muted:#667085;--cream:#fff8ec}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Nunito",system-ui,sans-serif;background:linear-gradient(180deg,#fff3d6,#e8f1ff);min-height:100vh;color:#1d2433}
+  button{font:inherit;cursor:pointer;border:0}
+  input,textarea{font:inherit;width:100%;border:2px solid #e4e8f0;border-radius:14px;padding:12px;background:#fff}
+  textarea{min-height:64px;resize:vertical}
+  .wrap{max-width:640px;margin:auto;padding:18px}
+  .head{background:linear-gradient(135deg,#2f9e6b,#7cc36b);color:#fff;border-radius:0 0 28px 28px;padding:22px 20px 26px;text-align:center}
+  .head.booth{background:linear-gradient(135deg,#14325c,#8a6cf0)}
+  .head img{width:64px}
+  .head h1{font-family:"Fredoka";font-size:28px;margin-top:4px}
+  .head p{font-weight:800;opacity:.9}
+  .card{background:#fff;border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:0 2px 0 rgba(0,0,0,.04)}
+  .card h2{font-family:"Fredoka";color:var(--navy);font-size:20px;margin-bottom:8px}
+  .garden{background:linear-gradient(180deg,#bfe3ff,#e8f6ff 70%);border-radius:22px;padding:18px 10px 0;margin-bottom:14px;overflow:hidden}
+  .bed{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:90px}
+  .plant{background:none;display:flex;flex-direction:column;align-items:center;width:92px}
+  .plant span{font-size:44px;animation:sway 3s ease-in-out infinite}
+  .plant small{font-weight:800;font-size:11px;color:var(--navy);text-align:center}
+  .soil{height:22px;background:#8b5a2b;border-top:6px solid #5fae4a;margin:8px -10px 0}
+  @keyframes sway{50%{transform:rotate(4deg)}}
+  .plaque{background:linear-gradient(#e9c46a,#c99a2e);color:#3d2a00;font-weight:900;padding:8px 12px;border-radius:10px;text-align:center;margin-bottom:10px}
+  .exhibit img{width:100%;border-radius:14px;border:8px solid #5b3a1a}
+  .label{background:var(--cream);border-radius:12px;padding:10px;margin-top:8px;font-weight:700}
+  .touch{background:#e7f7ef;border-radius:12px;padding:10px;margin-top:8px;font-weight:800;color:#1d7a4e}
+  .radio{background:#1d2433;color:#fff}.radio h2{color:#fff}.onair{color:#ff6b6b;font-weight:900;margin-bottom:6px}
+  .btn{background:var(--coral);color:#fff;border-radius:16px;padding:14px 20px;font-weight:900;font-size:17px;width:100%;margin-top:10px}
+  .btn.ghost{background:#fff;color:var(--blue);border:2px solid #cfe0fb}
+  .lbl{font-weight:800;color:var(--muted);margin:10px 0 6px}
+  .note{background:#e7f7ef;border-radius:14px;padding:10px;margin-top:8px}
+  .tag{display:inline-block;background:#fff;border-radius:8px;padding:2px 8px;font-weight:800;color:#fff;margin-right:4px;font-size:12px}
+  .center{text-align:center}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<div id="app"><div class="wrap center" style="padding-top:80px"><img src="bird.png" style="width:80px"><p>Loading…</p></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://zmncqutjtgwxlvrdgwiq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_blNQT3mGUzNadaRARkRpew_dq-tmD4J";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, storageKey: "wondernest-visit" } });
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const P = new URLSearchParams(location.search), fam = P.get("f"), booth = P.get("b");
+const PLANTS = ["🌰","🌰","🌱","🌿","🪴","🌷","🌸"];
+const SDGC = {1:"#E5243B",2:"#DDA63A",3:"#4C9F38",4:"#C5192D",5:"#FF3A21",6:"#26BDE2",7:"#FCC30B",8:"#A21942",9:"#FD6925",10:"#DD1367",11:"#FD9D24",12:"#BF8B2E",13:"#3F7E44",14:"#0A97D9",15:"#56C02B",16:"#00689D",17:"#19486A"};
+let V = null, cur = null, sent = {};
+const starsForm = (id) => `<div class="card"><h2>⭐⭐ Two stars and a wish 🪄</h2>
+  <p class="lbl">Your name (for example: Mum, Grandpa Ali)</p><input id="nm${id}" maxlength="40">
+  <p class="lbl">⭐ I love how you…</p><textarea id="s1${id}" maxlength="300"></textarea>
+  <p class="lbl">⭐ I learned that…</p><textarea id="s2${id}" maxlength="300"></textarea>
+  <p class="lbl">🪄 I wish / I wonder…</p><textarea id="w${id}" maxlength="300"></textarea>
+  <button class="btn" onclick="send('${id}')">Send 💌</button></div>`;
+function famDraw(){
+  const v = V;
+  if(cur){ const q = v.inquiries.find(x => x.id === cur), d = q.data || {}, s = d.share || {}, r = d.reflect || {};
+    return `<div class="head"><img src="bird.png" alt=""><h1>${esc(v.first_name)}'s wonder</h1><p>${esc(d.wonder||"")}</p></div><div class="wrap">
+      ${s.format === "radio" ? `<div class="card radio"><div class="onair">● ON AIR</div><h2>🎙️ ${esc(s.title||"Radio show")}</h2>${s.audio?`<audio controls src="${s.audio}" style="width:100%;margin:8px 0"></audio>`:""}<p style="white-space:pre-wrap">${esc(s.script||"")}</p></div>`
+        : s.title || s.img || s.label ? `<div class="card exhibit"><div class="plaque">🏛️ ${esc(s.title||"Exhibit")}</div>${s.img?`<img src="${s.img}">`:""}${s.label?`<div class="label">${esc(s.label)}</div>`:""}${s.activity?`<div class="touch">✋ Touch and try: ${esc(s.activity)}</div>`:""}</div>` : ""}
+      ${d.board && d.board.meaning ? `<div class="card"><h2>🔍 What the clues showed</h2><p>${esc(d.board.meaning)}</p></div>` : ""}
+      ${(d.notebook||[]).filter(t => t.photo || t.img).slice(0,4).map(t => `<div class="card"><img src="${t.photo||t.img}" style="width:100%;border-radius:14px"></div>`).join("")}
+      ${r.learned ? `<div class="card"><h2>🌸 ${esc(v.first_name)}'s reflection</h2><p><b>I learned:</b> ${esc(r.learned)}</p>${r.proud?`<p><b>I'm proud of:</b> ${esc(r.proud)}</p>`:""}${r.wonderNow?`<p><b>Now I wonder:</b> ${esc(r.wonderNow)}</p>`:""}</div>` : ""}
+      ${(q.notes||[]).length ? `<div class="card"><h2>💚 Messages from family</h2>${q.notes.map(n=>`<div class="note"><b>${esc(n.name||"Family")}</b><br>⭐ ${esc(n.content.star1||"")}<br>⭐ ${esc(n.content.star2||"")}<br>🪄 ${esc(n.content.wish||"")}</div>`).join("")}</div>` : ""}
+      ${sent[q.id] ? `<div class="card center"><h2>💌 Sent!</h2><p>${esc(v.first_name)} will see your message in their Wonder Nest.</p></div>` : starsForm(q.id)}
+      <button class="btn ghost" onclick="cur=null;draw()">‹ Back to the garden</button></div>`; }
+  return `<div class="head"><img src="bird.png" alt=""><h1>${esc(v.first_name)}'s Wonder Garden</h1><p>${esc(v.class_name)}${v.unit ? " · " + esc(v.unit) : ""}</p></div><div class="wrap">
+    <div class="card"><p>Every wonder ${esc(v.first_name)} plants is a question they chose to investigate. It grows as they collect clues, make sense of them, share what they found and reflect. 🌸 Flowers are wonders ${esc(v.first_name)} has shared: tap one to visit.</p></div>
+    <div class="garden"><div class="bed">${v.inquiries.map(q => { const n = Math.min(6, q.stage || 1); return q.shared ? `<button class="plant" onclick="cur='${q.id}';draw();scrollTo(0,0)"><span>🌸</span><small>${esc((q.data.wonder||"").slice(0,40))}</small></button>` : `<div class="plant"><span>${PLANTS[n]}</span><small>${esc((q.data.wonder||"Growing…").slice(0,40))}</small></div>`; }).join("") || `<p style="font-weight:800;color:var(--navy);padding:20px">No wonders planted yet. Ask ${esc(v.first_name)} what they wonder about!</p>`}</div><div class="soil"></div></div>
+    <div class="card"><h2>💬 Talk about it at home</h2><p>• What are you wondering about at the moment?<br>• How did you find your clues?<br>• What surprised you?<br>• What do you want to find out next?</p></div></div>`;
+}
+function boothDraw(){
+  const v = V, b = v.booth || {};
+  return `<div class="head booth"><img src="bird.png" alt=""><h1>🏛️ ${esc(b.title || v.name)}</h1><p>${esc(v.name)} · ${esc(v.class_name)}</p><p>${(v.members||[]).map(esc).join(", ")}</p></div><div class="wrap">
+    ${b.img ? `<div class="card exhibit"><img src="${b.img}"></div>` : ""}
+    ${v.issue ? `<div class="card"><h2>🌍 Our issue</h2><p>${esc(v.issue)}</p>${(v.sdgs||[]).map(n=>`<span class="tag" style="background:${SDGC[n]||"#2f6fd6"}">SDG ${n}</span>`).join("")}</div>` : ""}
+    ${v.centralIdea ? `<div class="card"><h2>💡 Our central idea</h2><p style="font-size:18px;font-weight:800">${esc(v.centralIdea)}</p>${(v.lines||[]).filter(Boolean).length?`<p class="lbl">Our lines of inquiry</p>${v.lines.filter(Boolean).map(l=>`<p>🔎 ${esc(l)}</p>`).join("")}`:""}</div>` : ""}
+    ${b.text ? `<div class="card"><h2>📖 What we found out</h2><p>${esc(b.text)}</p>${b.activity?`<div class="touch">✋ ${esc(b.activity)}</div>`:""}</div>` : ""}
+    ${v.action && v.action.plan ? `<div class="card"><h2>🌱 Our action</h2><p>${esc(v.action.plan)}</p>${(v.action.steps||[]).map(s=>`<p>${s.done?"✅":"⬜"} ${esc(s.text)}</p>`).join("")}</div>` : ""}
+    ${sent.booth ? `<div class="card center"><h2>💌 Thank you!</h2><p>The group will read your message.</p></div>` : starsForm("booth")}</div>`;
+}
+function draw(){
+  if(!V) return $("#app").innerHTML = `<div class="wrap center" style="padding-top:80px"><img src="bird.png" style="width:80px"><h2 style="font-family:Fredoka;color:#14325c;margin-top:10px">This link isn't working</h2><p>Please check the link with the class teacher.${booth ? " The booth may not be open yet." : ""}</p></div>`;
+  $("#app").innerHTML = (fam ? famDraw() : boothDraw()) + `<div class="foot">WonderNest · ThinkNest Education</div>`;
+}
+async function send(id){
+  const g = k => ($("#" + k + id) || {}).value.trim();
+  const name = g("nm"), s1 = g("s1"), s2 = g("s2"), w = g("w");
+  if(!s1 || !s2 || !w) return alert("Please write two stars and a wish 😊");
+  const r = fam ? await db.rpc("family_star", { p_code: fam, p_inquiry: id, p_name: name, p_star1: s1, p_star2: s2, p_wish: w })
+                : await db.rpc("booth_feedback", { p_code: booth, p_name: name, p_star1: s1, p_star2: s2, p_wish: w });
+  if(r.error || !r.data || !r.data.ok) return alert(r.data && r.data.reason === "limit" ? "Lots of messages today! Please try again tomorrow." : "Sorry, that didn't send. Please try again.");
+  sent[id] = true; if(fam){ const q = V.inquiries.find(x => x.id === id); (q.notes = q.notes || []).push({ name, content: { star1: s1, star2: s2, wish: w } }); } draw();
+}
+(async () => {
+  try{
+    const r = fam ? await db.rpc("family_view", { p_code: fam }) : booth ? await db.rpc("booth_view", { p_code: booth }) : { data: null };
+    V = r.data || null;
+  }catch(e){ V = null; }
+  draw();
+})();
+</script>
+</body>
+</html>
