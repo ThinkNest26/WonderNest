@@ -204,7 +204,7 @@
     <div class="door rv" id="teachers">
       <div class="dh"><span class="av"><img src="bird.png" alt="" onerror="this.replaceWith('👩‍🏫')"></span><h2>Teachers</h2></div>
       <p class="s">Plan units, see your class's wonders and portfolios.</p>
-      <div class="signed" id="signed"><span><small>Signed in as</small><b id="who"></b></span><a href="app.html">Open WonderNest →</a></div>
+      <div class="signed" id="signed"><span><b style="font-size:17px">Welcome back! 👋</b><small>Not you? <button onclick="signOut()" style="color:var(--blue);font-weight:700;font-size:12px;text-decoration:underline">Sign out</button></small></span><a href="app.html">Open WonderNest →</a></div>
       <div id="authBox">
         <div class="tabs"><button id="tabIn" class="on" onclick="setMode('signin')">Sign in</button><button id="tabUp" onclick="setMode('signup')">Create account</button></div>
         <label for="em">School email</label><input class="f" id="em" type="email" autocomplete="email">
@@ -303,6 +303,7 @@ async function auth(){
   }catch(e){ msg(e.message || "Something went wrong. Please try again."); }
   finally{ $("go").disabled = false; }
 }
+async function signOut(){ if(db) await db.auth.signOut(); $("signed").style.display = "none"; $("authBox").style.display = ""; }
 function goKids(){
   const c = $("code").value.trim().toUpperCase();
   if(c.length < 6){ const k = $("kmsg"); k.textContent = "Class codes have 6 letters and numbers."; k.className = "msg err"; return; }
@@ -313,7 +314,7 @@ $("pw").addEventListener("keydown", e => { if(e.key === "Enter") auth(); });
   if(!db) return;
   const { data: { session } } = await db.auth.getSession();
   if(session && session.user && !session.user.is_anonymous){
-    $("who").textContent = session.user.email; $("signed").style.display = "flex"; $("authBox").style.display = "none";
+    $("signed").style.display = "flex"; $("authBox").style.display = "none";
   }
 })();
 // Gentle reveal as you scroll
