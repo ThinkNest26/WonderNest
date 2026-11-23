@@ -488,7 +488,9 @@ function step5(){
       ${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}
     </div>
     <div class="card"><div class="label">🧠 Visible thinking routines</div>
-      ${unit.routines.map((r,i)=>`<div class="routine" style="border-left-color:${ROUTINE_COLOURS[i%5]}"><h4>${esc(r.name)} <span>${esc(r.when)}</span></h4><p>${esc(r.how)}</p></div>`).join("")}
+      ${unit.routines.map((r,i)=>`<div class="routine" style="border-left-color:${ROUTINE_COLOURS[i%5]}"><h4>${esc(r.name)} <span>${esc(r.when)}</span></h4><p>${esc(r.how)}</p>
+        <div class="blinks"><button class="blink" onclick="rtOpen(${i})">👁 View</button><button class="blink" onclick="rtWindow(${i},true,false)">🖥️ Use online</button><button class="blink" onclick="rtWindow(${i},false,true)">🖨️ Print / PDF</button><button class="blink" onclick="rtWord(${i})">⬇️ Word</button></div></div>`).join("")}
+      ${rtModal()}
     </div>
     <div class="card"><div class="label">🔍 Open inquiry provocations</div>
       ${unit.provocations.map(p=>`<div class="prov"><h4>${esc(p.title)}</h4><p>${esc(p.text)}</p></div>`).join("")}
@@ -1034,6 +1036,86 @@ async function atlDraft(){
     atlS.comment = String(d.comment || "").replace(/\[Name\]/g, k.first_name);
   }catch(e){ error = e.message || "Something went wrong. Please try again."; }
   finally{ loading(false); render(); }
+}
+
+/* ---------- thinking routine templates ---------- */
+const RT_LIBRARY = [
+  [["see think wonder"], [["👀 See","What do you see?","I see trees standing and some cut down."],["💡 Think","What do you think is going on?","I think people needed the wood."],["❓ Wonder","What does it make you wonder?","I wonder where the animals went."]]],
+  [["think puzzle explore"], [["💭 Think","What do you think you know about this?","I think habitats are homes for animals."],["🧩 Puzzle","What questions or puzzles do you have?","Why do some animals live in only one place?"],["🔍 Explore","How could we find out?","Ask an expert or read a book about it."]]],
+  [["compass"], [["E · Excited","What excites you about this idea?","We could plant a garden for bees."],["W · Worried","What worries you about it?","The plants might die in the summer."],["N · Need to know","What else do you need to know?","Which plants do bees like?"],["S · Suggestion","What is your idea or suggestion?","Let's plant flowers near the shade."]]],
+  [["claim support question"], [["📣 Claim","What do you think is true?","Animals need clean water to live."],["🧱 Support","What makes you say that? What is your evidence?","The fish in the dirty pond got sick."],["❓ Question","What question do you still have?","How can we keep the pond clean?"]]],
+  [["used to think","now i think"], [["⏪ I used to think…","What did you think at the start?","I used to think animals can live anywhere."],["⏩ Now I think…","What do you think now?","Now I think many animals need one special habitat."]]],
+  [["chalk talk"], [["❓ Big question","Write the big question in the middle.","How do we depend on each other?"],["✏️ Our ideas","Write or draw your ideas.","We help each other carry things."],["🔗 Connections and questions","Add to a friend's idea or ask a question.","I agree, and friends also help us feel better."]]],
+  [["step inside"], [["👀 Perceive","What can this person or character see and notice?","The new girl sees everyone playing together."],["🧠 Know and believe","What might they know or believe?","She thinks nobody wants to play with her."],["❤️ Care about","What might they care about?","She cares about having a friend."]]],
+  [["circle of viewpoints","viewpoints"], [["🧍 The viewpoint I'm thinking about","Who or what are you thinking as?","I am thinking as the tree."],["💭 I think…","What do you think from this viewpoint?","I think I give birds a home and shade."],["❓ A question from this viewpoint","What question would they ask?","Why are people cutting my friends down?"]]],
+  [["connect extend challenge"], [["🔗 Connect","How is this connected to what you already know?","It's like when we recycled at home."],["➕ Extend","What new ideas pushed your thinking further?","Plastic can stay in the sea for years."],["🧗 Challenge","What is still hard or puzzling?","Why do shops still use plastic bags?"]]],
+  [["headline"], [["📰 My headline","Write a headline that sums up the big idea.","Small Hands Can Help Save Big Habitats"],["💬 Why I chose it","Why does this headline fit?","Because we learned children can take action."]]],
+  [["what makes you say that"], [["🔎 What's going on?","What do you think is happening?","The family is moving to a new home."],["💬 What makes you say that?","What do you see that makes you think so?","They are carrying boxes and a suitcase."]]],
+  [["zoom in"], [["🔍 First look","What do you see in this part?","I see a hand holding a seed."],["🔍 Zoom out","What new things do you see now?","Now I see lots of children planting."],["💡 My idea now","How has your idea changed?","I think they are making a school garden."]]],
+  [["think pair share"], [["💭 Think","What do you think? Take a moment on your own.","I think sharing makes friends happy."],["👫 Pair","What did your partner think?","My partner thinks sharing is fair."],["📢 Share","What will you share with the class?","We both think sharing helps everyone feel included."]]],
+  [["colour symbol image","color symbol image"], [["🎨 Colour","Which colour shows the big idea? Why?","Green, because it means growing."],["⭐ Symbol","Which symbol shows the big idea?","A heart, because we care for nature."],["🖼️ Image","Draw an image that shows the big idea.","A child watering a small tree."]]],
+  [["sentence phrase word"], [["📝 Sentence","Which sentence was most important?","We all need clean water to live."],["✏️ Phrase","Which phrase caught your attention?","share our planet"],["🔤 Word","Which single word stands out?","responsibility"]]],
+  [["same different","same and different"], [["🟰 Same","How are they the same?","Both live near water."],["↔️ Different","How are they different?","The frog can live on land too."],["🔗 Connect","How do they connect to your life?","We have a pond near our school."]]]
+];
+const norm = x => String(x||"").toLowerCase().replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim();
+function rtSections(r){
+  if(Array.isArray(r.sections) && r.sections.length) return r.sections.map(s => [s.label, s.prompt, s.example]);
+  const n = norm(r.name); const hit = RT_LIBRARY.find(([keys]) => keys.some(k => n.includes(k)));
+  return hit ? hit[1] : [["💭 My thinking","What do you think?",""],["❓ My questions","What do you wonder?",""],["🔗 Connections","What does this remind you of?",""]];
+}
+const rt = { open: null, examples: true };
+function rtTemplate(r, opts){
+  const secs = rtSections(r), ex = opts.examples, ed = opts.editable;
+  const cols = secs.length === 4 ? 2 : secs.length;
+  return `<div class="rt-sheet"><div class="rt-head"><div><div class="rt-brand">WonderNest · Visible thinking routine</div><h1>${esc(r.name)}</h1>
+    ${unit.centralIdea ? `<div class="rt-ci">${esc(unit.centralIdea)}</div>` : ""}</div><div class="rt-name">Name: ____________________<br>Date: ____________________</div></div>
+    <div class="rt-grid" style="grid-template-columns:repeat(${cols},1fr)">${secs.map(([label,prompt,example])=>`<div class="rt-box"><h2>${esc(label)}</h2><p class="rt-prompt">${esc(prompt||"")}</p>
+      ${ex && example ? `<div class="rt-ex"><b>Example:</b> ${esc(example)}</div>` : ""}<div class="rt-space" ${ed?'contenteditable="true"':""}></div></div>`).join("")}</div>
+    <div class="rt-foot">${esc(r.how||"")}</div></div>`;
+}
+const RT_CSS = `.rt-sheet{font-family:"Nunito","Segoe UI",Arial,sans-serif;color:#1d2433;max-width:1100px;margin:0 auto}
+  .rt-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:3px solid #ffc83d;padding-bottom:12px;margin-bottom:16px}
+  .rt-brand{font-size:12px;font-weight:800;color:#2f6fd6;letter-spacing:.6px;text-transform:uppercase}
+  .rt-head h1{font-size:30px;color:#14325c;margin:4px 0}
+  .rt-ci{font-size:14px;color:#475066;font-weight:700}
+  .rt-name{font-size:14px;color:#475066;line-height:2;white-space:nowrap}
+  .rt-grid{display:grid;gap:14px}
+  .rt-box{border:2.5px solid #14325c;border-radius:16px;padding:14px;display:flex;flex-direction:column;min-height:300px;break-inside:avoid}
+  .rt-box h2{font-size:22px;color:#14325c;margin:0 0 4px}
+  .rt-prompt{font-size:14px;color:#475066;margin:0 0 8px}
+  .rt-ex{background:#fff7e0;border:1px dashed #ffc83d;border-radius:10px;padding:8px 10px;font-size:13px;color:#6b4a00;margin-bottom:8px}
+  .rt-space{flex:1;min-height:160px;border-radius:10px;background:repeating-linear-gradient(#fff,#fff 31px,#dfe5ef 32px);outline:none;font-size:18px;line-height:32px;padding:0 6px}
+  .rt-space[contenteditable]:focus{box-shadow:0 0 0 3px rgba(47,111,214,.25)}
+  .rt-foot{margin-top:14px;font-size:12.5px;color:#667085}
+  @media print{ .noprint{display:none !important} body{margin:10mm} .rt-box{min-height:420px} }`;
+function rtOpen(i){ rt.open = i; render(); }
+function rtModal(){
+  if(rt.open === null || !unit.routines[rt.open]) return "";
+  const r = unit.routines[rt.open], i = rt.open;
+  return `<div class="modal-bg" onclick="if(event.target===this){rt.open=null;render()}"><div class="modal" style="width:min(1000px,96vw)">
+    <style>${RT_CSS}</style>
+    <div class="actions" style="margin-top:0;margin-bottom:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px"><input type="checkbox" ${rt.examples?"checked":""} onchange="rt.examples=this.checked;render()" style="width:18px;height:18px"> Show examples</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small ghost" onclick="rtWindow(${i},true,false)">🖥️ Use online</button><button class="btn small ghost" onclick="rtWindow(${i},false,true)">🖨️ Print / PDF</button><button class="btn small ghost" onclick="rtWord(${i})">⬇️ Word</button><button class="btn small" onclick="rt.open=null;render()">Close</button></div></div>
+    ${rtTemplate(r, {examples: rt.examples, editable: false})}</div></div>`;
+}
+function rtWindow(i, editable, print){
+  const r = unit.routines[i]; const w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to open the template");
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(r.name)} · WonderNest</title><style>body{margin:24px;background:#f6f8fc}${RT_CSS}
+    .bar{max-width:1100px;margin:0 auto 14px;display:flex;gap:10px;justify-content:flex-end;font-family:Arial} .bar button{background:#2f6fd6;color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;font-size:14px} .bar button.g{background:#fff;color:#2f6fd6;border:1.5px solid #2f6fd6}
+    .rt-sheet{background:#fff;padding:24px;border-radius:16px} @media print{body{background:#fff;margin:0} .rt-sheet{padding:0}}</style></head><body>
+    <div class="bar noprint">${editable ? `<span style="margin-right:auto;color:#475066;font-size:14px;align-self:center">Click inside a box to type. Great for the class board.</span>` : ""}<button class="g" onclick="document.querySelectorAll('.rt-ex').forEach(e=>e.style.display=e.style.display==='none'?'':'none')">Show / hide examples</button><button onclick="print()">🖨️ Print or save as PDF</button></div>
+    ${rtTemplate(r, {examples: rt.examples, editable})}${print ? "<script>setTimeout(()=>print(),400)<\/script>" : ""}</body></html>`);
+  w.document.close();
+}
+function rtWord(i){
+  const r = unit.routines[i], secs = rtSections(r);
+  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#1d2433} h1{color:#14325c;font-size:22pt;margin:0} td{border:2pt solid #14325c;vertical-align:top;padding:8pt;width:${Math.floor(100/secs.length)}%} h2{color:#14325c;font-size:15pt;margin:0} .p{color:#475066;font-size:10pt} .ex{background:#fff7e0;font-size:10pt;color:#6b4a00;padding:4pt}</style></head><body>
+    <p style="color:#2f6fd6;font-size:9pt;font-weight:bold">WONDERNEST · VISIBLE THINKING ROUTINE</p><h1>${esc(r.name)}</h1>
+    ${unit.centralIdea ? `<p><b>${esc(unit.centralIdea)}</b></p>` : ""}<p>Name: ______________________ &nbsp;&nbsp; Date: ______________</p>
+    <table style="border-collapse:collapse;width:100%"><tr>${secs.map(([label,prompt,example])=>`<td><h2>${esc(label)}</h2><p class="p">${esc(prompt||"")}</p>${rt.examples && example ? `<p class="ex"><b>Example:</b> ${esc(example)}</p>` : ""}<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></td>`).join("")}</tr></table>
+    <p style="color:#667085;font-size:9pt">${esc(r.how||"")}</p></body></html>`;
+  const blob = new Blob(["\ufeff", h], {type:"application/msword"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "WonderNest routine - " + r.name + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
 /* ---------- actions ---------- */
