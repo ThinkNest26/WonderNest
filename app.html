@@ -294,7 +294,7 @@ const SUPABASE_URL = "https://zmncqutjtgwxlvrdgwiq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_blNQT3mGUzNadaRARkRpew_dq-tmD4J";
 const SITE_URL = "https://wondernest.thinknest.education";
 const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: "wondernest-teacher" } }) : null;
-const PICTURES = ["🐢","🌈","⭐","🍎","🚀","🐬","🌻","🦁","🎈","🐝","🍓","⚽"];
+const PICTURES = ["🐢","🐪","⭐","🍎","🚀","🐬","🌻","🦁","🎈","🐝","🍓","⚽"];
 
 /* ---------- storage ---------- */
 const store = {
@@ -303,7 +303,7 @@ const store = {
 };
 let settings = (s => { if(s.conceptLabel === "Key concepts") s.conceptLabel = "Specified concepts"; return s; })(Object.assign({school:"", conceptLabel:"Specified concepts", rubricLevels:"Beginning, Developing, Achieving, Extending", atlLevels:"Novice, Learner, Practitioner, Expert"}, store.get("wn_settings", {})));
 function newUnit(){
-  return {id:"u"+Date.now(), theme:"", description:"", grade:"", ageBand:"", duration:"6 weeks", languages:"English",
+  return {id:(crypto.randomUUID ? crypto.randomUUID() : "u"+Date.now()), theme:"", description:"", grade:"", ageBand:"", duration:"6 weeks", languages:"English",
     centralIdeaOptions:[], centralIdea:"", lines:[], keyConcepts:[], relatedConcepts:[], atl:[], atlWhy:{},
     learnerProfile:[], sdgs:[], sdgWhy:{}, books:[], story:null, spark:"", routines:[], provocations:[], step:1, updated:null};
 }
@@ -393,7 +393,7 @@ function render(){
 function header(title){
   const t = themeOf(unit.theme);
   return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}${unit.grade ? " · " + esc(unit.grade) : ""}</div><h1>${title}</h1></div>
-    ${unit.step === 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>
+    ${unit.step === 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn ghost" onclick="openAssign()">📌 Use with a class</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>${assignModal()}
     ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> the AI is not connected yet, so WonderNest shows sample suggestions for a habitats unit. Real suggestions start once the AI Worker is connected.</div>`}
     ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
     <div class="steps">${STEP_NAMES.map((n,i)=>{
@@ -501,10 +501,10 @@ function step5(){
 function homeView(){
   const units = store.get("wn_units", []);
   return `<div class="top"><div><div class="crumb">WonderNest</div><h1>My units</h1></div><button class="btn" onclick="startNew()">＋ New unit</button></div>
-  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))} · saved ${esc(u.updated||"")}</p></div>
+  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))} · saved ${esc(u.updated||"")}${u.shared ? " · <b>shared</b>" : ""}</p></div>
     <div style="display:flex;gap:14px;flex-shrink:0"><button class="link" onclick="openUnit('${u.id}')">Open</button><button class="link danger" onclick="deleteUnit('${u.id}')">Delete</button></div></div>`).join("")
     : `<div class="empty">🐦<br><br>No saved units yet.<br>Build your first unit and click <b>Save unit</b> at the end.</div>`}</div>
-  <div class="hint">Units are saved on this device for now. Saving to your school account comes in the next stage.</div>`;
+  <div class="hint">Units are saved to your WonderNest account, so they appear on any device you sign in on. Units marked "shared" belong to a colleague whose class you teach.</div>`;
 }
 
 function settingsView(){
@@ -529,7 +529,50 @@ function sumUnit(){ return savedUnits().find(u => u.id === sumId); }
 function storeUnit(u){
   const units = savedUnits(); const i = units.findIndex(x => x.id === u.id);
   if(i >= 0) units[i] = u; else units.unshift(u);
+  pushUnit(u);
   return store.set("wn_units", units);
+}
+/* ---------- units in the cloud ---------- */
+const isUuid = x => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x));
+async function pushUnit(u){
+  if(!db || !tc.user || !isUuid(u.id) || u.shared) return false;
+  const clean = Object.assign({}, u); delete clean.shared;
+  const { error: e } = await db.from("units").upsert({ id: u.id, data: clean, central_idea: u.centralIdea || "", theme: u.theme || "", grade: u.grade || "", updated_at: new Date().toISOString() });
+  return !e;
+}
+async function syncUnits(){
+  if(!db || !tc.user) return;
+  const local = store.get("wn_units", []);
+  local.forEach(u => { if(!isUuid(u.id)){ const n = crypto.randomUUID(); if(unit.id === u.id){ unit.id = n; saveCurrent(); } u.id = n; } });
+  if(!isUuid(unit.id)){ unit.id = crypto.randomUUID(); saveCurrent(); }
+  const { data, error: e } = await db.from("units").select("id, data, owner").order("updated_at", { ascending: false });
+  if(e){ store.set("wn_units", local); return; }
+  const ids = new Set(data.map(r => r.id));
+  for(const u of local) if(!ids.has(u.id)) await pushUnit(u);
+  const merged = data.map(r => Object.assign({}, r.data, { id: r.id, shared: r.owner !== tc.user.id })).concat(local.filter(u => !ids.has(u.id)));
+  store.set("wn_units", merged);
+  if(view === "home" || view === "classes" || view === "summative") render();
+}
+function makeCU(u){ const t = themeOf(u.theme) || {}; return { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", atl: u.atl || [], storySpark: u.spark || "" }; }
+const assign = { open:false, classes:[] };
+async function openAssign(){
+  await saveUnit(true);
+  const { data, error: e } = await db.from("classes").select("id, name, grade, current_unit").order("created_at");
+  if(e){ error = tcErr(e); return render(); }
+  assign.classes = data || []; assign.open = true; render();
+}
+async function assignTo(id){
+  const { error: e } = await db.from("classes").update({ current_unit: makeCU(unit) }).eq("id", id);
+  if(e){ error = tcErr(e); assign.open = false; return render(); }
+  const c = assign.classes.find(x => x.id === id); assign.open = false; toast(`Now the current unit for ${c ? c.name : "the class"} ✓`); render();
+}
+function assignModal(){
+  if(!assign.open) return "";
+  return `<div class="modal-bg" onclick="if(event.target===this){assign.open=false;render()}"><div class="modal">
+    <div class="label">Use this unit with a class</div><h3 style="color:var(--navy);margin-bottom:12px">${esc(unit.centralIdea)}</h3>
+    ${assign.classes.length ? assign.classes.map(c=>`<div class="unit-row"><div><h4>${esc(c.name)}</h4><p>${esc(c.grade)}${c.current_unit && c.current_unit.unitId === unit.id ? " · <b style='color:var(--leaf)'>already using this unit</b>" : c.current_unit ? " · now: " + esc(c.current_unit.centralIdea) : ""}</p></div><button class="btn small" onclick="assignTo('${c.id}')">Use this unit</button></div>`).join("")
+      : `<div class="hint">You have no classes yet. Create one in 🌱 Classes & portfolios.</div>`}
+    <div class="actions"><span></span><button class="link" onclick="assign.open=false;render()">Close</button></div></div></div>`;
 }
 function summativeView(){
   const units = savedUnits();
@@ -645,6 +688,7 @@ async function initAuth(){
   tc.user = session && !session.user.is_anonymous ? session.user : null; tc.ready = true;
   const recovering = location.hash.includes("type=recovery");
   if(!tc.user && !recovering){ location.replace("./"); return; }
+  syncUnits();
   $("#footSchool").insertAdjacentHTML("afterend", `<button class="nav" style="margin-top:8px" onclick="tSignOut()">🚪 Sign out</button>`);
   db.auth.onAuthStateChange((ev, session) => {
     tc.user = session ? session.user : null;
@@ -716,7 +760,8 @@ function classesView(){
     </div></div>
     <div class="card"><div class="label">Current unit (children see this on their home page)</div>
       ${c.current_unit ? `<div style="font-weight:800;color:var(--navy);margin-bottom:10px">${esc(c.current_unit.themeIcon||"")} ${esc(c.current_unit.centralIdea)}</div>` : `<div class="hint" style="margin-bottom:10px">No unit chosen yet.</div>`}
-      ${units.length ? `<div class="edit-row"><select id="cu">${units.map(u=>`<option value="${u.id}">${esc(u.centralIdea || "Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select><button class="btn small" onclick="tSetUnit()">Set as current unit</button></div>` : `<div class="hint">Save a unit in the Unit builder first. Units saved on this device appear here.</div>`}
+      ${units.length ? `<div class="edit-row"><select id="cu">${units.map(u=>`<option value="${u.id}" ${c.current_unit && c.current_unit.unitId===u.id?"selected":""}>${esc(u.centralIdea || "Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select><button class="btn small" onclick="tSetUnit()">Use this unit</button></div>
+        <div class="hint" style="margin-top:8px">Or <button class="link" onclick="startNew()">build a new unit</button>, then click 📌 Use with a class at the end.</div>` : `<div class="hint">No saved units yet. <button class="link" onclick="startNew()">Build a unit</button>, then click <b>📌 Use with a class</b> at the end.</div>`}
     </div>
     <div class="card"><div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">Children (${tc.students.length})</div>
       ${tc.students.length ? `<button class="btn small ghost" onclick="tPrintCards()">🖨️ Print login cards</button>` : ""}</div>
@@ -778,11 +823,11 @@ async function tJoin(){
 }
 async function tSetUnit(){
   const u = savedUnits().find(x => x.id === $("#cu").value); if(!u) return;
-  const t = themeOf(u.theme) || {};
-  const cu = { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", atl: u.atl || [], storySpark: u.spark || "" };
+  const cu = makeCU(u);
   const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", tc.cls.id);
   if(e){ error = tcErr(e); return render(); } tc.cls.current_unit = cu; toast("Current unit set ✓"); render();
 }
+
 async function tAddKids(){
   const names = $("#newkids").value.split(/\n|,/).map(n => n.trim()).filter(Boolean).slice(0, 60);
   if(!names.length) return;
@@ -965,16 +1010,17 @@ function suggestResources(){
     unit.step = 5;
   });
 }
-function saveUnit(){
+async function saveUnit(quiet){
   unit.updated = new Date().toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"});
   const units = store.get("wn_units", []).filter(u => u.id !== unit.id);
   units.unshift(JSON.parse(JSON.stringify(unit)));
-  store.set("wn_units", units) ? toast("Unit saved ✓") : toast("Could not save on this device");
-  saveCurrent();
+  store.set("wn_units", units); saveCurrent();
+  const ok = await pushUnit(unit);
+  if(!quiet) toast(ok ? "Unit saved to your account ✓" : "Unit saved on this device");
 }
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
-function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); render(); } }
+function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); if(db && isUuid(id)) db.from("units").delete().eq("id", id).then(()=>{}); render(); } }
 function saveSettings(){ settings.atlLevels = ($("#setAtl").value.trim() || "Novice, Learner, Practitioner, Expert"); settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Specified concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== defaultThemeText(t.id)) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
 
 function downloadWord(){
