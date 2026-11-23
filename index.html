@@ -3,935 +3,216 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WonderNest · Unit builder</title>
-<meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion for teachers and children.">
-<style>
-  :root{
-    --navy:#14325c; --blue:#2f6fd6; --sky:#e8f1ff; --sun:#ffc83d; --coral:#ff7a59;
-    --leaf:#3bb07a; --lilac:#8a6cf0; --ink:#1d2433; --muted:#667085; --line:#e4e8f0; --bg:#f6f8fc;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Nunito","Segoe UI","Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh}
-  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
-  input,textarea,select{font:inherit;color:var(--ink)}
-  .app{display:flex;min-height:100vh}
-  /* sidebar */
-  .side{width:240px;flex-shrink:0;background:var(--navy);color:#fff;padding:26px 18px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
-  .logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800;margin-bottom:26px}
-  .logo .mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--sun),var(--coral));display:grid;place-items:center;font-size:21px}
-  .logo small{display:block;font-size:11px;font-weight:600;opacity:.7;letter-spacing:.5px}
-  .nav{padding:11px 14px;border-radius:10px;font-size:14.5px;opacity:.8;display:flex;gap:10px;align-items:center;text-align:left;width:100%}
-  .nav:hover{background:rgba(255,255,255,.08);opacity:1}
-  .nav.on{background:rgba(255,255,255,.15);opacity:1;font-weight:700}
-  .nav.soon{opacity:.45;cursor:default}
-  .nav.soon:hover{background:none}
-  .nav .pill{margin-left:auto;font-size:10px;background:rgba(255,255,255,.18);padding:2px 7px;border-radius:99px}
-  .side .foot{margin-top:auto;font-size:12px;opacity:.65;line-height:1.5}
-  .main{flex:1;padding:30px 38px 60px;min-width:0}
-  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
-  .crumb{font-size:13px;color:var(--muted);margin-bottom:4px}
-  h1{font-size:27px;font-weight:800;color:var(--navy)}
-  .demo{background:#fff4e0;border:1px solid #ffe0a3;color:#8a5200;border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:18px}
-  /* stepper */
-  .steps{display:flex;gap:8px;margin-bottom:24px}
-  .step{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--muted);display:flex;gap:9px;align-items:center;text-align:left}
-  .step b{width:24px;height:24px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted);flex-shrink:0}
-  .step.done b{background:var(--leaf);color:#fff}
-  .step.now{border-color:var(--blue);color:var(--navy);font-weight:700;box-shadow:0 0 0 3px rgba(47,111,214,.12)}
-  .step.now b{background:var(--blue);color:#fff}
-  .step:disabled{cursor:default}
-  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:16px}
-  .label{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
-  .hint{font-size:12.5px;color:var(--muted);line-height:1.45}
-  /* themes */
-  .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-  .theme{border-radius:14px;padding:15px 16px;border:2px solid transparent;background:#fff;box-shadow:0 1px 0 var(--line);text-align:left;position:relative}
-  .theme:hover{border-color:#cfe0fb}
-  .theme .ic{font-size:24px;margin-bottom:6px}
-  .theme h3{font-size:15.5px;color:var(--navy);margin-bottom:3px}
-  .theme p{font-size:12px;color:var(--muted);line-height:1.4}
-  .theme.sel{border-color:var(--leaf);background:#effaf4}
-  .theme.sel:after{content:"✓";position:absolute;top:12px;right:14px;width:24px;height:24px;border-radius:50%;background:var(--leaf);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800}
-  textarea,input[type=text],select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.5;background:#fff}
-  textarea{min-height:110px;resize:vertical}
-  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
-  .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
-  .fields label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px}
-  .actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
-  .btn{background:var(--blue);color:#fff;border-radius:12px;padding:12px 20px;font-weight:800;font-size:15px;display:inline-flex;gap:8px;align-items:center}
-  .btn:hover{filter:brightness(1.07)}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .btn.ghost{background:#fff;color:var(--blue);border:1.5px solid var(--blue)}
-  .btn.small{padding:8px 13px;font-size:13px;border-radius:10px}
-  .link{color:var(--blue);font-weight:700;font-size:13px}
-  .link.danger{color:#c2410c}
-  /* central ideas */
-  .ci{border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;font-size:15px;line-height:1.45;display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:#fff}
-  .ci .rb{width:20px;height:20px;border-radius:50%;border:2px solid #c3cad8;flex-shrink:0;margin-top:2px}
-  .ci.sel{border-color:var(--blue);background:var(--sky)}
-  .ci.sel .rb{border:6px solid var(--blue)}
-  .edit-row{display:flex;gap:10px;align-items:flex-start}
-  /* lines */
-  .loi{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
-  .loi:last-child{border:0}
-  .loi .n{width:26px;height:26px;border-radius:7px;background:var(--sun);font-weight:800;font-size:12px;display:grid;place-items:center;flex-shrink:0}
-  .loi textarea{flex:1;min-height:52px;font-size:14.5px;padding:9px 12px}
-  .loi select{width:140px;flex-shrink:0;font-size:13.5px;padding:10px}
-  .grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start}
-  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
-  .chip{font-size:12.8px;font-weight:700;padding:7px 12px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
-  .chip:hover{border-color:#c9d3e6}
-  .chip.on{background:#f1edff;border-color:#d7ccff;color:#5b3fd1}
-  .chip.atl.on{background:#fff4e0;border-color:#ffe0a3;color:#9a5b00}
-  .chip.lp.on{background:#e6f7ec;border-color:#bfe8cf;color:#1f7a4d}
-  .atl-group{margin-bottom:10px}
-  .atl-group h4{font-size:12.5px;color:var(--navy);margin-bottom:6px}
-  .atl-group .chips{margin-bottom:6px}
-  .why{font-size:12.3px;color:#7a5a12;background:#fffaf0;border-radius:10px;padding:8px 10px;margin:4px 0 10px;line-height:1.4}
-  /* SDGs */
-  .sdgs{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-  .sdg{border-radius:12px;color:#fff;padding:10px 11px;font-size:12px;font-weight:700;line-height:1.25;text-align:left;min-height:86px;opacity:.38;position:relative;border:3px solid transparent}
-  .sdg b{display:block;font-size:22px;font-weight:900}
-  .sdg.on{opacity:1;border-color:var(--navy)}
-  .sdg.on:after{content:"✓";position:absolute;top:7px;right:8px;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--navy);display:grid;place-items:center;font-size:12px;font-weight:900}
-  .sdg-why{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;padding:8px 0;border-bottom:1px dashed var(--line)}
-  .sdg-why:last-child{border:0}
-  .sdg-why span{color:#fff;font-weight:900;border-radius:8px;padding:3px 8px;flex-shrink:0;font-size:13px}
-  /* resources */
-  .grid3{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:16px;align-items:start}
-  .book{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
-  .book:last-child{border:0}
-  .cover{width:46px;height:60px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;font-size:21px;background:var(--sky)}
-  .book h4{font-size:14px;color:var(--navy)}
-  .book p{font-size:12.3px;color:var(--muted);line-height:1.4;margin-top:2px}
-  .blinks{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-  .blink{font-size:11.5px;font-weight:800;color:var(--blue);background:#fff;border:1px solid #cfe0fb;border-radius:8px;padding:3px 8px;text-decoration:none}
-  .blink:hover{background:var(--sky)}
-  .blink.read{background:var(--leaf);border-color:var(--leaf);color:#fff}
-  .bwarn{font-size:11.5px;color:#9a2b0b;background:#fff0ec;border-radius:8px;padding:5px 8px;margin-top:6px}
-  img.cover{object-fit:cover;border:1px solid var(--line)}
-  .tag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;margin-top:5px;background:var(--sky);color:var(--blue)}
-  .routine{border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-left-width:5px}
-  .routine h4{font-size:14.5px;color:var(--navy);display:flex;justify-content:space-between;gap:8px}
-  .routine h4 span{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
-  .routine p{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
-  .prov{background:linear-gradient(135deg,#fff7e0,#fff);border:1px solid #ffe3a1;border-radius:12px;padding:12px 14px;margin-bottom:10px}
-  .prov h4{font-size:14px;color:#8a5200;margin-bottom:4px}
-  .prov p{font-size:12.5px;color:#6b5a3a;line-height:1.45}
-  .story{background:linear-gradient(135deg,#f6f2ff,#fff4ef);border:1px solid #e6dcff;border-radius:14px;padding:16px 18px}
-  .story h3{color:var(--navy);font-size:18px;margin-bottom:8px}
-  .story p{font-size:14px;line-height:1.65;margin-bottom:8px;white-space:pre-wrap}
-  .story .ar{direction:rtl;text-align:right;font-family:"Geeza Pro","Arial",sans-serif;border-top:1px dashed #d9ccff;padding-top:10px;margin-top:10px}
-  .spark{background:#ffe9e2;border-radius:12px;padding:12px 14px;font-size:14px;color:#8a2c0d;font-weight:700;line-height:1.45;margin-top:12px}
-  /* summative */
-  .sgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
-  .field-lbl{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
-  .field-lbl:first-child{margin-top:0}
-  .brief{background:linear-gradient(135deg,#fff7e0,#fff);border:1px solid #ffe3a1;border-radius:14px;padding:16px}
-  .brief textarea{background:transparent;border-color:#ffe3a1;font-size:15.5px}
-  .listrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-  .listrow input{flex:1;padding:9px 12px;font-size:14px}
-  .rubric-wrap{overflow-x:auto}
-  table.rubric{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:720px}
-  table.rubric th{background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:12.5px}
-  table.rubric th:first-child{border-radius:10px 0 0 0} table.rubric th:last-child{border-radius:0 10px 0 0}
-  table.rubric td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:top;padding:0}
-  table.rubric td:first-child{border-left:1px solid var(--line);background:#f8faff}
-  table.rubric textarea{border:0;border-radius:0;min-height:96px;font-size:13px;padding:9px 10px;background:transparent;resize:vertical}
-  table.rubric .crit{font-weight:800;color:var(--navy)}
-  table.rubric .link{display:block;font-size:11px;font-weight:700;color:var(--lilac);padding:0 10px 9px}
-  .fmt{display:inline-flex;gap:6px;align-items:center}
-  /* classes */
-  .auth{max-width:460px}
-  .auth .fields{grid-template-columns:1fr;margin:0}
-  .tabs{display:flex;gap:6px;margin-bottom:16px}
-  .tabs button{flex:1;padding:10px;border-radius:10px;font-weight:800;background:var(--bg);color:var(--muted)}
-  .tabs button.on{background:var(--navy);color:#fff}
-  .ok{background:#e6f7ec;border:1px solid #bfe8cf;color:#1f7a4d;border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:14px}
-  .codebox{display:flex;gap:14px;flex-wrap:wrap}
-  .codebox > div{flex:1;min-width:220px;background:var(--sky);border-radius:14px;padding:14px 16px}
-  .codebox b{display:block;font-size:26px;letter-spacing:4px;color:var(--navy);margin:4px 0}
-  .codebox a{color:var(--blue);font-weight:700;font-size:13px;word-break:break-all}
-  .kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-  .kid{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;text-align:left;background:#fff}
-  .kid:hover{border-color:#c9d3e6}
-  .kid .p{font-size:28px}
-  .kid b{display:block;color:var(--navy)} .kid small{color:var(--muted);font-size:12px}
-  .wonders{display:flex;flex-wrap:wrap;gap:8px}
-  .wbub{padding:9px 12px;border-radius:16px;font-size:13.5px;font-weight:700;line-height:1.35;background:#fff1c9}
-  .wbub small{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:2px}
-  .entry{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;position:relative}
-  .entry h4{color:var(--navy);font-size:14.5px;margin-bottom:4px}
-  .entry p{font-size:14px;line-height:1.5;white-space:pre-wrap}
-  .entry small{color:var(--muted);font-size:12px}
-  .entry .del{position:absolute;top:10px;right:12px}
-  /* units list */
-  .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
-  .unit-row:last-child{border:0}
-  .unit-row h4{color:var(--navy);font-size:15px}
-  .unit-row p{font-size:13px;color:var(--muted);margin-top:2px}
-  .empty{text-align:center;padding:40px 20px;color:var(--muted)}
-  /* loading + toast */
-  .loading{position:fixed;inset:0;background:rgba(20,50,92,.35);display:none;place-items:center;z-index:50}
-  .loading.show{display:grid}
-  .loading div{background:#fff;border-radius:18px;padding:26px 34px;text-align:center;font-weight:800;color:var(--navy);box-shadow:0 20px 50px rgba(0,0,0,.2)}
-  .loading .bird{font-size:40px;display:block;animation:hop 1s infinite ease-in-out;margin-bottom:8px}
-  @keyframes hop{50%{transform:translateY(-8px)}}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:60}
-  .toast.show{opacity:1}
-  .err{background:#fff0ec;border:1px solid #ffc9b8;color:#9a2b0b;border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:14px}
-  /* responsive */
-  @media (max-width:1100px){ .grid3{grid-template-columns:1fr 1fr} .sdgs{grid-template-columns:repeat(4,1fr)} }
-  @media (max-width:900px){
-    .app{flex-direction:column}
-    .side{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px}
-    .logo{margin:0 12px 0 0}
-    .nav{width:auto;padding:8px 10px}
-    .nav.soon,.side .foot{display:none}
-    .main{padding:20px 16px 50px}
-    .themes,.fields,.grid2,.grid3{grid-template-columns:1fr}
-    .steps{overflow-x:auto}
-    .step{min-width:130px}
-    .sdgs{grid-template-columns:repeat(3,1fr)}
-  }
-</style>
+<title>WonderNest · Where every wonder grows</title>
+<meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion for teachers and children. Plan units of inquiry, share stories and thinking routines, and keep every child's wonders in one place.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--navy:#14325c;--blue:#2f6fd6;--sky:#e8f1ff;--sun:#ffc83d;--coral:#ff7a59;--leaf:#3bb07a;--lilac:#8a6cf0;--ink:#1d2433;--muted:#667085;--line:#e4e8f0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Nunito","Avenir Next","Segoe UI",Arial,sans-serif;color:var(--ink);background:#fffdf7}
+  button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+  input{font:inherit;color:var(--ink)}
+  a{color:var(--blue)}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:18px 6vw;position:relative;z-index:2}
+  .logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:900;color:var(--navy)}
+  .logo .mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--sun),var(--coral));display:grid;place-items:center;font-size:22px}
+  .logo small{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px}
+  .nav .links{display:flex;gap:22px;font-weight:800;font-size:14.5px}
+  .nav .links a{color:var(--navy);text-decoration:none}
+  .hero{position:relative;overflow:hidden;padding:30px 6vw 70px;background:radial-gradient(circle at 10% 10%,#ffe9b8 0,transparent 45%),radial-gradient(circle at 90% 20%,#d9e6ff 0,transparent 45%),radial-gradient(circle at 60% 100%,#ffd6c9 0,transparent 50%)}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;max-width:1180px;margin:0 auto}
+  .eyebrow{display:inline-block;background:#fff;border:1px solid #ffe0a3;color:#9a5b00;font-weight:800;font-size:13px;padding:6px 12px;border-radius:999px;margin-bottom:18px}
+  h1{font-size:clamp(38px,5.2vw,64px);line-height:1.04;font-weight:900;color:var(--navy);letter-spacing:-1px}
+  h1 em{font-style:normal;background:linear-gradient(90deg,var(--coral),var(--sun));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:19px;line-height:1.55;color:#475066;margin:20px 0 26px;max-width:540px}
+  .bubbles{display:flex;flex-wrap:wrap;gap:10px;max-width:540px}
+  .bubbles span{background:#fff;border-radius:18px;padding:9px 14px;font-weight:800;font-size:14px;box-shadow:0 2px 0 rgba(20,50,92,.07)}
+  .doors{display:grid;gap:18px}
+  .door{background:#fff;border-radius:24px;padding:24px;box-shadow:0 20px 50px rgba(20,50,92,.12);border:1px solid var(--line)}
+  .door h2{font-size:22px;color:var(--navy);display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .door p.s{color:var(--muted);font-size:14.5px;margin-bottom:16px}
+  .door.kid{background:linear-gradient(135deg,#14325c,#2f4f8f);color:#fff;border:0}
+  .door.kid h2{color:#fff} .door.kid p.s{color:#c9d6f0}
+  .tabs{display:flex;gap:6px;background:#f2f5fb;border-radius:12px;padding:4px;margin-bottom:14px}
+  .tabs button{flex:1;padding:9px;border-radius:9px;font-weight:800;font-size:14px;color:var(--muted)}
+  .tabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  label{display:block;font-size:12.5px;font-weight:800;color:var(--muted);margin:10px 0 5px}
+  input.f{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15.5px}
+  input:focus{outline:none;border-color:var(--blue)}
+  .btn{background:var(--blue);color:#fff;border-radius:12px;padding:13px 20px;font-weight:900;font-size:16px;width:100%;margin-top:14px}
+  .btn:hover{filter:brightness(1.07)}
+  .btn.sun{background:var(--sun);color:var(--navy)}
+  .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13.5px}
+  .row button{color:var(--blue);font-weight:800}
+  .msg{border-radius:10px;padding:9px 12px;font-size:13.5px;margin-top:12px;display:none}
+  .msg.err{display:block;background:#fff0ec;color:#9a2b0b}
+  .msg.ok{display:block;background:#e6f7ec;color:#1f7a4d}
+  .code{display:flex;gap:10px}
+  .code input{flex:1;width:100%;text-align:center;font-size:26px;font-weight:900;letter-spacing:6px;text-transform:uppercase;border:0;border-radius:14px;padding:12px;min-width:0}
+  .code button{background:var(--sun);color:var(--navy);font-weight:900;border-radius:14px;padding:0 20px;font-size:17px}
+  .signed{display:none;align-items:center;justify-content:space-between;gap:12px;background:#e6f7ec;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14px}
+  .signed a{background:var(--leaf);color:#fff;text-decoration:none;font-weight:900;border-radius:10px;padding:9px 14px;white-space:nowrap}
+  section{padding:70px 6vw;max-width:1180px;margin:0 auto}
+  .center{text-align:center}
+  h3.t{font-size:clamp(28px,3.4vw,40px);color:var(--navy);font-weight:900;letter-spacing:-.5px}
+  p.st{color:#55607a;font-size:17px;margin:10px auto 36px;max-width:640px;line-height:1.5}
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .feat{border-radius:22px;padding:22px;background:#fff;border:1px solid var(--line)}
+  .feat .ic{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:25px;margin-bottom:14px}
+  .feat h4{font-size:17px;color:var(--navy);margin-bottom:6px}
+  .feat p{font-size:14.5px;color:#55607a;line-height:1.5}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .stp{background:#fff;border-radius:22px;padding:24px;text-align:center;border:1px solid var(--line)}
+  .stp .n{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-weight:900;display:grid;place-items:center;margin:0 auto 12px}
+  .stp .big{font-size:40px;margin-bottom:8px}
+  .stp h4{color:var(--navy);font-size:17px;margin-bottom:4px}
+  .stp p{color:#55607a;font-size:14.5px}
+  .band{background:var(--navy);color:#fff;border-radius:28px;padding:44px;display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center}
+  .band h3{font-size:30px;font-weight:900;margin-bottom:10px}
+  .band p{color:#c9d6f0;line-height:1.6}
+  .band ul{list-style:none;display:grid;gap:10px}
+  .band li{background:rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;font-weight:700}
+  footer{padding:30px 6vw 40px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+  @media (max-width:960px){
+    .hero-grid,.band{grid-template-columns:minmax(0,1fr)}
+    .hero-grid > *{min-width:0}
+    .door.kid{order:-1}
+    .hero{padding:20px 5vw 50px}
+    .features{grid-template-columns:1fr 1fr}
+    .steps{grid-template-columns:1fr}
+    .nav .links{display:none}
+  }
+  @media (max-width:560px){ .features{grid-template-columns:1fr} .band{padding:28px} }
+</style>
 </head>
 <body>
-<div class="app">
-  <aside class="side">
-    <div class="logo"><div class="mark">🐦</div><div>WonderNest<small>by ThinkNest Education</small></div></div>
-    <button class="nav" data-view="home">🏠 My units</button>
-    <button class="nav on" data-view="builder">✨ Unit builder</button>
-    <button class="nav" data-view="settings">⚙️ School settings</button>
-    <div class="nav soon">📚 Story library <span class="pill">Soon</span></div>
-    <div class="nav soon">🔍 Open inquiry <span class="pill">Soon</span></div>
-    <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
-    <div class="nav soon">📈 ATL growth <span class="pill">Soon</span></div>
-    <button class="nav" data-view="summative">🎯 Summative tasks</button>
-    <div class="foot" id="footSchool">Your school's programme of inquiry</div>
-  </aside>
-  <main class="main" id="main"></main>
-</div>
-<div class="loading" id="loading"><div><span class="bird">🐦</span><span id="loadingText">WonderNest is thinking…</span></div></div>
-<div class="toast" id="toast"></div>
+<nav class="nav">
+  <div class="logo"><div class="mark">🐦</div><div>WonderNest<small>by ThinkNest Education</small></div></div>
+  <div class="links"><a href="#features">What it does</a><a href="#children">For children</a><a href="#teachers">For teachers</a></div>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow">✨ A PYP inquiry companion</span>
+      <h1>Where every <em>wonder</em> grows.</h1>
+      <p class="lead">WonderNest helps PYP teachers plan rich units of inquiry in minutes, and gives every child a nest for their questions, stories and thinking, so they can see how their understanding of the world grows.</p>
+      <div class="bubbles"><span style="background:#fff1c9">💭 Why do frogs need water?</span><span style="background:#e3f1ff">🌍 Where do the birds go?</span><span style="background:#ffe3da">🌱 Can a habitat grow back?</span></div>
+    </div>
+
+    <div class="doors">
+      <div class="door" id="teachers">
+        <h2>👩‍🏫 Teachers</h2><p class="s">Plan units, see your class's wonders and portfolios.</p>
+        <div class="signed" id="signed"><span>Signed in as <b id="who"></b></span><a href="app.html">Open WonderNest →</a></div>
+        <div id="authBox">
+          <div class="tabs"><button id="tabIn" class="on" onclick="setMode('signin')">Sign in</button><button id="tabUp" onclick="setMode('signup')">Create account</button></div>
+          <label for="em">School email</label><input class="f" id="em" type="email" autocomplete="email">
+          <div id="pwWrap"><label for="pw">Password</label><input class="f" id="pw" type="password" autocomplete="current-password"></div>
+          <button class="btn" id="go" onclick="auth()">Sign in</button>
+          <div class="row" id="forgotRow"><span></span><button onclick="setMode('forgot')">Forgot password?</button></div>
+          <div class="msg" id="msg"></div>
+        </div>
+      </div>
+
+      <div class="door kid" id="students">
+        <h2>🧒 Students</h2><p class="s">Type the class code your teacher gave you.</p>
+        <form class="code" onsubmit="event.preventDefault(); goKids()"><input id="code" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="CODE" aria-label="Class code"><button type="submit">Go →</button></form>
+        <div class="msg" id="kmsg"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features" class="center">
+  <h3 class="t">Everything a PYP team needs, in one nest</h3>
+  <p class="st">Start from a transdisciplinary theme and your unit description. WonderNest suggests, and your team decides.</p>
+  <div class="features" style="text-align:left">
+    <div class="feat"><div class="ic" style="background:#fff4e0">✨</div><h4>Unit builder</h4><p>Central ideas, lines of inquiry, key concepts, ATL skills and SDG links, written for your grade.</p></div>
+    <div class="feat"><div class="ic" style="background:#f1edff">📚</div><h4>Stories &amp; routines</h4><p>Books with links to read or borrow, original stories, visible thinking routines and open inquiry provocations.</p></div>
+    <div class="feat"><div class="ic" style="background:#ffe9e2">🎯</div><h4>Summative tasks</h4><p>Child-friendly briefs, choice of formats, checkpoints and editable rubrics with your school's levels.</p></div>
+    <div class="feat"><div class="ic" style="background:#e6f7ec">🌱</div><h4>Wonder portfolios</h4><p>Every child's wonders, thinking, stories and reflections, kept safely and shared with their teachers.</p></div>
+  </div>
+</section>
+
+<section id="children" class="center">
+  <h3 class="t">Easy for children, even in KG</h3>
+  <p class="st">No email and no long passwords. Children can talk or type, in English or العربية.</p>
+  <div class="steps">
+    <div class="stp"><div class="n">1</div><div class="big">🔤</div><h4>Class code</h4><p>Type the code, or open the class link from your teacher.</p></div>
+    <div class="stp"><div class="n">2</div><div class="big">🙋</div><h4>Tap your name</h4><p>Find your name in your class.</p></div>
+    <div class="stp"><div class="n">3</div><div class="big">🎈</div><h4>Tap your secret picture</h4><p>Your picture is your password. Then you're in your Wonder Nest!</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="band">
+    <div><h3>Safe by design</h3><p>Children are added by first name only. Each class sees only its own children, and each child sees only their own work. Teachers can remove any work at any time.</p></div>
+    <ul><li>🔒 No child emails or surnames</li><li>🧩 Separate teacher and class codes</li><li>🗑️ Teachers can delete work and accounts</li></ul>
+  </div>
+</section>
+
+<footer>
+  <b style="color:var(--navy)">WonderNest</b> by ThinkNest Education · Part of the ThinkNest family<br>
+  Designed for PYP schools. Not affiliated with or endorsed by the International Baccalaureate.
+</footer>
 
 <script>
-/* ================= CONFIG =================
-   When the AI Worker is ready, paste its address between the quotes below.
-   While it is empty, WonderNest runs in demo mode with sample suggestions. */
-const WORKER_URL = "https://wondernest-ai.thinknest2026.workers.dev";
-/* ========================================== */
-
-const THEMES = [
-  {id:"who", ic:"🪞", name:"Who we are", desc:"Identity, beliefs, health, relationships and what it means to be human"},
-  {id:"where", ic:"🧭", name:"Where we are in place and time", desc:"Orientation in place and time, histories, homes and journeys"},
-  {id:"express", ic:"🎨", name:"How we express ourselves", desc:"How we discover and express ideas, feelings, culture and beliefs"},
-  {id:"works", ic:"⚙️", name:"How the world works", desc:"The natural world and its laws, science and technology"},
-  {id:"organize", ic:"🏙️", name:"How we organize ourselves", desc:"Human-made systems, communities and organizations"},
-  {id:"planet", ic:"🌍", name:"Sharing the planet", desc:"Rights and responsibilities in sharing finite resources with others"}
-];
-const KEY_CONCEPTS = ["Form","Function","Causation","Change","Connection","Perspective","Responsibility"];
-const ATL = {
-  "Thinking":["Critical thinking","Creative thinking","Transfer","Reflection"],
-  "Research":["Information literacy","Media literacy","Ethical use of information"],
-  "Communication":["Exchanging information","Literacy","ICT"],
-  "Social":["Interpersonal relationships","Social-emotional intelligence"],
-  "Self-management":["Organization","States of mind"]
-};
-const LEARNER_PROFILE = ["Inquirers","Knowledgeable","Thinkers","Communicators","Principled","Open-minded","Caring","Risk-takers","Balanced","Reflective"];
-const SDGS = [
-  [1,"No Poverty","#E5243B"],[2,"Zero Hunger","#DDA63A"],[3,"Good Health and Well-being","#4C9F38"],[4,"Quality Education","#C5192D"],
-  [5,"Gender Equality","#FF3A21"],[6,"Clean Water and Sanitation","#26BDE2"],[7,"Affordable and Clean Energy","#FCC30B"],
-  [8,"Decent Work and Economic Growth","#A21942"],[9,"Industry, Innovation and Infrastructure","#FD6925"],[10,"Reduced Inequalities","#DD1367"],
-  [11,"Sustainable Cities and Communities","#FD9D24"],[12,"Responsible Consumption and Production","#BF8B2E"],[13,"Climate Action","#3F7E44"],
-  [14,"Life Below Water","#0A97D9"],[15,"Life on Land","#56C02B"],[16,"Peace, Justice and Strong Institutions","#00689D"],[17,"Partnerships for the Goals","#19486A"]
-];
-const GRADES = [
-  ["Pre-K","3–4"],["KG1","4–5"],["KG2","5–6"],["Grade 1","6–7"],["Grade 2","7–8"],
-  ["Grade 3","8–9"],["Grade 4","9–10"],["Grade 5","10–11"],["Grade 6","11–12"]
-];
-const gradeLabel = u => u.grade ? `${u.grade} (ages ${(GRADES.find(g=>g[0]===u.grade)||["",""])[1]})` : (u.ageBand ? "Ages " + u.ageBand : "");
-const STEP_NAMES = ["Theme & description","Central idea","Lines of inquiry & concepts","SDGs","Stories, routines & inquiry"];
-const ROUTINE_COLOURS = ["var(--sun)","var(--blue)","var(--coral)","var(--leaf)","var(--lilac)"];
-
-/* ---------- Supabase (public project values) ---------- */
 const SUPABASE_URL = "https://zmncqutjtgwxlvrdgwiq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_blNQT3mGUzNadaRARkRpew_dq-tmD4J";
-const SITE_URL = "https://wondernest.thinknest.education";
-const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: "wondernest-teacher" } }) : null;
-const PICTURES = ["🐢","🌈","⭐","🍎","🚀","🐬","🌻","🦁","🎈","🐝","🍓","⚽"];
-
-/* ---------- storage ---------- */
-const store = {
-  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
-};
-let settings = Object.assign({school:"", conceptLabel:"Key concepts", rubricLevels:"Beginning, Developing, Achieving, Extending"}, store.get("wn_settings", {}));
-function newUnit(){
-  return {id:"u"+Date.now(), theme:"", description:"", grade:"", ageBand:"", duration:"6 weeks", languages:"English",
-    centralIdeaOptions:[], centralIdea:"", lines:[], keyConcepts:[], relatedConcepts:[], atl:[], atlWhy:{},
-    learnerProfile:[], sdgs:[], sdgWhy:{}, books:[], story:null, spark:"", routines:[], provocations:[], step:1, updated:null};
+const APP = location.origin + location.pathname.replace(/[^/]*$/, "") + "app.html";
+// Links from confirmation and password emails carry a token: hand them straight to the app.
+if(/access_token|type=recovery|error_description/.test(location.hash) || /[?&]code=/.test(location.search)){
+  location.replace(APP + location.search + location.hash);
 }
-let unit = store.get("wn_current", null) || newUnit();
-let view = "builder";
-let error = "";
-
-/* ---------- helpers ---------- */
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const themeOf = id => THEMES.find(t => t.id === id);
-function saveCurrent(){ store.set("wn_current", unit); }
-function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 2200); }
-function loading(on, text){ $("#loading").classList.toggle("show", on); if(text) $("#loadingText").textContent = text; }
-function toggle(arr, v){ const i = arr.indexOf(v); i >= 0 ? arr.splice(i,1) : arr.push(v); }
-
-/* ---------- AI ---------- */
-async function ai(task, u = unit, extra = {}){
-  const payload = Object.assign({theme: themeOf(u.theme)?.name || "", description: u.description, ageBand: gradeLabel(u),
-    duration: u.duration, languages: u.languages, centralIdea: u.centralIdea,
-    lines: (u.lines||[]).map(l => l.text), keyConcepts: u.keyConcepts, atl: u.atl}, extra);
-  if(!WORKER_URL){ await new Promise(r => setTimeout(r, 700)); return DEMO[task]; }
-  const res = await fetch(WORKER_URL, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({task, unit: payload})});
-  const data = await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(data.error || "The AI could not answer just now.");
-  return data;
+const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: "wondernest-teacher", detectSessionInUrl: false } }) : null;
+let mode = "signin";
+const $ = s => document.getElementById(s);
+function msg(t, ok){ const m = $("msg"); m.textContent = t; m.className = "msg " + (t ? (ok ? "ok" : "err") : ""); }
+function setMode(m){
+  mode = m; msg("");
+  $("tabIn").className = m === "signin" ? "on" : ""; $("tabUp").className = m === "signup" ? "on" : "";
+  $("pwWrap").style.display = m === "forgot" ? "none" : "";
+  $("forgotRow").style.display = m === "signin" ? "" : "none";
+  $("pw").autocomplete = m === "signup" ? "new-password" : "current-password";
+  $("go").textContent = m === "signup" ? "Create teacher account" : m === "forgot" ? "Send reset link" : "Sign in";
 }
-async function run(task, text, apply){
-  error = ""; loading(true, text);
-  try{ apply(await ai(task)); saveCurrent(); }
-  catch(e){ error = e.message || "Something went wrong. Please try again."; }
-  finally{ loading(false); render(); }
-}
-
-/* ---------- book links ---------- */
-const q = b => encodeURIComponent(((b.title||"") + " " + (b.author||"")).trim());
-function bookLinks(b){
-  const ol = b.ol || {};
-  const links = [];
-  if(ol.readable) links.push(`<a class="blink read" href="${ol.url}" target="_blank" rel="noopener">📖 Read online free</a>`);
-  links.push(`<a class="blink" href="${ol.url || "https://openlibrary.org/search?q=" + q(b)}" target="_blank" rel="noopener">Open Library</a>`);
-  links.push(`<a class="blink" href="https://www.google.com/search?tbm=bks&q=${q(b)}" target="_blank" rel="noopener">Google Books</a>`);
-  links.push(`<a class="blink" href="https://search.worldcat.org/search?q=${q(b)}" target="_blank" rel="noopener">Find in a library</a>`);
-  return links.join("");
-}
-function bookHTML(b){
-  const ol = b.ol || {};
-  const cover = ol.cover ? `<img class="cover" src="${ol.cover}" alt="">` : `<div class="cover">📖</div>`;
-  const warn = b.olChecked && ol.found === false ? `<div class="bwarn">⚠️ We couldn't find this book in Open Library. Please check the title and author.</div>` : "";
-  return `<div class="book">${cover}<div><h4>${esc(b.title)}</h4><p>${esc(b.author)} · ${esc(b.why)}</p>${b.line?`<span class="tag">${esc(b.line)}</span>`:""}<div class="blinks">${bookLinks(b)}</div>${warn}</div></div>`;
-}
-let checkingBooks = false;
-async function checkBooks(){
-  if(checkingBooks) return;
-  const todo = unit.books.filter(b => !b.olChecked);
-  if(!todo.length) return;
-  checkingBooks = true;
-  let changed = false;
-  await Promise.all(todo.map(async b => {
-    try{
-      const url = "https://openlibrary.org/search.json?limit=1&fields=key,cover_i,ebook_access&title=" + encodeURIComponent(b.title||"") + "&author=" + encodeURIComponent(String(b.author||"").split(/[(,]/)[0].trim());
-      const r = await fetch(url); const d = await r.json(); const doc = (d.docs||[])[0];
-      b.ol = doc ? {found:true, url:"https://openlibrary.org" + doc.key, cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : "", readable: ["borrowable","public"].includes(doc.ebook_access)} : {found:false};
-      b.olChecked = true; changed = true;
-    }catch(e){ b.olChecked = true; b.ol = null; /* offline or blocked: keep plain search links */ }
-  }));
-  checkingBooks = false;
-  saveCurrent();
-  if(changed && view === "builder" && unit.step === 5) render();
-}
-
-/* ---------- views ---------- */
-function render(){
-  document.querySelectorAll(".nav[data-view]").forEach(n => n.classList.toggle("on", n.dataset.view === view));
-  $("#footSchool").innerHTML = esc(settings.school || "Your school") + "<br>Programme of inquiry";
-  const m = $("#main");
-  if(view === "home") m.innerHTML = homeView();
-  else if(view === "settings") m.innerHTML = settingsView();
-  else if(view === "summative") m.innerHTML = summativeView();
-  else if(view === "classes") m.innerHTML = classesView();
-  else m.innerHTML = builderView();
-  window.scrollTo(0,0);
-  if(view === "builder" && unit.step === 5) checkBooks();
-}
-
-function header(title){
-  const t = themeOf(unit.theme);
-  return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}${unit.grade ? " · " + esc(unit.grade) : ""}</div><h1>${title}</h1></div>
-    ${unit.step === 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>
-    ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> the AI is not connected yet, so WonderNest shows sample suggestions for a habitats unit. Real suggestions start once the AI Worker is connected.</div>`}
-    ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
-    <div class="steps">${STEP_NAMES.map((n,i)=>{
-      const s = i+1, cls = s < unit.step ? "done" : s === unit.step ? "now" : "";
-      return `<button class="step ${cls}" ${s < unit.step ? `onclick="goStep(${s})"` : "disabled"}><b>${s < unit.step ? "✓" : s}</b>${n}</button>`;
-    }).join("")}</div>`;
-}
-
-function builderView(){
-  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry"];
-  const body = [step1, step2, step3, step4, step5][unit.step-1]();
-  return header(titles[unit.step-1]) + body;
-}
-
-function step1(){
-  return `<div class="label">1. Choose a transdisciplinary theme</div>
-  <div class="themes">${THEMES.map(t=>`<button class="theme ${unit.theme===t.id?"sel":""}" onclick="pickTheme('${t.id}')"><div class="ic">${t.ic}</div><h3>${t.name}</h3><p>${t.desc}</p></button>`).join("")}</div>
-  <div class="card">
-    <div class="label">2. Paste or type your unit description</div>
-    <textarea id="desc" maxlength="2000" placeholder="For example: Students will explore how living things depend on their habitats, and how human choices can protect or harm these environments." oninput="unit.description=this.value;saveCurrent()">${esc(unit.description)}</textarea>
-    <div class="fields">
-      <div><label>Grade</label><select onchange="pickGrade(this.value)"><option value="" ${unit.grade?"":"selected"} disabled>Choose a grade…</option>${GRADES.map(([g,a])=>`<option value="${g}" ${unit.grade===g?"selected":""}>${g} (ages ${a})</option>`).join("")}</select></div>
-      <div><label>Duration</label><input type="text" value="${esc(unit.duration)}" oninput="unit.duration=this.value;saveCurrent()"></div>
-      <div><label>Languages</label><input type="text" value="${esc(unit.languages)}" placeholder="English, Arabic" oninput="unit.languages=this.value;saveCurrent()"></div>
-    </div>
-    <div class="actions"><div class="hint">WonderNest only suggests. Your team chooses, edits and owns every part of the unit.</div>
-      <button class="btn" onclick="suggestIdeas()">✨ Suggest central ideas</button></div>
-  </div>`;
-}
-
-function step2(){
-  const own = unit.centralIdea && !unit.centralIdeaOptions.includes(unit.centralIdea);
-  return `<div class="card">
-    <div class="label">Central idea for ${esc(gradeLabel(unit))} · pick one, edit it, or write your own</div>
-    ${unit.centralIdeaOptions.map((c,i)=>`<button class="ci ${unit.centralIdea===c?"sel":""}" onclick="pickIdea(${i})"><div class="rb"></div><div>${esc(c)}</div></button>`).join("")}
-    <div class="label" style="margin-top:16px">Your chosen central idea (you can edit it here)</div>
-    <textarea id="ciText" style="min-height:70px" oninput="unit.centralIdea=this.value;saveCurrent()" placeholder="Choose an idea above or write your own">${esc(unit.centralIdea)}</textarea>
-    <div class="actions">
-      <button class="link" onclick="suggestIdeas()">↻ Suggest different ideas</button>
-      <button class="btn" onclick="suggestInquiry()">Next: lines of inquiry →</button>
-    </div>
-    ${own ? `<div class="hint" style="margin-top:8px">You're using your own central idea.</div>` : ""}
-  </div>`;
-}
-
-function step3(){
-  const conceptOpts = c => KEY_CONCEPTS.map(k=>`<option ${c===k?"selected":""}>${k}</option>`).join("");
-  return `<div class="grid2">
-    <div>
-      <div class="card"><div class="label">Central idea · ${esc(gradeLabel(unit))}</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(unit.centralIdea)}</div></div>
-      <div class="card">
-        <div class="label">Lines of inquiry</div>
-        ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="unit.lines[${i}].text=this.value;saveCurrent()">${esc(l.text)}</textarea><select onchange="unit.lines[${i}].concept=this.value;saveCurrent()">${conceptOpts(l.concept)}</select><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
-        <div class="actions" style="margin-top:10px"><button class="link" onclick="unit.lines.push({text:'',concept:'Form'});saveCurrent();render()">＋ Add a line of inquiry</button><button class="link" onclick="suggestInquiry()">↻ Suggest again</button></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="label">${esc(settings.conceptLabel || "Key concepts")}</div>
-      <div class="chips">${KEY_CONCEPTS.map(k=>`<button class="chip ${unit.keyConcepts.includes(k)?"on":""}" onclick="toggle(unit.keyConcepts,'${k}');saveCurrent();render()">${k}</button>`).join("")}</div>
-      <div class="label">Related concepts</div>
-      <div class="chips">${unit.relatedConcepts.map((r,i)=>`<span class="chip on">${esc(r)} <button onclick="unit.relatedConcepts.splice(${i},1);saveCurrent();render()" title="Remove">✕</button></span>`).join("")}
-        <button class="chip" onclick="addRelated()">＋ Add</button></div>
-      <div class="label">ATL skills to develop <span style="text-transform:none;letter-spacing:0">(${unit.atl.length} chosen)</span></div>
-      ${Object.entries(ATL).map(([cat,skills])=>`<div class="atl-group"><h4>${cat}</h4><div class="chips">${skills.map(s=>{const k=cat+" · "+s;return `<button class="chip atl ${unit.atl.includes(k)?"on":""}" onclick="toggle(unit.atl,'${k}');saveCurrent();render()">${s}</button>`}).join("")}</div>
-        ${unit.atl.filter(a=>a.startsWith(cat+" ·") && unit.atlWhy[a]).map(a=>`<div class="why">💡 <b>${esc(a.split(" · ")[1])}:</b> ${esc(unit.atlWhy[a])}</div>`).join("")}</div>`).join("")}
-      <div class="label" style="margin-top:6px">Learner profile</div>
-      <div class="chips">${LEARNER_PROFILE.map(l=>`<button class="chip lp ${unit.learnerProfile.includes(l)?"on":""}" onclick="toggle(unit.learnerProfile,'${l}');saveCurrent();render()">${l}</button>`).join("")}</div>
-      <div class="actions"><span></span><button class="btn" onclick="goStep(4)">Next: SDGs →</button></div>
-    </div>
-  </div>`;
-}
-
-function step4(){
-  const chosen = SDGS.filter(s => unit.sdgs.includes(s[0]));
-  return `<div class="card">
-    <div class="label">Tap the goals this unit connects to</div>
-    <div class="sdgs">${SDGS.map(([n,name,col])=>`<button class="sdg ${unit.sdgs.includes(n)?"on":""}" style="background:${col}" onclick="toggle(unit.sdgs,${n});saveCurrent();render()"><b>${n}</b>${name}</button>`).join("")}</div>
-  </div>
-  ${chosen.length ? `<div class="card"><div class="label">How this unit connects</div>${chosen.map(([n,name,col])=>`<div class="sdg-why"><span style="background:${col}">${n}</span><div><b>${name}</b><br><span style="color:var(--muted)">${esc(unit.sdgWhy[n] || "Chosen by your team.")}</span></div></div>`).join("")}</div>` : ""}
-  <div class="actions"><span class="hint">Suggested goals are already selected. Add or remove any.</span><button class="btn" onclick="suggestResources()">Next: stories & routines →</button></div>`;
-}
-
-function step5(){
-  const s = unit.story;
-  return `<div class="grid3">
-    <div>
-      <div class="card"><div class="label">📚 Books for this unit</div>
-        ${unit.books.map(bookHTML).join("")}
-        <div class="hint" style="margin-top:8px">Links search Open Library, Google Books and WorldCat (libraries near you). "Read online" appears when Open Library has a free digital copy to borrow (a free Open Library account is needed). Please check each title with your librarian before ordering.</div>
-      </div>
-      ${s ? `<div class="story"><div class="label">✨ Original WonderNest story</div><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.textSecond?`<p class="ar">${esc(s.textSecond)}</p>`:""}</div>` : ""}
-      ${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}
-    </div>
-    <div class="card"><div class="label">🧠 Visible thinking routines</div>
-      ${unit.routines.map((r,i)=>`<div class="routine" style="border-left-color:${ROUTINE_COLOURS[i%5]}"><h4>${esc(r.name)} <span>${esc(r.when)}</span></h4><p>${esc(r.how)}</p></div>`).join("")}
-    </div>
-    <div class="card"><div class="label">🔍 Open inquiry provocations</div>
-      ${unit.provocations.map(p=>`<div class="prov"><h4>${esc(p.title)}</h4><p>${esc(p.text)}</p></div>`).join("")}
-      ${unit.atl.length ? `<div class="label" style="margin-top:14px">Builds ATL skills</div><div class="chips">${unit.atl.map(a=>`<span class="chip atl on">${esc(a.split(" · ")[1])}</span>`).join("")}</div>` : ""}
-      <button class="link" onclick="suggestResources()">↻ Suggest again</button>
-    </div>
-  </div>`;
-}
-
-function homeView(){
-  const units = store.get("wn_units", []);
-  return `<div class="top"><div><div class="crumb">WonderNest</div><h1>My units</h1></div><button class="btn" onclick="startNew()">＋ New unit</button></div>
-  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))} · saved ${esc(u.updated||"")}</p></div>
-    <div style="display:flex;gap:14px;flex-shrink:0"><button class="link" onclick="openUnit('${u.id}')">Open</button><button class="link danger" onclick="deleteUnit('${u.id}')">Delete</button></div></div>`).join("")
-    : `<div class="empty">🐦<br><br>No saved units yet.<br>Build your first unit and click <b>Save unit</b> at the end.</div>`}</div>
-  <div class="hint">Units are saved on this device for now. Saving to your school account comes in the next stage.</div>`;
-}
-
-function settingsView(){
-  return `<div class="top"><div><div class="crumb">WonderNest</div><h1>School settings</h1></div></div>
-  <div class="card" style="max-width:640px">
-    <div class="fields" style="grid-template-columns:1fr;margin:0">
-      <div><label>School name</label><input type="text" id="setSchool" value="${esc(settings.school)}"></div>
-      <div><label>What does your school call the key concepts?</label><input type="text" id="setConcept" value="${esc(settings.conceptLabel)}" placeholder="Key concepts"><div class="hint" style="margin-top:6px">For example "Specified concepts". WonderNest will use your term everywhere.</div></div>
-      <div><label>Rubric levels (from lowest to highest, separated by commas)</label><input type="text" id="setLevels" value="${esc(settings.rubricLevels)}"><div class="hint" style="margin-top:6px">For example "Beginning, Developing, Achieving, Extending" or "1, 2, 3, 4, 5, 6, 7". Used for new summative task rubrics.</div></div>
-    </div>
-    <div class="actions"><span></span><button class="btn" onclick="saveSettings()">Save settings</button></div>
-  </div>`;
-}
-
-/* ---------- summative tasks ---------- */
-let sumId = null;
-function savedUnits(){ return store.get("wn_units", []); }
-function sumUnit(){ return savedUnits().find(u => u.id === sumId); }
-function storeUnit(u){
-  const units = savedUnits(); const i = units.findIndex(x => x.id === u.id);
-  if(i >= 0) units[i] = u; else units.unshift(u);
-  return store.set("wn_units", units);
-}
-function summativeView(){
-  const units = savedUnits();
-  if(!sumId || !sumUnit()){
-    return `<div class="top"><div><div class="crumb">WonderNest</div><h1>Summative tasks</h1></div></div>
-    <div class="card"><div class="label">Choose a saved unit</div>
-    ${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}${u.summative ? " · <b style='color:var(--leaf)'>task ready</b>" : ""}</p></div>
-      <button class="btn small ${u.summative?"ghost":""}" onclick="openSum('${u.id}')">${u.summative ? "Open task" : "✨ Create task"}</button></div>`).join("")
-    : `<div class="empty">🎯<br><br>No saved units yet.<br>Build a unit in the <b>Unit builder</b> and click <b>Save unit</b>, then come back here.</div>`}
-    </div>`;
-  }
-  const u = sumUnit(), t = u.summative ? draft() : null, cl = settings.conceptLabel || "Key concepts";
-  const head = `<div class="top"><div><div class="crumb"><button class="link" onclick="sumId=null;error='';render()">‹ All units</button> · ${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}</div><h1>Summative task</h1></div>
-    ${t ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="sumWord()">⬇️ Download as Word</button><button class="btn" onclick="sumSave()">💾 Save task</button></div>` : ""}</div>
-    ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> sample task shown.</div>`}
-    ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
-    <div class="card"><div class="label">Central idea</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(u.centralIdea)}</div>
-      <div class="chips" style="margin:10px 0 0">${(u.lines||[]).map((l,i)=>`<span class="chip">Line ${i+1}: ${esc(l.text)}</span>`).join("")}${(u.atl||[]).map(a=>`<span class="chip atl on">${esc(a.split(" · ")[1]||a)}</span>`).join("")}</div></div>`;
-  if(!t) return head + `<div class="card" style="text-align:center;padding:34px">
-      <div style="font-size:40px">🎯</div><h3 style="color:var(--navy);margin:8px 0">Create a summative task for this unit</h3>
-      <p class="hint" style="max-width:520px;margin:0 auto 16px">WonderNest suggests a task that lets children show their understanding of the central idea, with choice of format, checkpoints and a rubric linked to the lines of inquiry, ${esc(cl.toLowerCase())} and ATL skills. Everything can be edited.</p>
-      <div class="hint" style="margin-bottom:14px">Rubric levels: <b>${esc(settings.rubricLevels)}</b> (change in School settings)</div>
-      <button class="btn" onclick="sumGenerate()">✨ Suggest a summative task</button></div>`;
-  const L = t.levels;
-  return head + `<div class="sgrid">
-    <div>
-      <div class="card">
-        <div class="field-lbl">Task title</div>
-        <input type="text" value="${esc(t.title)}" oninput="sumSet('title',this.value)">
-        <div class="field-lbl">For the children</div>
-        <div class="brief"><textarea style="min-height:130px" oninput="sumSet('childBrief',this.value)">${esc(t.childBrief)}</textarea></div>
-        <div class="field-lbl">Teacher notes</div>
-        <textarea style="min-height:110px" oninput="sumSet('teacherNotes',this.value)">${esc(t.teacherNotes)}</textarea>
-      </div>
-    </div>
-    <div>
-      <div class="card">
-        <div class="field-lbl">Children choose how to show their learning</div>
-        ${listEditor('formats', t.formats)}
-        <div class="field-lbl">Success criteria</div>
-        ${listEditor('successCriteria', t.successCriteria)}
-        <div class="field-lbl">Checkpoints</div>
-        ${(t.checkpoints||[]).map((c,i)=>`<div class="listrow"><input type="text" style="max-width:120px;flex:none" value="${esc(c.when)}" oninput="sumCk(${i},'when',this.value)"><input type="text" value="${esc(c.what)}" oninput="sumCk(${i},'what',this.value)"><button class="link danger" onclick="sumDel('checkpoints',${i})">✕</button></div>`).join("")}
-        <button class="link" onclick="sumAdd('checkpoints',{when:'',what:''})">＋ Add checkpoint</button>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="label">Rubric</div>
-    <div class="rubric-wrap"><table class="rubric"><tr><th style="width:20%">Criterion</th>${L.map(l=>`<th>${esc(l)}</th>`).join("")}<th style="width:34px"></th></tr>
-    ${(t.rubric||[]).map((r,i)=>`<tr><td><textarea class="crit" style="min-height:60px" oninput="sumRub(${i},-1,this.value)">${esc(r.criterion)}</textarea><span class="link">${esc(r.linkedTo||"")}</span></td>
-      ${L.map((l,j)=>`<td><textarea oninput="sumRub(${i},${j},this.value)">${esc((r.descriptors||[])[j]||"")}</textarea></td>`).join("")}
-      <td style="text-align:center;padding-top:8px"><button class="link danger" title="Remove row" onclick="sumDel('rubric',${i})">✕</button></td></tr>`).join("")}
-    </table></div>
-    <div class="actions"><button class="link" onclick="sumAdd('rubric',{criterion:'New criterion',linkedTo:'',descriptors:${"[]"}})">＋ Add criterion</button>
-      <button class="link" onclick="if(confirm('Replace this task with a new suggestion? Your edits will be lost.')) sumGenerate()">↻ Suggest a new task</button></div>
-  </div>`;
-}
-function listEditor(key, arr){
-  return (arr||[]).map((v,i)=>`<div class="listrow"><input type="text" value="${esc(v)}" oninput="sumList('${key}',${i},this.value)"><button class="link danger" onclick="sumDel('${key}',${i})">✕</button></div>`).join("")
-    + `<button class="link" onclick="sumAdd('${key}','')">＋ Add</button>`;
-}
-let sumDraft = null;
-function openSum(id){ sumId = id; error = ""; const u = sumUnit(); sumDraft = u && u.summative ? JSON.parse(JSON.stringify(u.summative)) : null; render(); }
-function draft(){ const u = sumUnit(); if(!sumDraft && u && u.summative) sumDraft = JSON.parse(JSON.stringify(u.summative)); return sumDraft; }
-function sumSet(k,v){ draft()[k] = v; sumAutosave(); }
-function sumList(k,i,v){ draft()[k][i] = v; sumAutosave(); }
-function sumCk(i,k,v){ draft().checkpoints[i][k] = v; sumAutosave(); }
-function sumRub(i,j,v){ const r = draft().rubric[i]; if(j < 0) r.criterion = v; else { r.descriptors = r.descriptors || []; r.descriptors[j] = v; } sumAutosave(); }
-function sumAdd(k,v){ const d = draft(); d[k] = d[k] || []; d[k].push(v); sumAutosave(); render(); }
-function sumDel(k,i){ draft()[k].splice(i,1); sumAutosave(); render(); }
-let sumTimer = null;
-function sumAutosave(){ clearTimeout(sumTimer); sumTimer = setTimeout(() => { const u = sumUnit(); if(u && sumDraft){ u.summative = sumDraft; storeUnit(u); } }, 400); }
-function sumSave(){ const u = sumUnit(); u.summative = draft(); storeUnit(u) ? toast("Task saved ✓") : toast("Could not save on this device"); }
-async function sumGenerate(){
-  const u = sumUnit(); if(!u) return;
-  const levels = settings.rubricLevels.split(",").map(x => x.trim()).filter(Boolean);
-  error = ""; loading(true, "Designing the summative task…");
+async function auth(){
+  if(!db) return msg("WonderNest can't connect right now. Please check your internet and refresh.");
+  const em = $("em").value.trim(), pw = $("pw").value;
+  if(!em) return msg("Please type your school email.");
+  $("go").disabled = true;
   try{
-    const d = await ai("summative", u, {levels, learnerProfile: u.learnerProfile, relatedConcepts: u.relatedConcepts});
-    const t = {title: d.title||"", childBrief: d.childBrief||"", teacherNotes: d.teacherNotes||"", formats: d.formats||[],
-      successCriteria: d.successCriteria||[], checkpoints: (d.checkpoints||[]).map(c=>({when:c.when||"", what:c.what||""})),
-      levels, rubric: (d.rubric||[]).map(r=>({criterion:r.criterion||"", linkedTo:r.linkedTo||"", descriptors:(r.descriptors||[]).slice(0,levels.length)}))};
-    u.summative = t; sumDraft = JSON.parse(JSON.stringify(t)); storeUnit(u);
-  }catch(e){ error = e.message || "Something went wrong. Please try again."; }
-  finally{ loading(false); render(); }
-}
-function sumWord(){
-  const u = sumUnit(), t = draft(), th = themeOf(u.theme);
-  const li = a => (a||[]).filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("");
-  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt;color:#1d2433}h1{color:#14325c;font-size:20pt}h2{color:#2f6fd6;font-size:13pt;margin-top:16pt}td,th{border:1px solid #ccd;padding:5pt;font-size:10pt;vertical-align:top}th{background:#14325c;color:#fff}table{border-collapse:collapse;width:100%}.brief{background:#fff7e0;border:1px solid #ffe3a1;padding:10pt;font-size:12.5pt}</style></head><body>
-  <p style="color:#667085">${esc(settings.school||"")} · WonderNest summative task · ${esc(th?th.name:"")} · ${esc(gradeLabel(u))}</p>
-  <h1>${esc(t.title)}</h1>
-  <p><b>Central idea:</b> ${esc(u.centralIdea)}</p>
-  <h2>For the children</h2><div class="brief">${esc(t.childBrief).replace(/\n/g,"<br>")}</div>
-  <h2>Ways to show your learning</h2><ul>${li(t.formats)}</ul>
-  <h2>Success criteria</h2><ul>${li(t.successCriteria)}</ul>
-  <h2>Checkpoints</h2><table><tr><th>When</th><th>What</th></tr>${(t.checkpoints||[]).map(c=>`<tr><td>${esc(c.when)}</td><td>${esc(c.what)}</td></tr>`).join("")}</table>
-  <h2>Teacher notes</h2><p>${esc(t.teacherNotes).replace(/\n/g,"<br>")}</p>
-  <h2>Rubric</h2><table><tr><th>Criterion</th>${t.levels.map(l=>`<th>${esc(l)}</th>`).join("")}</tr>
-  ${(t.rubric||[]).map(r=>`<tr><td><b>${esc(r.criterion)}</b><br><i>${esc(r.linkedTo||"")}</i></td>${t.levels.map((l,j)=>`<td>${esc((r.descriptors||[])[j]||"")}</td>`).join("")}</tr>`).join("")}</table>
-  </body></html>`;
-  const blob = new Blob(["\ufeff", h], {type:"application/msword"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-  a.download = "WonderNest summative task - " + (t.title || "task") + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-}
-
-/* ---------- classes & portfolios (teachers) ---------- */
-const tc = {user:null, ready:false, mode:"signin", msg:"", classes:[], cls:null, students:[], entries:[], kid:null};
-async function initAuth(){
-  if(!db){ tc.ready = true; return; }
-  const { data:{ session } } = await db.auth.getSession();
-  tc.user = session ? session.user : null; tc.ready = true;
-  db.auth.onAuthStateChange((ev, session) => {
-    tc.user = session ? session.user : null;
-    if(ev === "PASSWORD_RECOVERY"){ tc.mode = "newpass"; view = "classes"; }
-    if(view === "classes") render();
-  });
-  if(location.hash.includes("type=recovery")){ tc.mode = "newpass"; view = "classes"; render(); }
-}
-const tcErr = e => (e && e.message) || "Something went wrong. Please try again.";
-async function tLoadClasses(){
-  const { data, error: e } = await db.from("classes").select("*").order("created_at");
-  if(e){ error = tcErr(e); } tc.classes = data || []; render();
-}
-async function tOpenClass(id){
-  error = ""; tc.kid = null;
-  const [c, s, en] = await Promise.all([
-    db.from("classes").select("*").eq("id", id).single(),
-    db.from("students").select("*").eq("class_id", id).order("first_name"),
-    db.from("entries").select("*").eq("class_id", id).order("created_at", {ascending:false}).limit(500)
-  ]);
-  if(c.error){ error = tcErr(c.error); return render(); }
-  tc.cls = c.data; tc.students = s.data || []; tc.entries = en.data || []; render();
-}
-function classesView(){
-  const top = t => `<div class="top"><div><div class="crumb">WonderNest${tc.user ? ` · signed in as ${esc(tc.user.email)} · <button class="link" onclick="tSignOut()">Sign out</button>` : ""}</div><h1>${t}</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}${tc.msg ? `<div class="ok">${esc(tc.msg)}</div>` : ""}`;
-  if(!db) return top("Classes & portfolios") + `<div class="card">WonderNest can't reach its database right now. Please check your internet connection and refresh.</div>`;
-  if(!tc.ready) return top("Classes & portfolios") + `<div class="card">Loading…</div>`;
-  if(tc.mode === "newpass") return top("Choose a new password") + `<div class="card auth"><div class="fields"><div><label>New password (at least 8 characters)</label><input type="password" id="np"></div></div><div class="actions"><span></span><button class="btn" onclick="tNewPass()">Save password</button></div></div>`;
-  if(!tc.user) return top("Classes & portfolios") + `<div class="card auth">
-    <div class="tabs"><button class="${tc.mode==="signin"?"on":""}" onclick="tc.mode='signin';tc.msg='';error='';render()">Sign in</button><button class="${tc.mode==="signup"?"on":""}" onclick="tc.mode='signup';tc.msg='';error='';render()">Create teacher account</button></div>
-    <div class="fields">
-      <div><label>School email</label><input type="text" id="em" autocomplete="email"></div>
-      ${tc.mode !== "forgot" ? `<div><label>Password${tc.mode==="signup"?" (at least 8 characters)":""}</label><input type="password" id="pw" autocomplete="${tc.mode==="signup"?"new-password":"current-password"}"></div>` : ""}
-    </div>
-    <div class="actions">
-      ${tc.mode === "signin" ? `<button class="link" onclick="tc.mode='forgot';render()">Forgot password?</button>` : "<span></span>"}
-      <button class="btn" onclick="tAuth()">${tc.mode==="signup" ? "Create account" : tc.mode==="forgot" ? "Send reset link" : "Sign in"}</button>
-    </div>
-    <p class="hint" style="margin-top:14px">Teacher accounts are for adults only. Children sign in on their own page with a class code and a picture password.</p></div>`;
-  if(!tc.cls){
-    if(!tc.loaded){ tc.loaded = true; tLoadClasses(); }
-    return top("My classes") + `<div class="card">
-      ${tc.classes.length ? tc.classes.map(c=>`<div class="unit-row"><div><h4>${esc(c.name)}</h4><p>${esc(c.grade)} · class code <b>${esc(c.code)}</b>${c.current_unit ? " · " + esc(c.current_unit.centralIdea) : ""}</p></div><button class="btn small" onclick="tOpenClass('${c.id}')">Open</button></div>`).join("") : `<div class="empty">🌱<br><br>No classes yet. Create your first class below.</div>`}
-    </div>
-    <div class="grid2">
-      <div class="card"><div class="label">Create a class</div>
-        <div class="fields" style="grid-template-columns:1fr 1fr;margin:0"><div><label>Class name</label><input type="text" id="cn" placeholder="Grade 3B"></div>
-        <div><label>Grade</label><select id="cg">${GRADES.map(([g,a])=>`<option>${g}</option>`).join("")}</select></div></div>
-        <div class="actions"><span></span><button class="btn" onclick="tCreateClass()">＋ Create class</button></div></div>
-      <div class="card"><div class="label">Join a colleague's class</div>
-        <div class="fields" style="grid-template-columns:1fr;margin:0"><div><label>Teacher code (10 characters, from the class page)</label><input type="text" id="tcode"></div></div>
-        <div class="actions"><span></span><button class="btn ghost" onclick="tJoin()">Join class</button></div></div>
-    </div>`;
-  }
-  const c = tc.cls, kidsLink = `${SITE_URL}/kids.html?c=${c.code}`;
-  const nameOf = id => (tc.students.find(s=>s.id===id)||{}).first_name || "";
-  if(tc.kid){
-    const k = tc.students.find(s=>s.id===tc.kid); const mine = tc.entries.filter(e=>e.student_id===tc.kid);
-    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["story","📖 Stories"],["reflection","🌱 How I've grown"]];
-    return top(`${esc(k.picture)} ${esc(k.first_name)}'s Wonder Nest`) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.kid=null;render()">‹ Back to ${esc(c.name)}</button></div>
-      <div class="grid2"><div>${kinds.slice(0,2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div><div>${kinds.slice(2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div></div>`;
-  }
-  const units = savedUnits();
-  return top(esc(c.name)) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.cls=null;tc.loaded=false;tc.msg='';render()">‹ All classes</button> · ${esc(c.grade)}</div>
-    <div class="card"><div class="codebox">
-      <div><span class="label">Children's class code</span><b>${esc(c.code)}</b><a href="${kidsLink}" target="_blank" rel="noopener">${kidsLink}</a></div>
-      <div><span class="label">Teacher code (for co-teachers only)</span><b style="font-size:20px">${esc(c.teacher_code)}</b><span class="hint">Share only with colleagues. It gives access to children's work.</span></div>
-    </div></div>
-    <div class="card"><div class="label">Current unit (children see this on their home page)</div>
-      ${c.current_unit ? `<div style="font-weight:800;color:var(--navy);margin-bottom:10px">${esc(c.current_unit.themeIcon||"")} ${esc(c.current_unit.centralIdea)}</div>` : `<div class="hint" style="margin-bottom:10px">No unit chosen yet.</div>`}
-      ${units.length ? `<div class="edit-row"><select id="cu">${units.map(u=>`<option value="${u.id}">${esc(u.centralIdea || "Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select><button class="btn small" onclick="tSetUnit()">Set as current unit</button></div>` : `<div class="hint">Save a unit in the Unit builder first. Units saved on this device appear here.</div>`}
-    </div>
-    <div class="card"><div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">Children (${tc.students.length})</div>
-      ${tc.students.length ? `<button class="btn small ghost" onclick="tPrintCards()">🖨️ Print login cards</button>` : ""}</div>
-      <div class="kids">${tc.students.map(s=>{const n = tc.entries.filter(e=>e.student_id===s.id).length; return `<button class="kid" onclick="tc.kid='${s.id}';render()"><span class="p">${esc(s.picture)}</span><span><b>${esc(s.first_name)}</b><small>${n} item${n===1?"":"s"} in portfolio</small></span></button>`;}).join("")}</div>
-      <div class="label" style="margin-top:18px">Add children (first names only, one per line)</div>
-      <textarea id="newkids" style="min-height:90px" placeholder="Layla
-Omar
-Sara"></textarea>
-      <div class="actions"><span class="hint">Each child gets a picture password. Print the login cards to give them out.</span><button class="btn" onclick="tAddKids()">＋ Add children</button></div>
-    </div>
-    <div class="card"><div class="label">💭 Class wonder wall</div>
-      <div class="wonders">${tc.entries.filter(e=>e.kind==="wonder").slice(0,40).map(w=>`<div class="wbub"><small>${esc(nameOf(w.student_id))}</small>${esc(w.content.text)}</div>`).join("") || `<div class="hint">Children's wonders will appear here.</div>`}</div>
-    </div>
-    <div class="card"><div class="label">Manage</div>
-      <div class="actions" style="margin-top:0">${tc.students.length ? `<select id="rmkid" style="max-width:260px">${tc.students.map(s=>`<option value="${s.id}">${esc(s.first_name)}</option>`).join("")}</select><button class="link danger" onclick="tRemoveKid()">Remove child and their work</button>` : "<span></span>"}
-      <button class="link danger" onclick="tDeleteClass()">Delete this class</button></div>
-    </div>`;
-}
-function kindCard(list, kind, label){
-  const items = list.filter(e=>e.kind===kind);
-  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
-  return `<div class="card"><div class="label">${label} (${items.length})</div>${items.map(e=>`<div class="entry"><button class="link danger del" title="Delete" onclick="tDelEntry('${e.id}')">✕</button>${kind==="story"?`<h4>${esc(e.title)}</h4>`:""}<p>${body(e)}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.unit_label ? " · " + esc(e.unit_label) : ""}</small></div>`).join("") || `<div class="hint">Nothing yet.</div>`}</div>`;
-}
-async function tAuth(){
-  error = ""; tc.msg = "";
-  const em = $("#em").value.trim(), pw = $("#pw") ? $("#pw").value : "";
-  if(!em) { error = "Please type your email."; return render(); }
-  loading(true, "One moment…");
-  try{
-    if(tc.mode === "signup"){
+    if(mode === "signup"){
       if(pw.length < 8) throw new Error("Please choose a password with at least 8 characters.");
-      const { data, error: e } = await db.auth.signUp({ email: em, password: pw, options: { emailRedirectTo: SITE_URL } });
-      if(e) throw e;
-      if(!data.session) tc.msg = "Check your email and click the link to confirm your account, then sign in here.";
-      tc.mode = "signin";
-    } else if(tc.mode === "forgot"){
-      const { error: e } = await db.auth.resetPasswordForEmail(em, { redirectTo: SITE_URL });
-      if(e) throw e; tc.msg = "If that email has an account, a reset link is on its way."; tc.mode = "signin";
+      const { data, error } = await db.auth.signUp({ email: em, password: pw, options: { emailRedirectTo: APP } });
+      if(error) throw error;
+      if(data.session) return location.href = APP;
+      setMode("signin"); msg("Almost there! Check your email and click the link to confirm your account.", true);
+    } else if(mode === "forgot"){
+      const { error } = await db.auth.resetPasswordForEmail(em, { redirectTo: APP });
+      if(error) throw error;
+      setMode("signin"); msg("If that email has an account, a reset link is on its way.", true);
     } else {
-      const { error: e } = await db.auth.signInWithPassword({ email: em, password: pw });
-      if(e) throw e; tc.loaded = false;
+      const { error } = await db.auth.signInWithPassword({ email: em, password: pw });
+      if(error) throw error;
+      location.href = APP;
     }
-  }catch(e){ error = tcErr(e); }
-  finally{ loading(false); render(); }
+  }catch(e){ msg(e.message || "Something went wrong. Please try again."); }
+  finally{ $("go").disabled = false; }
 }
-async function tNewPass(){ const p = $("#np").value; if(p.length < 8){ error = "At least 8 characters, please."; return render(); }
-  const { error: e } = await db.auth.updateUser({ password: p }); if(e){ error = tcErr(e); return render(); }
-  tc.mode = "signin"; tc.msg = "Password saved. You're signed in."; history.replaceState(null, "", location.pathname); render(); }
-async function tSignOut(){ await db.auth.signOut(); Object.assign(tc, {classes:[], cls:null, students:[], entries:[], kid:null, loaded:false, msg:""}); render(); }
-async function tCreateClass(){
-  const name = $("#cn").value.trim(); if(!name){ error = "Please give the class a name."; return render(); }
-  const { error: e } = await db.from("classes").insert({ name, grade: $("#cg").value });
-  if(e){ error = tcErr(e); return render(); } error = ""; tc.loaded = false; render();
+function goKids(){
+  const c = $("code").value.trim().toUpperCase();
+  if(c.length < 6){ const k = $("kmsg"); k.textContent = "Class codes have 6 letters and numbers."; k.className = "msg err"; return; }
+  location.href = "kids.html?c=" + encodeURIComponent(c);
 }
-async function tJoin(){
-  const { data, error: e } = await db.rpc("join_class_as_teacher", { p_teacher_code: $("#tcode").value });
-  if(e || !data || !data.ok){ error = "That teacher code didn't work. Check it with your colleague."; return render(); }
-  error = ""; tc.msg = `You joined ${data.name}.`; tc.loaded = false; render();
-}
-async function tSetUnit(){
-  const u = savedUnits().find(x => x.id === $("#cu").value); if(!u) return;
-  const t = themeOf(u.theme) || {};
-  const cu = { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", storySpark: u.spark || "" };
-  const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", tc.cls.id);
-  if(e){ error = tcErr(e); return render(); } tc.cls.current_unit = cu; toast("Current unit set ✓"); render();
-}
-async function tAddKids(){
-  const names = $("#newkids").value.split(/\n|,/).map(n => n.trim()).filter(Boolean).slice(0, 60);
-  if(!names.length) return;
-  const used = tc.students.map(s => s.picture);
-  const rows = names.map((n, i) => {
-    const free = PICTURES.filter(p => !used.includes(p)); const pool = free.length ? free : PICTURES;
-    const pic = pool[Math.floor(Math.random() * pool.length)]; used.push(pic);
-    return { class_id: tc.cls.id, first_name: n.slice(0, 40), picture: pic };
-  });
-  const { error: e } = await db.from("students").insert(rows);
-  if(e){ error = tcErr(e); return render(); } toast(`${rows.length} added ✓`); tOpenClass(tc.cls.id);
-}
-async function tRemoveKid(){
-  const id = $("#rmkid").value, k = tc.students.find(s=>s.id===id);
-  if(!k || !confirm(`Remove ${k.first_name} and delete all of their work? This cannot be undone.`)) return;
-  const { error: e } = await db.from("students").delete().eq("id", id);
-  if(e){ error = tcErr(e); return render(); } tOpenClass(tc.cls.id);
-}
-async function tDeleteClass(){
-  if(!confirm(`Delete ${tc.cls.name}, all its children and all their work? This cannot be undone.`)) return;
-  const { error: e } = await db.from("classes").delete().eq("id", tc.cls.id);
-  if(e){ error = tcErr(e); return render(); } tc.cls = null; tc.loaded = false; render();
-}
-async function tDelEntry(id){
-  if(!confirm("Delete this item from the child's portfolio?")) return;
-  const { error: e } = await db.from("entries").delete().eq("id", id);
-  if(e){ error = tcErr(e); return render(); } tc.entries = tc.entries.filter(x => x.id !== id); render();
-}
-function tPrintCards(){
-  const c = tc.cls, link = `${SITE_URL}/kids.html?c=${c.code}`;
-  const w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to print cards");
-  w.document.write(`<html><head><meta charset="utf-8"><title>${esc(c.name)} login cards</title><style>
-    body{font-family:Arial,sans-serif;margin:20px} .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .c{border:2px dashed #94a3b8;border-radius:14px;padding:14px;text-align:center;break-inside:avoid}
-    .c b{display:block;font-size:22px;color:#14325c;margin-bottom:6px} .c .p{font-size:54px;line-height:1.1}
-    .c small{display:block;color:#475569;font-size:12px;margin-top:8px} h1{font-size:18px;color:#14325c}
-  </style></head><body><h1>${esc(c.name)} · WonderNest login cards</h1><div class="grid">
-  ${tc.students.map(s=>`<div class="c"><b>${esc(s.first_name)}</b><div class="p">${s.picture}</div><small>Class code: <b style="display:inline;font-size:14px">${esc(c.code)}</b><br>${esc(link)}</small></div>`).join("")}
-  </div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
-  w.document.close();
-}
-
-/* ---------- actions ---------- */
-function goStep(s){ unit.step = s; error = ""; saveCurrent(); render(); }
-function pickGrade(g){ unit.grade = g; unit.ageBand = (GRADES.find(x=>x[0]===g)||["",""])[1]; saveCurrent(); }
-function pickTheme(id){ unit.theme = id; saveCurrent(); render(); }
-function pickIdea(i){ unit.centralIdea = unit.centralIdeaOptions[i]; saveCurrent(); render(); }
-function addRelated(){ const v = prompt("Add a related concept"); if(v && v.trim()){ unit.relatedConcepts.push(v.trim()); saveCurrent(); render(); } }
-
-function suggestIdeas(){
-  if(!unit.theme){ error = "Please choose a transdisciplinary theme first."; return render(); }
-  if(!unit.grade){ error = "Please choose the grade, so the central idea fits the children's age."; return render(); }
-  if(unit.description.trim().length < 20){ error = "Please write a little more in the unit description, so WonderNest can understand the unit."; return render(); }
-  run("central_ideas", "Writing central ideas…", d => {
-    unit.centralIdeaOptions = (d.centralIdeas || []).slice(0,5);
-    if(!unit.centralIdeaOptions.includes(unit.centralIdea)) unit.centralIdea = unit.centralIdeaOptions[0] || "";
-    unit.step = 2;
-  });
-}
-function suggestInquiry(){
-  if(!unit.centralIdea.trim()){ error = "Please choose or write a central idea first."; return render(); }
-  run("inquiry", "Building lines of inquiry…", d => {
-    unit.lines = (d.lines || []).map(l => ({text:l.text, concept: KEY_CONCEPTS.find(k => k.toLowerCase() === String(l.concept||"").toLowerCase()) || "Form"}));
-    unit.keyConcepts = (d.keyConcepts || []).map(k => KEY_CONCEPTS.find(x => x.toLowerCase() === String(k).toLowerCase())).filter(Boolean);
-    unit.relatedConcepts = d.relatedConcepts || [];
-    unit.atl = []; unit.atlWhy = {};
-    (d.atl || []).forEach(a => {
-      const cat = Object.keys(ATL).find(c => c.toLowerCase() === String(a.category||"").toLowerCase());
-      const skill = cat && ATL[cat].find(s => s.toLowerCase() === String(a.skill||"").toLowerCase());
-      if(skill){ const k = cat + " · " + skill; unit.atl.push(k); unit.atlWhy[k] = a.why || ""; }
-    });
-    unit.learnerProfile = (d.learnerProfile || []).map(l => LEARNER_PROFILE.find(x => x.toLowerCase() === String(l).toLowerCase())).filter(Boolean);
-    unit.sdgs = []; unit.sdgWhy = {};
-    (d.sdgs || []).forEach(s => { const n = Number(s.number); if(n>=1 && n<=17){ unit.sdgs.push(n); unit.sdgWhy[n] = s.why || ""; } });
-    unit.step = 3;
-  });
-}
-function suggestResources(){
-  run("resources", "Finding stories and routines…", d => {
-    unit.books = d.books || []; unit.story = d.story || null; unit.spark = d.spark || "";
-    unit.routines = d.routines || []; unit.provocations = d.provocations || [];
-    unit.step = 5;
-  });
-}
-function saveUnit(){
-  unit.updated = new Date().toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"});
-  const units = store.get("wn_units", []).filter(u => u.id !== unit.id);
-  units.unshift(JSON.parse(JSON.stringify(unit)));
-  store.set("wn_units", units) ? toast("Unit saved ✓") : toast("Could not save on this device");
-  saveCurrent();
-}
-function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
-function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
-function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); render(); } }
-function saveSettings(){ settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Key concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
-
-function downloadWord(){
-  const t = themeOf(unit.theme), cl = settings.conceptLabel || "Key concepts";
-  const li = a => a.map(x => `<li>${esc(x)}</li>`).join("");
-  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt;color:#1d2433}h1{color:#14325c;font-size:20pt}h2{color:#2f6fd6;font-size:13pt;margin-top:16pt}td,th{border:1px solid #ccd;padding:5pt;font-size:10.5pt;vertical-align:top}th{background:#14325c;color:#fff}table{border-collapse:collapse;width:100%}</style></head><body>
-  <p style="color:#667085">${esc(settings.school || "")} · WonderNest unit plan</p>
-  <h1>${esc(t ? t.name : "Unit of inquiry")}</h1>
-  <p><b>Central idea:</b> ${esc(unit.centralIdea)}</p>
-  <p><b>Grade:</b> ${esc(gradeLabel(unit))} &nbsp; <b>Duration:</b> ${esc(unit.duration)} &nbsp; <b>Languages:</b> ${esc(unit.languages)}</p>
-  <h2>Unit description</h2><p>${esc(unit.description)}</p>
-  <h2>Lines of inquiry</h2><table><tr><th>Line of inquiry</th><th>${esc(cl)}</th></tr>${unit.lines.map(l=>`<tr><td>${esc(l.text)}</td><td>${esc(l.concept)}</td></tr>`).join("")}</table>
-  <h2>${esc(cl)}</h2><p>${esc(unit.keyConcepts.join(", "))}</p>
-  <h2>Related concepts</h2><p>${esc(unit.relatedConcepts.join(", "))}</p>
-  <h2>ATL skills</h2><ul>${unit.atl.map(a=>`<li>${esc(a)}${unit.atlWhy[a]?" — "+esc(unit.atlWhy[a]):""}</li>`).join("")}</ul>
-  <h2>Learner profile</h2><p>${esc(unit.learnerProfile.join(", "))}</p>
-  <h2>Sustainable Development Goals</h2><ul>${SDGS.filter(s=>unit.sdgs.includes(s[0])).map(([n,name])=>`<li>SDG ${n} ${name}${unit.sdgWhy[n]?" — "+esc(unit.sdgWhy[n]):""}</li>`).join("")}</ul>
-  <h2>Books</h2><ul>${unit.books.map(b=>`<li><b>${esc(b.title)}</b>, ${esc(b.author)} — ${esc(b.why)}<br><a href="${(b.ol&&b.ol.url)||"https://openlibrary.org/search?q="+q(b)}">Open Library${b.ol&&b.ol.readable?" (read online free)":""}</a> · <a href="https://search.worldcat.org/search?q=${q(b)}">Find in a library</a></li>`).join("")}</ul>
-  ${unit.story ? `<h2>Original story: ${esc(unit.story.title)}</h2><p>${esc(unit.story.text).replace(/\n/g,"<br>")}</p>${unit.story.textSecond?`<p dir="rtl">${esc(unit.story.textSecond).replace(/\n/g,"<br>")}</p>`:""}` : ""}
-  ${unit.spark ? `<h2>Story spark</h2><p>${esc(unit.spark)}</p>` : ""}
-  <h2>Visible thinking routines</h2><table><tr><th>Routine</th><th>When</th><th>How</th></tr>${unit.routines.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.when)}</td><td>${esc(r.how)}</td></tr>`).join("")}</table>
-  <h2>Open inquiry provocations</h2><ul>${unit.provocations.map(p=>`<li><b>${esc(p.title)}:</b> ${esc(p.text)}</li>`).join("")}</ul>
-  </body></html>`;
-  const blob = new Blob(["﻿", h], {type:"application/msword"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "WonderNest unit - " + (t ? t.name : "unit") + ".doc";
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-}
-
-document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; tc.msg = ""; if(view === "summative"){ sumId = null; sumDraft = null; } if(view === "classes"){ tc.cls = null; tc.kid = null; tc.loaded = false; } render(); }));
-
-/* ---------- demo data (used only while WORKER_URL is empty) ---------- */
-const DEMO = {
-  summative: {
-    title:"Habitat Helpers",
-    childBrief:"You are a Habitat Helper! Choose a habitat you care about. Show us who lives there, what they need, and how people's choices can harm or help it. Then share one action our class could take to protect it.",
-    teacherNotes:"Children work individually or in pairs over two weeks. Encourage them to use what they found in their own inquiries. Conference with each child at the draft checkpoint, using the success criteria.",
-    formats:["A story told from an animal's point of view","A poster or comic strip","A short podcast or video report","A model of the habitat with labels"],
-    successCriteria:["I can explain what a habitat is and how it meets living things' needs","I can show how a human action changes a habitat","I can suggest a way to protect a habitat and explain why","I can use information I gathered from different sources"],
-    checkpoints:[{when:"Week 5, day 1",what:"Choose a habitat and format; plan with a story map"},{when:"Week 5, day 4",what:"Draft ready; teacher and peer feedback"},{when:"Week 6, day 3",what:"Final version shared with the class and families"}],
-    rubric:[
-      {criterion:"Understanding of habitats",linkedTo:"Line 1 · Form",descriptors:["Names a habitat with support","Describes a habitat and some needs it meets","Explains clearly how a habitat meets living things' needs","Explains and compares how different habitats meet needs"]},
-      {criterion:"Human impact",linkedTo:"Line 2 · Causation",descriptors:["Names a human action with support","Describes one effect of a human action","Explains how human actions cause changes to a habitat","Explains causes and effects, including some that are not obvious"]},
-      {criterion:"Taking responsibility",linkedTo:"Line 3 · Responsibility",descriptors:["Suggests an action with support","Suggests a simple action to help","Suggests a realistic action and explains why it helps","Plans an action and explains its likely impact on others"]},
-      {criterion:"Research · Information literacy",linkedTo:"ATL skill",descriptors:["Uses one source with help","Gathers information from a source","Gathers and records information from different sources","Selects and checks information from several sources"]}
-    ]
-  },
-  central_ideas: {centralIdeas: [
-    "Living things depend on healthy habitats, and our choices can protect them.",
-    "The actions of people change habitats and the lives of the living things in them.",
-    "Sharing a habitat brings responsibilities for every living thing.",
-    "Habitats are connected systems that people can harm or help."
-  ]},
-  inquiry: {
-    lines: [
-      {text:"What a habitat is and how it meets the needs of living things", concept:"Form"},
-      {text:"How human actions affect habitats", concept:"Causation"},
-      {text:"Our responsibility to protect habitats", concept:"Responsibility"}
-    ],
-    keyConcepts:["Form","Causation","Responsibility"],
-    relatedConcepts:["Interdependence","Adaptation","Sustainability"],
-    atl:[
-      {category:"Research", skill:"Information literacy", why:"Children gather and record information about local and global habitats."},
-      {category:"Thinking", skill:"Critical thinking", why:"Children weigh the effects of human choices on living things."}
-    ],
-    learnerProfile:["Caring","Inquirers","Principled"],
-    sdgs:[
-      {number:15, why:"Children explore how land habitats support plants and animals."},
-      {number:14, why:"Children compare land and water habitats and the threats they face."},
-      {number:13, why:"Children connect changes in habitats to a changing climate."}
-    ]
-  },
-  resources: {
-    books:[
-      {title:"The Great Kapok Tree", author:"Lynne Cherry", why:"rainforest animals plead for their home", line:"Line 2"},
-      {title:"One Plastic Bag", author:"Miranda Paul", why:"a true story of community action in The Gambia", line:"Line 3"},
-      {title:"The Lorax", author:"Dr. Seuss", why:"what happens when a habitat is used up", line:"Line 2"}
-    ],
-    story:{title:"The Pond Under the Car Park", text:"Every morning, Sami parked his scooter at the edge of the school car park. One rainy day he noticed a frog sitting in a puddle by the wall.\n\n\"Where do you live?\" Sami whispered. The frog blinked and hopped towards a crack in the tarmac.\n\nSami's grandfather told him that, long ago, there had been a pond right there. \"Frogs remember,\" he said. \"They keep coming back.\"\n\nSami asked his class: could they give the frogs a home again? They measured a corner of the playground, wrote to the principal and planted reeds. By spring, the first tadpoles wriggled in the new pond.\n\nThe frog was back. This time, it had somewhere to stay.", textSecond:""},
-    spark:"Tell the story of your habitat from the eyes of an animal that lives there.",
-    routines:[
-      {name:"See · Think · Wonder", when:"Tuning in", how:"Children look at a photo of a cleared forest and record what they notice, think and wonder."},
-      {name:"Think · Puzzle · Explore", when:"Line 1", how:"What do we think we know about habitats? What puzzles us? How can we explore it?"},
-      {name:"Compass Points", when:"Line 2", how:"Excited, worried, need to know, suggestion: should a new road go through the park?"},
-      {name:"I used to think… Now I think…", when:"Reflection", how:"Children notice how their thinking changed across the unit."}
-    ],
-    provocations:[
-      {title:"🦎 The mystery visitor", text:"A photo of an animal found in the school garden. Where did it come from? What does it need?"},
-      {title:"🗑️ The lunch bin audit", text:"Children sort one day's rubbish and ask their own questions about where it goes."},
-      {title:"🗺️ Habitat detectives", text:"Children choose a habitat they wonder about and plan how to find out more."}
-    ]
+document.getElementById("pw").addEventListener("keydown", e => { if(e.key === "Enter") auth(); });
+(async () => {
+  if(!db) return;
+  const { data: { session } } = await db.auth.getSession();
+  if(session && session.user && !session.user.is_anonymous){
+    $("who").textContent = session.user.email; $("signed").style.display = "flex"; $("authBox").style.display = "none";
   }
-};
-
-render();
-initAuth();
+})();
 </script>
 </body>
 </html>

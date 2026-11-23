@@ -157,7 +157,7 @@ function draw(){
     <div class="big-title">🐦 Wonder Nest</div><p class="sub">Type your class code</p>
     <input class="code-input" id="code" maxlength="6" autocomplete="off" autocapitalize="characters" value="${esc(classCode)}">
     <div class="center"><button class="btn" onclick="classCode=$('#code').value.trim(); loadRoster()">Let's go! →</button></div>
-    <div class="msg"></div></div>`;
+    <div class="msg"></div><p class="center" style="margin-top:26px"><a href="./" style="color:var(--navy);font-weight:800">← WonderNest home</a></p></div>`;
   if(screen === "names") return app.innerHTML = `<div class="body">
     <div class="big-title">Who are you?</div><p class="sub">${esc(roster.class_name)} · tap your name</p>
     <div class="names">${roster.students.map((s,i)=>`<button class="name" onclick="chosen=roster.students[${i}]; go('picture')">${esc(s.first_name)}</button>`).join("")}</div>
