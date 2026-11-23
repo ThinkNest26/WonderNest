@@ -165,6 +165,8 @@
   .entry p{font-size:14px;line-height:1.5;white-space:pre-wrap}
   .entry small{color:var(--muted);font-size:12px}
   .entry .del{position:absolute;top:10px;right:12px}
+  .themebox{background:linear-gradient(135deg,#effaf4,#fff);border-color:#bfe8cf}
+  .themebox p{font-size:15px;line-height:1.6;color:var(--ink)}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -231,6 +233,16 @@ const THEMES = [
   {id:"organize", ic:"🏙️", name:"How we organize ourselves", desc:"Human-made systems, communities and organizations"},
   {id:"planet", ic:"🌍", name:"Sharing the planet", desc:"Rights and responsibilities in sharing finite resources with others"}
 ];
+// Full theme descriptions, in WonderNest's own words. Schools can replace them with the official IB wording in School settings.
+const THEME_TEXT = {
+  who: "An inquiry into who we are as people: our beliefs and values; our physical, mental, social and spiritual health; our relationships with family, friends, communities and cultures; our rights and responsibilities; and what it means to be human.",
+  where: "An inquiry into where we belong in place and time: our personal histories; homes and journeys; the discoveries, explorations and migrations of people; and how individuals and civilizations are connected, seen from both local and global perspectives.",
+  express: "An inquiry into the ways we discover and express ideas, feelings, nature, culture, beliefs and values; how we reflect on, extend and enjoy our creativity; and how we come to appreciate beauty and the arts.",
+  works: "An inquiry into the natural world and its laws; how the physical and biological world interacts with human societies; how people use their understanding of science; and how scientific and technological advances affect society and the environment.",
+  organize: "An inquiry into how human-made systems and communities are connected; how organizations are structured and how they work; how societies make decisions; and how economic activity affects people and the environment.",
+  planet: "An inquiry into our rights and responsibilities as we share limited resources with other people and with other living things; communities and the relationships within and between them; fair access to opportunities; and peace and the resolution of conflict."
+};
+const themeText = id => (settings.themeText && settings.themeText[id] && settings.themeText[id].trim()) || THEME_TEXT[id] || "";
 const KEY_CONCEPTS = ["Form","Function","Causation","Change","Connection","Perspective","Responsibility"];
 const ATL = {
   "Thinking":["Critical thinking","Creative thinking","Transfer","Reflection"],
@@ -288,7 +300,7 @@ function toggle(arr, v){ const i = arr.indexOf(v); i >= 0 ? arr.splice(i,1) : ar
 
 /* ---------- AI ---------- */
 async function ai(task, u = unit, extra = {}){
-  const payload = Object.assign({theme: themeOf(u.theme)?.name || "", description: u.description, ageBand: gradeLabel(u),
+  const payload = Object.assign({theme: themeOf(u.theme)?.name || "", themeDescription: themeText(u.theme), description: u.description, ageBand: gradeLabel(u),
     duration: u.duration, languages: u.languages, centralIdea: u.centralIdea,
     lines: (u.lines||[]).map(l => l.text), keyConcepts: u.keyConcepts, atl: u.atl}, extra);
   if(!WORKER_URL){ await new Promise(r => setTimeout(r, 700)); return DEMO[task]; }
@@ -376,6 +388,7 @@ function builderView(){
 function step1(){
   return `<div class="label">1. Choose a transdisciplinary theme</div>
   <div class="themes">${THEMES.map(t=>`<button class="theme ${unit.theme===t.id?"sel":""}" onclick="pickTheme('${t.id}')"><div class="ic">${t.ic}</div><h3>${t.name}</h3><p>${t.desc}</p></button>`).join("")}</div>
+  ${unit.theme ? `<div class="card themebox"><div class="label">${themeOf(unit.theme).ic} About this theme: ${esc(themeOf(unit.theme).name)}</div><p>${esc(themeText(unit.theme))}</p><div class="hint" style="margin-top:8px">Saved for every unit. Your school can change this wording in School settings.</div></div>` : ""}
   <div class="card">
     <div class="label">2. Paste or type your unit description</div>
     <textarea id="desc" maxlength="2000" placeholder="For example: Students will explore how living things depend on their habitats, and how human choices can protect or harm these environments." oninput="unit.description=this.value;saveCurrent()">${esc(unit.description)}</textarea>
@@ -478,6 +491,8 @@ function settingsView(){
     <div class="fields" style="grid-template-columns:1fr;margin:0">
       <div><label>School name</label><input type="text" id="setSchool" value="${esc(settings.school)}"></div>
       <div><label>What does your school call the key concepts?</label><input type="text" id="setConcept" value="${esc(settings.conceptLabel)}" placeholder="Key concepts"><div class="hint" style="margin-top:6px">For example "Specified concepts". WonderNest will use your term everywhere.</div></div>
+      <div><label>Transdisciplinary theme descriptions</label><div class="hint" style="margin-bottom:8px">WonderNest's own wording is filled in. You can paste your school's official IB wording instead. Leave a box empty to go back to WonderNest's wording.</div>
+        ${THEMES.map(t=>`<div style="margin-bottom:10px"><div style="font-weight:800;color:var(--navy);font-size:13.5px;margin-bottom:4px">${t.ic} ${t.name}</div><textarea id="tt_${t.id}" style="min-height:78px;font-size:14px">${esc(themeText(t.id))}</textarea></div>`).join("")}</div>
       <div><label>Rubric levels (from lowest to highest, separated by commas)</label><input type="text" id="setLevels" value="${esc(settings.rubricLevels)}"><div class="hint" style="margin-top:6px">For example "Beginning, Developing, Achieving, Extending" or "1, 2, 3, 4, 5, 6, 7". Used for new summative task rubrics.</div></div>
     </div>
     <div class="actions"><span></span><button class="btn" onclick="saveSettings()">Save settings</button></div>
@@ -839,7 +854,7 @@ function saveUnit(){
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
 function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); render(); } }
-function saveSettings(){ settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Key concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
+function saveSettings(){ settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Key concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== THEME_TEXT[t.id]) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
 
 function downloadWord(){
   const t = themeOf(unit.theme), cl = settings.conceptLabel || "Key concepts";
@@ -849,6 +864,7 @@ function downloadWord(){
   <h1>${esc(t ? t.name : "Unit of inquiry")}</h1>
   <p><b>Central idea:</b> ${esc(unit.centralIdea)}</p>
   <p><b>Grade:</b> ${esc(gradeLabel(unit))} &nbsp; <b>Duration:</b> ${esc(unit.duration)} &nbsp; <b>Languages:</b> ${esc(unit.languages)}</p>
+  <p><b>About the theme:</b> ${esc(themeText(unit.theme))}</p>
   <h2>Unit description</h2><p>${esc(unit.description)}</p>
   <h2>Lines of inquiry</h2><table><tr><th>Line of inquiry</th><th>${esc(cl)}</th></tr>${unit.lines.map(l=>`<tr><td>${esc(l.text)}</td><td>${esc(l.concept)}</td></tr>`).join("")}</table>
   <h2>${esc(cl)}</h2><p>${esc(unit.keyConcepts.join(", "))}</p>
