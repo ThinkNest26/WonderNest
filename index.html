@@ -104,6 +104,12 @@
   .cover{width:46px;height:60px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;font-size:21px;background:var(--sky)}
   .book h4{font-size:14px;color:var(--navy)}
   .book p{font-size:12.3px;color:var(--muted);line-height:1.4;margin-top:2px}
+  .blinks{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .blink{font-size:11.5px;font-weight:800;color:var(--blue);background:#fff;border:1px solid #cfe0fb;border-radius:8px;padding:3px 8px;text-decoration:none}
+  .blink:hover{background:var(--sky)}
+  .blink.read{background:var(--leaf);border-color:var(--leaf);color:#fff}
+  .bwarn{font-size:11.5px;color:#9a2b0b;background:#fff0ec;border-radius:8px;padding:5px 8px;margin-top:6px}
+  img.cover{object-fit:cover;border:1px solid var(--line)}
   .tag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;margin-top:5px;background:var(--sky);color:var(--blue)}
   .routine{border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-left-width:5px}
   .routine h4{font-size:14.5px;color:var(--navy);display:flex;justify-content:space-between;gap:8px}
@@ -248,6 +254,38 @@ async function run(task, text, apply){
   finally{ loading(false); render(); }
 }
 
+/* ---------- book links ---------- */
+const q = b => encodeURIComponent(((b.title||"") + " " + (b.author||"")).trim());
+function bookLinks(b){
+  const ol = b.ol || {};
+  const links = [];
+  if(ol.readable) links.push(`<a class="blink read" href="${ol.url}" target="_blank" rel="noopener">📖 Read online free</a>`);
+  links.push(`<a class="blink" href="${ol.url || "https://openlibrary.org/search?q=" + q(b)}" target="_blank" rel="noopener">Open Library</a>`);
+  links.push(`<a class="blink" href="https://www.google.com/search?tbm=bks&q=${q(b)}" target="_blank" rel="noopener">Google Books</a>`);
+  links.push(`<a class="blink" href="https://search.worldcat.org/search?q=${q(b)}" target="_blank" rel="noopener">Find in a library</a>`);
+  return links.join("");
+}
+function bookHTML(b){
+  const ol = b.ol || {};
+  const cover = ol.cover ? `<img class="cover" src="${ol.cover}" alt="">` : `<div class="cover">📖</div>`;
+  const warn = b.olChecked && ol.found === false ? `<div class="bwarn">⚠️ We couldn't find this book in Open Library. Please check the title and author.</div>` : "";
+  return `<div class="book">${cover}<div><h4>${esc(b.title)}</h4><p>${esc(b.author)} · ${esc(b.why)}</p>${b.line?`<span class="tag">${esc(b.line)}</span>`:""}<div class="blinks">${bookLinks(b)}</div>${warn}</div></div>`;
+}
+async function checkBooks(){
+  const todo = unit.books.filter(b => !b.olChecked);
+  if(!todo.length) return;
+  await Promise.all(todo.map(async b => {
+    try{
+      const url = "https://openlibrary.org/search.json?limit=1&fields=key,cover_i,ebook_access&title=" + encodeURIComponent(b.title||"") + "&author=" + encodeURIComponent(String(b.author||"").split(/[(,]/)[0].trim());
+      const r = await fetch(url); const d = await r.json(); const doc = (d.docs||[])[0];
+      b.ol = doc ? {found:true, url:"https://openlibrary.org" + doc.key, cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : "", readable: ["borrowable","public"].includes(doc.ebook_access)} : {found:false};
+      b.olChecked = true;
+    }catch(e){ /* offline or blocked: keep plain search links */ }
+  }));
+  saveCurrent();
+  if(view === "builder" && unit.step === 5) render();
+}
+
 /* ---------- views ---------- */
 function render(){
   document.querySelectorAll(".nav[data-view]").forEach(n => n.classList.toggle("on", n.dataset.view === view));
@@ -257,6 +295,7 @@ function render(){
   else if(view === "settings") m.innerHTML = settingsView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
+  if(view === "builder" && unit.step === 5) checkBooks();
 }
 
 function header(title){
@@ -350,8 +389,8 @@ function step5(){
   return `<div class="grid3">
     <div>
       <div class="card"><div class="label">📚 Books for this unit</div>
-        ${unit.books.map(b=>`<div class="book"><div class="cover">📖</div><div><h4>${esc(b.title)}</h4><p>${esc(b.author)} · ${esc(b.why)}</p>${b.line?`<span class="tag">${esc(b.line)}</span>`:""}</div></div>`).join("")}
-        <div class="hint" style="margin-top:8px">Please check each title with your librarian before ordering.</div>
+        ${unit.books.map(bookHTML).join("")}
+        <div class="hint" style="margin-top:8px">Links search Open Library, Google Books and WorldCat (libraries near you). "Read online" appears when Open Library has a free digital copy to borrow (a free Open Library account is needed). Please check each title with your librarian before ordering.</div>
       </div>
       ${s ? `<div class="story"><div class="label">✨ Original WonderNest story</div><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.textSecond?`<p class="ar">${esc(s.textSecond)}</p>`:""}</div>` : ""}
       ${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}
@@ -456,7 +495,7 @@ function downloadWord(){
   <h2>ATL skills</h2><ul>${unit.atl.map(a=>`<li>${esc(a)}${unit.atlWhy[a]?" — "+esc(unit.atlWhy[a]):""}</li>`).join("")}</ul>
   <h2>Learner profile</h2><p>${esc(unit.learnerProfile.join(", "))}</p>
   <h2>Sustainable Development Goals</h2><ul>${SDGS.filter(s=>unit.sdgs.includes(s[0])).map(([n,name])=>`<li>SDG ${n} ${name}${unit.sdgWhy[n]?" — "+esc(unit.sdgWhy[n]):""}</li>`).join("")}</ul>
-  <h2>Books</h2><ul>${unit.books.map(b=>`<li><b>${esc(b.title)}</b>, ${esc(b.author)} — ${esc(b.why)}</li>`).join("")}</ul>
+  <h2>Books</h2><ul>${unit.books.map(b=>`<li><b>${esc(b.title)}</b>, ${esc(b.author)} — ${esc(b.why)}<br><a href="${(b.ol&&b.ol.url)||"https://openlibrary.org/search?q="+q(b)}">Open Library${b.ol&&b.ol.readable?" (read online free)":""}</a> · <a href="https://search.worldcat.org/search?q=${q(b)}">Find in a library</a></li>`).join("")}</ul>
   ${unit.story ? `<h2>Original story: ${esc(unit.story.title)}</h2><p>${esc(unit.story.text).replace(/\n/g,"<br>")}</p>${unit.story.textSecond?`<p dir="rtl">${esc(unit.story.textSecond).replace(/\n/g,"<br>")}</p>`:""}` : ""}
   ${unit.spark ? `<h2>Story spark</h2><p>${esc(unit.spark)}</p>` : ""}
   <h2>Visible thinking routines</h2><table><tr><th>Routine</th><th>When</th><th>How</th></tr>${unit.routines.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.when)}</td><td>${esc(r.how)}</td></tr>`).join("")}</table>
