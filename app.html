@@ -188,6 +188,15 @@
   .bar i{display:block;height:100%;border-radius:8px}
   .hist{font-size:13px;border-left:3px solid var(--line);padding:6px 0 6px 12px;margin-left:4px}
   .hist b{color:var(--navy)}
+  .libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+  .libcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;transition:.2s}
+  .libcard:hover{box-shadow:0 10px 24px rgba(20,50,92,.08);transform:translateY(-2px)}
+  .libtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .kind{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px}
+  .kind.routine{background:#f1edff;color:#5b3fd1} .kind.organiser{background:#e6f7ec;color:#1f7a4d}
+  .libcard h4{color:var(--navy);font-size:16px}
+  .libcat{font-size:11.5px;font-weight:800;color:var(--blue);margin:2px 0 6px}
+  .libcard p{font-size:13px;color:var(--muted);line-height:1.45;flex:1}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -226,6 +235,7 @@
     <div class="logo"><div class="mark" style="background:linear-gradient(135deg,#ffd76a,#ffb347)"><img src="bird.png" alt="" style="width:34px;height:34px;object-fit:contain" onerror="this.replaceWith('🐦')"></div><div>WonderNest<small>by ThinkNest Education</small></div></div>
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
+    <button class="nav" data-view="library">🧠 Routines & organisers</button>
     <button class="nav" data-view="settings">⚙️ School settings</button>
     <div class="nav soon">📚 Story library <span class="pill">Soon</span></div>
     <div class="nav soon">🔍 Open inquiry <span class="pill">Soon</span></div>
@@ -385,6 +395,7 @@ function render(){
   else if(view === "summative") m.innerHTML = summativeView();
   else if(view === "classes") m.innerHTML = classesView();
   else if(view === "atl") m.innerHTML = atlView();
+  else if(view === "library") m.innerHTML = libView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
   if(view === "builder" && unit.step === 5) checkBooks();
@@ -1038,40 +1049,254 @@ async function atlDraft(){
   finally{ loading(false); render(); }
 }
 
-/* ---------- thinking routine templates ---------- */
-const RT_LIBRARY = [
-  [["see think wonder"], [["👀 See","What do you see?","I see trees standing and some cut down."],["💡 Think","What do you think is going on?","I think people needed the wood."],["❓ Wonder","What does it make you wonder?","I wonder where the animals went."]]],
-  [["think puzzle explore"], [["💭 Think","What do you think you know about this?","I think habitats are homes for animals."],["🧩 Puzzle","What questions or puzzles do you have?","Why do some animals live in only one place?"],["🔍 Explore","How could we find out?","Ask an expert or read a book about it."]]],
-  [["compass"], [["E · Excited","What excites you about this idea?","We could plant a garden for bees."],["W · Worried","What worries you about it?","The plants might die in the summer."],["N · Need to know","What else do you need to know?","Which plants do bees like?"],["S · Suggestion","What is your idea or suggestion?","Let's plant flowers near the shade."]]],
-  [["claim support question"], [["📣 Claim","What do you think is true?","Animals need clean water to live."],["🧱 Support","What makes you say that? What is your evidence?","The fish in the dirty pond got sick."],["❓ Question","What question do you still have?","How can we keep the pond clean?"]]],
-  [["used to think","now i think"], [["⏪ I used to think…","What did you think at the start?","I used to think animals can live anywhere."],["⏩ Now I think…","What do you think now?","Now I think many animals need one special habitat."]]],
-  [["chalk talk"], [["❓ Big question","Write the big question in the middle.","How do we depend on each other?"],["✏️ Our ideas","Write or draw your ideas.","We help each other carry things."],["🔗 Connections and questions","Add to a friend's idea or ask a question.","I agree, and friends also help us feel better."]]],
-  [["step inside"], [["👀 Perceive","What can this person or character see and notice?","The new girl sees everyone playing together."],["🧠 Know and believe","What might they know or believe?","She thinks nobody wants to play with her."],["❤️ Care about","What might they care about?","She cares about having a friend."]]],
-  [["circle of viewpoints","viewpoints"], [["🧍 The viewpoint I'm thinking about","Who or what are you thinking as?","I am thinking as the tree."],["💭 I think…","What do you think from this viewpoint?","I think I give birds a home and shade."],["❓ A question from this viewpoint","What question would they ask?","Why are people cutting my friends down?"]]],
-  [["connect extend challenge"], [["🔗 Connect","How is this connected to what you already know?","It's like when we recycled at home."],["➕ Extend","What new ideas pushed your thinking further?","Plastic can stay in the sea for years."],["🧗 Challenge","What is still hard or puzzling?","Why do shops still use plastic bags?"]]],
-  [["headline"], [["📰 My headline","Write a headline that sums up the big idea.","Small Hands Can Help Save Big Habitats"],["💬 Why I chose it","Why does this headline fit?","Because we learned children can take action."]]],
-  [["what makes you say that"], [["🔎 What's going on?","What do you think is happening?","The family is moving to a new home."],["💬 What makes you say that?","What do you see that makes you think so?","They are carrying boxes and a suitcase."]]],
-  [["zoom in"], [["🔍 First look","What do you see in this part?","I see a hand holding a seed."],["🔍 Zoom out","What new things do you see now?","Now I see lots of children planting."],["💡 My idea now","How has your idea changed?","I think they are making a school garden."]]],
-  [["think pair share"], [["💭 Think","What do you think? Take a moment on your own.","I think sharing makes friends happy."],["👫 Pair","What did your partner think?","My partner thinks sharing is fair."],["📢 Share","What will you share with the class?","We both think sharing helps everyone feel included."]]],
-  [["colour symbol image","color symbol image"], [["🎨 Colour","Which colour shows the big idea? Why?","Green, because it means growing."],["⭐ Symbol","Which symbol shows the big idea?","A heart, because we care for nature."],["🖼️ Image","Draw an image that shows the big idea.","A child watering a small tree."]]],
-  [["sentence phrase word"], [["📝 Sentence","Which sentence was most important?","We all need clean water to live."],["✏️ Phrase","Which phrase caught your attention?","share our planet"],["🔤 Word","Which single word stands out?","responsibility"]]],
-  [["same different","same and different"], [["🟰 Same","How are they the same?","Both live near water."],["↔️ Different","How are they different?","The frog can live on land too."],["🔗 Connect","How do they connect to your life?","We have a pond near our school."]]]
+/* ---------- thinking routine & organiser templates ---------- */
+/* WonderNest library of visible thinking routines and graphic organisers.
+   Each item: id, name, kind ("routine" | "organiser"), cat, ages, purpose, steps[], layout, sections[[label, prompt, example]] */
+const LIB = [
+ // ---------- Introducing and exploring ideas ----------
+ {id:"stw", name:"See · Think · Wonder", kind:"routine", cat:"Introducing & exploring", ages:"All ages", layout:"boxes",
+  purpose:"Look closely at an image or object, explain it and spark curiosity. Ideal for tuning in.",
+  steps:["Show an image, object or short clip.","Ask: What do you see?","Ask: What do you think about that?","Ask: What does it make you wonder?"],
+  sections:[["👀 See","What do you see?","I see children sharing a big book."],["💡 Think","What do you think is going on?","I think they are reading together in the library."],["❓ Wonder","What does it make you wonder?","I wonder who chose the book."]]},
+ {id:"tpe", name:"Think · Puzzle · Explore", kind:"routine", cat:"Introducing & exploring", ages:"5+", layout:"boxes",
+  purpose:"Find out what children already know and the questions they want to investigate.",
+  steps:["Name the topic.","Think: what do you think you know?","Puzzle: what questions or puzzles do you have?","Explore: how could we find out?"],
+  sections:[["💭 Think","What do you think you know about this?","I think plants need water to grow."],["🧩 Puzzle","What questions or puzzles do you have?","Why do some plants grow in the desert?"],["🔍 Explore","How could we explore these puzzles?","Visit the garden and ask the gardener."]]},
+ {id:"zoom", name:"Zoom In", kind:"routine", cat:"Introducing & exploring", ages:"All ages", layout:"flow",
+  purpose:"Reveal an image a little at a time so children notice details and change their ideas.",
+  steps:["Show only a small part of an image.","Children say what they see and think.","Reveal more, and ask what is new.","Show the whole image and ask how their idea changed."],
+  sections:[["🔍 Part 1","What do you see? What might it be?","I see a hand holding a seed."],["🔍 Part 2","What new things do you see?","Now I see lots of children planting."],["🖼️ Whole picture","How has your idea changed?","I think they are making a school garden."]]},
+ {id:"10x2", name:"Looking: Ten Times Two", kind:"routine", cat:"Introducing & exploring", ages:"6+", layout:"boxes",
+  purpose:"Slow down and look carefully, noticing more details the second time.",
+  steps:["Look at an image for 30 seconds.","List 10 words or phrases about anything you see.","Look again.","List 10 more words or phrases."],
+  sections:[["1️⃣ First look","Write 10 words about what you see.","blue, river, boat, birds, sunny…"],["2️⃣ Second look","Write 10 more words.","ripples, fisherman, nets, reflection…"]]},
+ {id:"qs", name:"Question Starts", kind:"routine", cat:"Introducing & exploring", ages:"5+", layout:"boxes",
+  purpose:"Help children ask many interesting questions about a topic.",
+  steps:["Brainstorm questions using the starters.","Choose the most interesting questions.","Discuss one question in depth.","Reflect: what new ideas did you have?"],
+  sections:[["Why…?","Ask a why question.","Why do birds fly south?"],["How would it be different if…?","Imagine a change.","How would it be different if there was no rain?"],["What if…?","Ask a what-if question.","What if animals could talk?"],["Suppose that…","Ask a suppose question.","Suppose we had no electricity for a week…"]]},
+ {id:"cw", name:"Chalk Talk", kind:"routine", cat:"Introducing & exploring", ages:"6+", layout:"web",
+  purpose:"A silent conversation on paper where children respond to a big question and to each other's ideas.",
+  steps:["Write a big question in the middle of chart paper.","Children write or draw their ideas silently.","They add to, connect or question others' ideas.","Discuss what you notice together."],
+  sections:[["❓ Big question","Write the big question in the middle.","How do we help each other?"],["✏️ An idea","Write or draw an idea.","We help carry heavy things."],["🔗 A connection","Add to someone's idea.","And we help by listening."],["❓ A question","Ask a question about an idea.","How can we help people we don't know?"]]},
+ // ---------- Digging deeper ----------
+ {id:"wmyst", name:"What Makes You Say That?", kind:"routine", cat:"Digging deeper", ages:"All ages", layout:"boxes",
+  purpose:"Help children explain their thinking with evidence.",
+  steps:["Ask: What's going on?","After each answer, ask: What makes you say that?"],
+  sections:[["🔎 What's going on?","What do you think is happening?","The family is moving to a new home."],["💬 What makes you say that?","What do you see that makes you think so?","They are carrying boxes and a suitcase."]]},
+ {id:"csq", name:"Claim · Support · Question", kind:"routine", cat:"Digging deeper", ages:"7+", layout:"boxes",
+  purpose:"Make a claim, back it up with evidence and raise a question about it.",
+  steps:["Make a claim about the topic.","Find support (evidence) for your claim.","Ask a question about the claim."],
+  sections:[["📣 Claim","What do you think is true?","Exercise helps us feel happy."],["🧱 Support","What is your evidence?","I feel happier after PE lessons."],["❓ Question","What question do you still have?","Does all exercise help in the same way?"]]},
+ {id:"ppc", name:"Parts · Purposes · Complexities", kind:"routine", cat:"Digging deeper", ages:"7+", layout:"boxes",
+  purpose:"Look closely at an object or system to understand how it works.",
+  steps:["Choose an object or system.","Name its parts.","Explain the purpose of each part.","Describe what is complicated about it."],
+  sections:[["🧩 Parts","What are its parts?","Wheels, handlebars, pedals, chain."],["🎯 Purposes","What is each part for?","Pedals turn the chain to move the wheels."],["🌀 Complexities","What is complicated about it?","How the gears make it easier to climb hills."]]},
+ {id:"3why", name:"The 3 Whys", kind:"routine", cat:"Digging deeper", ages:"7+", layout:"boxes",
+  purpose:"Explore why a topic matters to me, to people around me and to the world.",
+  steps:["Name the topic or issue.","Why might it matter to me?","Why might it matter to people around me?","Why might it matter to the world?"],
+  sections:[["🙋 Why might it matter to me?","Think about yourself.","Clean water keeps me healthy."],["👨‍👩‍👧 Why might it matter to people around me?","Think about family, friends, community.","My family needs water to cook."],["🌍 Why might it matter to the world?","Think big.","Many people in the world don't have clean water."]]},
+ {id:"gsce", name:"Generate · Sort · Connect · Elaborate", kind:"routine", cat:"Digging deeper", ages:"7+", layout:"web",
+  purpose:"Build a concept map to show what you understand about a topic.",
+  steps:["Generate ideas about the topic.","Sort them: central ideas in the middle, others further out.","Connect related ideas with lines.","Elaborate: add details to ideas."],
+  sections:[["🎯 Topic","Write the topic in the centre.","Healthy living"],["💡 Idea","A main idea.","Eating well"],["💡 Idea","Another main idea.","Sleeping enough"],["💡 Idea","Another main idea.","Being active"],["➕ Detail","Add a detail to an idea.","Fruit and vegetables give us vitamins."],["🔗 Connection","How are two ideas linked?","Being active helps us sleep better."]]},
+ // ---------- Perspectives ----------
+ {id:"si", name:"Step Inside", kind:"routine", cat:"Perspectives", ages:"6+", layout:"boxes",
+  purpose:"Imagine the world from another person's, character's or object's point of view.",
+  steps:["Choose a person, character or object.","What can it perceive or notice?","What might it know or believe?","What might it care about?"],
+  sections:[["👀 Perceive","What can they see and notice?","The new girl sees everyone playing together."],["🧠 Know and believe","What might they know or believe?","She thinks nobody wants to play with her."],["❤️ Care about","What might they care about?","She cares about having a friend."]]},
+ {id:"cov", name:"Circle of Viewpoints", kind:"routine", cat:"Perspectives", ages:"7+", layout:"web",
+  purpose:"Explore the different viewpoints people might have about an event or issue.",
+  steps:["Brainstorm viewpoints around a topic.","Choose one viewpoint.","I am thinking of… from the viewpoint of…","I think… because… A question I have from this viewpoint is…"],
+  sections:[["🎯 Topic","What is the event or issue?","A new park is being built"],["🧍 Viewpoint 1","Who might care about this?","A child: I can play there!"],["🧍 Viewpoint 2","Another viewpoint.","A bird: will my tree be cut down?"],["🧍 Viewpoint 3","Another viewpoint.","A shop owner: more people will visit."],["❓ A question","What question would one of them ask?","Will there be space for everyone?"]]},
+ {id:"tfc", name:"Think · Feel · Care", kind:"routine", cat:"Perspectives", ages:"6+", layout:"boxes",
+  purpose:"Understand a person's inner world: their thoughts, feelings and what they care about.",
+  steps:["Choose a person or character in a situation.","What might they think?","What might they feel?","What might they care about?"],
+  sections:[["💭 Think","What might they be thinking?","I hope I win the race."],["❤️ Feel","How might they feel?","Nervous and excited."],["⭐ Care","What do they care about?","Making their family proud."]]},
+ {id:"tow", name:"Tug of War", kind:"routine", cat:"Perspectives", ages:"8+", layout:"tchart",
+  purpose:"Explore both sides of a dilemma and the reasons that pull each way.",
+  steps:["Name a fair dilemma with two sides.","List reasons that pull towards each side.","Decide which reasons are strongest.","Ask 'What if…?' questions."],
+  sections:[["⬅️ One side","Reasons for…","We should have a longer break because we need to play."],["➡️ Other side","Reasons against…","A longer break means less time to learn."]]},
+ {id:"cse", name:"Same · Different · Connect · Engage", kind:"routine", cat:"Perspectives", ages:"6+", layout:"boxes",
+  purpose:"Compare your life with others' lives to build intercultural understanding.",
+  steps:["Look at an image or story of someone's life.","How is it the same as yours?","How is it different?","How is it connected to you? What would you like to learn more about?"],
+  sections:[["🟰 Same","How are we the same?","We both go to school."],["↔️ Different","How are we different?","She walks an hour to school."],["🔗 Connect","How are we connected?","We both love football."],["🙋 Engage","What would you like to learn more about?","What games she plays at break."]]},
+ // ---------- Synthesising and organising ----------
+ {id:"hl", name:"Headlines", kind:"routine", cat:"Synthesising", ages:"6+", layout:"boxes",
+  purpose:"Capture the most important idea in a short headline.",
+  steps:["Think about the big idea of what you learned.","Write a headline that captures it.","Explain why you chose it.","Later: how would your headline change?"],
+  sections:[["📰 My headline","Write a headline for the big idea.","Small Hands Can Make a Big Difference"],["💬 Why I chose it","Why does it fit?","Because we learned children can take action."]]},
+ {id:"csi", name:"Colour · Symbol · Image", kind:"routine", cat:"Synthesising", ages:"All ages", layout:"boxes",
+  purpose:"Show the essence of an idea through a colour, a symbol and an image.",
+  steps:["Read, watch or listen.","Choose a colour that represents the big idea.","Choose a symbol.","Draw an image. Explain your choices."],
+  sections:[["🎨 Colour","Which colour shows the big idea? Why?","Green, because it means growing."],["⭐ Symbol","Which symbol shows it?","A heart, because we care for each other."],["🖼️ Image","Draw an image of the big idea.","Two children helping a friend up."]]},
+ {id:"spw", name:"Sentence · Phrase · Word", kind:"routine", cat:"Synthesising", ages:"8+", layout:"boxes",
+  purpose:"Pick out the most powerful sentence, phrase and word from a text.",
+  steps:["Read a text.","Choose a sentence that is meaningful.","Choose a phrase that moves you.","Choose a word that captures your attention. Discuss your choices."],
+  sections:[["📝 Sentence","Which sentence was most important?","We all need clean water to live."],["✏️ Phrase","Which phrase stood out?","share our planet"],["🔤 Word","Which single word stands out?","responsibility"]]},
+ {id:"321", name:"3 · 2 · 1 Bridge", kind:"routine", cat:"Synthesising", ages:"8+", layout:"boxes",
+  purpose:"Show how thinking changes from before to after learning.",
+  steps:["Before: write 3 words, 2 questions and 1 comparison.","Learn about the topic.","After: do it again.","Bridge: explain how your thinking changed."],
+  sections:[["3️⃣ Words","Write 3 words about the topic.","energy, sun, electricity"],["2️⃣ Questions","Write 2 questions.","Where does energy come from? Can it run out?"],["1️⃣ Comparison","This topic is like…","Energy is like food for machines."],["🌉 Bridge","How has your thinking changed?","Now I know some energy can run out."]]},
+ {id:"bme", name:"Beginning · Middle · End", kind:"routine", cat:"Synthesising", ages:"All ages", layout:"flow",
+  purpose:"Imagine what came before and after an image or event.",
+  steps:["Look at an image.","If this is the beginning, what happens next?","If this is the middle, what happened before and after?","If this is the end, what was the story?"],
+  sections:[["🌱 Beginning","What happened first?","A seed was planted."],["🌿 Middle","What happened next?","It grew roots and leaves."],["🌳 End","How did it end?","It became a tall tree with fruit."]]},
+ {id:"us", name:"Unveiling Stories", kind:"routine", cat:"Synthesising", ages:"8+", layout:"boxes",
+  purpose:"Find the many stories in an image, artwork or event.",
+  steps:["Look at an image or artwork.","Explore each kind of story.","Share and compare stories."],
+  sections:[["📖 The story","What is the story?","A family is planting trees."],["🧑 The human story","What is the human story?","They want their children to have shade."],["🌍 The world story","What is the world story?","Trees help fight climate change."],["🆕 The new story","What new story might happen?","The town becomes greener."],["🤫 The untold story","What story is not told?","Who looks after the trees?"]]},
+ // ---------- Reflecting ----------
+ {id:"iuttnit", name:"I Used to Think… Now I Think…", kind:"routine", cat:"Reflecting", ages:"All ages", layout:"tchart",
+  purpose:"Reflect on how and why thinking has changed.",
+  steps:["Remind children of their early ideas.","I used to think…","Now I think…","Share and explain what changed their thinking."],
+  sections:[["⏪ I used to think…","What did you think at the start?","I used to think animals can live anywhere."],["⏩ Now I think…","What do you think now?","Now I think many animals need one special habitat."]]},
+ {id:"cec", name:"Connect · Extend · Challenge", kind:"routine", cat:"Reflecting", ages:"7+", layout:"boxes",
+  purpose:"Connect new learning to what you knew, and notice what still puzzles you.",
+  steps:["After learning something new, ask:","How is it connected to what you knew?","What extended your thinking?","What is still challenging or puzzling?"],
+  sections:[["🔗 Connect","How is this connected to what you knew?","It's like when we recycled at home."],["➕ Extend","What new idea pushed your thinking further?","Plastic can stay in the sea for hundreds of years."],["🧗 Challenge","What is still puzzling?","Why do shops still use plastic bags?"]]},
+ {id:"cp", name:"Compass Points", kind:"routine", cat:"Reflecting", ages:"7+", layout:"compass",
+  purpose:"Explore an idea or proposal from four directions before deciding.",
+  steps:["Present an idea or proposal.","E: what excites you?","W: what worries you?","N: what do you need to know?","S: what is your stance or suggestion?"],
+  sections:[["N · Need to know","What else do you need to know?","How much water does it need?"],["E · Excited","What excites you about this idea?","We could grow our own vegetables."],["S · Suggestion","What is your suggestion?","Let's start with herbs in pots."],["W · Worried","What worries you about it?","The plants might die in the summer."]]},
+ {id:"tps", name:"Think · Pair · Share", kind:"routine", cat:"Reflecting", ages:"All ages", layout:"flow",
+  purpose:"Think alone, talk with a partner, then share with the class.",
+  steps:["Pose a question.","Think quietly.","Pair: talk with a partner.","Share with the class."],
+  sections:[["💭 Think","What do you think?","Sharing makes friends happy."],["👫 Pair","What did your partner think?","My partner thinks sharing is fair."],["📢 Share","What will you share with the class?","We both think sharing helps everyone feel included."]]},
+
+ // ---------- Graphic organisers ----------
+ {id:"venn", name:"Venn Diagram", kind:"organiser", cat:"Compare & contrast", ages:"5+", layout:"venn",
+  purpose:"Compare two things: what is different about each and what they share.",
+  steps:["Label each circle.","Write differences in the outer parts.","Write similarities in the middle."],
+  sections:[["🐸 Thing A","Only true for A","Frogs live in water and on land."],["🟰 Both","True for both","Both lay eggs."],["🐦 Thing B","Only true for B","Birds can fly."]]},
+ {id:"matrix", name:"Compare and Contrast Matrix", kind:"organiser", cat:"Compare & contrast", ages:"7+", layout:"table",
+  purpose:"Compare several things across the same features.",
+  steps:["List the things to compare across the top.","List features down the side.","Fill in each box."],
+  sections:[["Feature","Feature down the side","Where it lives"],["Item 1","First thing to compare","Camel: desert"],["Item 2","Second thing","Polar bear: Arctic"],["Item 3","Third thing","Dolphin: ocean"]]},
+ {id:"tchart", name:"T-Chart", kind:"organiser", cat:"Compare & contrast", ages:"5+", layout:"tchart",
+  purpose:"Sort ideas into two groups, such as facts and opinions, or before and after.",
+  steps:["Label the two columns.","Sort ideas into the right column.","Discuss what you notice."],
+  sections:[["Column 1","For example: Needs","Water, food, shelter"],["Column 2","For example: Wants","Toys, sweets, games"]]},
+ {id:"pmi", name:"PMI: Plus · Minus · Interesting", kind:"organiser", cat:"Compare & contrast", ages:"7+", layout:"boxes",
+  purpose:"Weigh up an idea by looking at its positives, negatives and interesting points.",
+  steps:["Name the idea or decision.","List the pluses.","List the minuses.","List what is interesting."],
+  sections:[["➕ Plus","What is good about it?","A school garden gives us fresh food."],["➖ Minus","What is not so good?","It needs care in the holidays."],["💡 Interesting","What is interesting?","Bees might come to our school."]]},
+ {id:"kwl", name:"KWL Chart", kind:"organiser", cat:"Inquiry & research", ages:"5+", layout:"columns",
+  purpose:"Track what children know, want to know and have learned.",
+  steps:["K: what do we know?","W: what do we want to know?","L: (at the end) what have we learned?"],
+  sections:[["K · Know","What do we already know?","Plants need water."],["W · Want to know","What do we want to know?","How do seeds know which way is up?"],["L · Learned","What have we learned?","Roots grow down because of gravity."]]},
+ {id:"kwhlaq", name:"KWHLAQ Chart", kind:"organiser", cat:"Inquiry & research", ages:"8+", layout:"columns",
+  purpose:"A fuller inquiry chart that includes how we will find out, action and new questions.",
+  steps:["K: what do we know?","W: what do we want to know?","H: how will we find out?","L: what have we learned?","A: what action will we take?","Q: what new questions do we have?"],
+  sections:[["K","What do we know?","Water is precious."],["W","What do we want to know?","How much water does our school use?"],["H","How will we find out?","Read the water meter for a week."],["L","What have we learned?","We use most water in the toilets."],["A","What action will we take?","Put 'save water' signs by the taps."],["Q","What new questions do we have?","Can we collect rainwater?"]]},
+ {id:"5w", name:"5 Ws and H", kind:"organiser", cat:"Inquiry & research", ages:"6+", layout:"boxes",
+  purpose:"Plan questions or summarise an event: who, what, where, when, why and how.",
+  steps:["Choose a topic or event.","Answer or ask each question."],
+  sections:[["Who?","Who is involved?","Our class and the gardener."],["What?","What happened?","We planted a garden."],["Where?","Where?","Behind the library."],["When?","When?","In March."],["Why?","Why?","To grow food and help bees."],["How?","How?","We dug, planted and watered."]]},
+ {id:"journey", name:"Inquiry Journey", kind:"organiser", cat:"Inquiry & research", ages:"All ages", layout:"cycle",
+  purpose:"Plan or record each phase of an inquiry, from tuning in to taking action.",
+  steps:["Use one box for each phase of your school's inquiry cycle.","Rename phases to match your cycle if needed."],
+  sections:[["🎵 Tuning in","What do we already think?","We think recycling is good."],["🔍 Finding out","How will we find out more?","Visit the recycling centre."],["🧺 Sorting out","What did we find?","Most of our rubbish is plastic."],["🚀 Going further","What else do we want to explore?","What happens to plastic in the sea?"],["🔗 Making connections","What do we understand now?","Our choices affect the ocean."],["🌍 Taking action","What will we do?","Start a plastic-free lunch day."]]},
+ {id:"mind", name:"Mind Map", kind:"organiser", cat:"Brainstorm & connect", ages:"5+", layout:"web",
+  purpose:"Brainstorm and connect ideas around a central topic.",
+  steps:["Write the topic in the centre.","Add main ideas around it.","Add details to each idea."],
+  sections:[["🎯 Topic","Central topic","Our community"],["💡 Idea","A main idea","Helpers"],["💡 Idea","A main idea","Places"],["💡 Idea","A main idea","Rules"],["💡 Idea","A main idea","Celebrations"],["💡 Idea","A main idea","Transport"]]},
+ {id:"main", name:"Main Idea and Details", kind:"organiser", cat:"Brainstorm & connect", ages:"6+", layout:"web",
+  purpose:"Identify the main idea of a text and the details that support it.",
+  steps:["Read a text.","Write the main idea in the centre.","Add supporting details around it."],
+  sections:[["🎯 Main idea","What is it mostly about?","Bees are important to people."],["➕ Detail","A supporting detail","They pollinate flowers."],["➕ Detail","A supporting detail","They make honey."],["➕ Detail","A supporting detail","They help fruit grow."]]},
+ {id:"frayer", name:"Frayer Model", kind:"organiser", cat:"Vocabulary & concepts", ages:"7+", layout:"frayer",
+  purpose:"Understand a key word or concept deeply.",
+  steps:["Write the word in the centre.","Define it in your own words.","Add facts or characteristics.","Give examples and non-examples."],
+  sections:[["🎯 Word","Write the word or concept.","Habitat"],["📖 Definition","What does it mean in your own words?","A natural home for plants and animals."],["📋 Characteristics","What is it like?","It has food, water and shelter."],["✅ Examples","Give examples.","Desert, ocean, rainforest."],["❌ Non-examples","What is it not?","A shop, a car park."]]},
+ {id:"fish", name:"Cause and Effect (Fishbone)", kind:"organiser", cat:"Cause & effect", ages:"8+", layout:"fishbone",
+  purpose:"Find the many causes of a problem or event.",
+  steps:["Write the effect or problem at the head.","Add causes on each bone.","Discuss which causes matter most."],
+  sections:[["🐟 Effect or problem","What happened?","Our classroom is noisy."],["Cause","What caused it?","Chairs scraping."],["Cause","Another cause","Everyone talking at once."],["Cause","Another cause","Music from next door."],["Cause","Another cause","Not enough rugs or soft things."]]},
+ {id:"ce", name:"Cause and Effect Chain", kind:"organiser", cat:"Cause & effect", ages:"6+", layout:"flow",
+  purpose:"Show how one event leads to another.",
+  steps:["Write the first cause.","What happened because of it?","Keep adding links in the chain."],
+  sections:[["1️⃣ Cause","What happened first?","It didn't rain for months."],["2️⃣ Effect","What happened because of it?","The river dried up."],["3️⃣ Effect","And then?","Animals moved away to find water."],["4️⃣ Effect","And then?","Farmers couldn't grow crops."]]},
+ {id:"flow", name:"Sequence / Flow Chart", kind:"organiser", cat:"Sequence & time", ages:"5+", layout:"flow",
+  purpose:"Put steps or events in order.",
+  steps:["Write or draw the first step.","Add each next step in order.","Check the order makes sense."],
+  sections:[["1️⃣ First","What happens first?","Collect the plastic bottles."],["2️⃣ Next","What happens next?","Wash and sort them."],["3️⃣ Then","Then?","Take them to the recycling bin."],["4️⃣ Finally","What happens last?","They are made into new things."]]},
+ {id:"cycle", name:"Life Cycle / Cycle Diagram", kind:"organiser", cat:"Sequence & time", ages:"5+", layout:"cycle",
+  purpose:"Show a process that repeats, such as a life cycle or the water cycle.",
+  steps:["Write the first stage.","Add each stage in order.","The last stage leads back to the first."],
+  sections:[["🥚 Stage 1","First stage","Egg"],["🐛 Stage 2","Next stage","Caterpillar"],["🫘 Stage 3","Next stage","Chrysalis"],["🦋 Stage 4","Next stage","Butterfly"]]},
+ {id:"time", name:"Timeline", kind:"organiser", cat:"Sequence & time", ages:"6+", layout:"timeline",
+  purpose:"Order events in time, such as personal histories or historical events.",
+  steps:["Choose the start and end.","Add events in order with dates.","Talk about changes over time."],
+  sections:[["📅 Event 1","Date and event","2019: I was born."],["📅 Event 2","Date and event","2022: I started nursery."],["📅 Event 3","Date and event","2024: My brother was born."],["📅 Event 4","Date and event","2025: I started Grade 1."],["📅 Event 5","Date and event","Today: I can read!"]]},
+ {id:"story", name:"Story Map", kind:"organiser", cat:"Sequence & time", ages:"5+", layout:"boxes",
+  purpose:"Plan or retell a story: characters, setting, problem, events and solution.",
+  steps:["Name the characters and setting.","Describe the problem.","List the main events.","Explain how it was solved."],
+  sections:[["🧒 Characters","Who is in the story?","A frog and a girl."],["🏞️ Setting","Where and when?","A pond under a car park."],["⚠️ Problem","What goes wrong?","The pond was covered up."],["📚 Events","What happens?","The girl asks her class to help."],["✅ Solution","How is it solved?","They build a new pond."]]},
+ {id:"ps", name:"Problem and Solution", kind:"organiser", cat:"Action & planning", ages:"6+", layout:"boxes",
+  purpose:"Understand a problem and plan possible solutions.",
+  steps:["Describe the problem.","Why is it happening?","Brainstorm solutions.","Choose the best solution and explain why."],
+  sections:[["⚠️ Problem","What is the problem?","Food is wasted at lunch."],["🔍 Causes","Why is it happening?","Portions are too big."],["💡 Possible solutions","What could we do?","Smaller portions, share fruit, compost."],["⭐ Best solution","Which is best and why?","Smaller portions, because less is thrown away."]]},
+ {id:"action", name:"Action Plan", kind:"organiser", cat:"Action & planning", ages:"7+", layout:"boxes",
+  purpose:"Plan student-initiated action linked to learning.",
+  steps:["What do we want to change?","Who can help?","What steps will we take?","How will we know it worked?"],
+  sections:[["🎯 What we want to change","What is our goal?","Less plastic in lunch boxes."],["🤝 Who can help","Who will we work with?","Parents, the canteen, our class."],["🪜 Our steps","What will we do, and when?","Make posters, write to parents, check bins weekly."],["✅ How we'll know","How will we measure success?","Fewer plastic wrappers in the bins."]]}
 ];
+const LIB_CATS = [...new Set(LIB.map(x => x.cat))];
+
 const norm = x => String(x||"").toLowerCase().replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim();
-function rtSections(r){
-  if(Array.isArray(r.sections) && r.sections.length) return r.sections.map(s => [s.label, s.prompt, s.example]);
-  const n = norm(r.name); const hit = RT_LIBRARY.find(([keys]) => keys.some(k => n.includes(k)));
-  return hit ? hit[1] : [["💭 My thinking","What do you think?",""],["❓ My questions","What do you wonder?",""],["🔗 Connections","What does this remind you of?",""]];
+const GENERIC_SECS = [["💭 My thinking","What do you think?",""],["❓ My questions","What do you wonder?",""],["🔗 Connections","What does this remind you of?",""]];
+function libMatch(name){ const n = norm(name); return LIB.find(x => norm(x.name) === n) || LIB.find(x => n.includes(norm(x.name)) || norm(x.name).includes(n)) || LIB.find(x => { const w = norm(x.name).split(" ").slice(0,2).join(" "); return w.length > 4 && n.startsWith(w); }); }
+const LAYOUT_COUNTS = { venn:3, compass:4, frayer:5, fishbone:5 };
+function tplFromRoutine(r){
+  const lib = libMatch(r.name);
+  let sections = Array.isArray(r.sections) && r.sections.length ? r.sections.map(s => Array.isArray(s) ? s : [s.label, s.prompt, s.example]) : (lib ? lib.sections : GENERIC_SECS);
+  let layout = lib ? lib.layout : "boxes";
+  if(LAYOUT_COUNTS[layout] && sections.length !== LAYOUT_COUNTS[layout]) layout = "boxes";
+  return { name: r.name, layout, sections, how: r.how || (lib ? lib.purpose : ""), steps: lib ? lib.steps : [], ci: unit.centralIdea || "" };
 }
-const rt = { open: null, examples: true };
-function rtTemplate(r, opts){
-  const secs = rtSections(r), ex = opts.examples, ed = opts.editable;
-  const cols = secs.length === 4 ? 2 : secs.length;
-  return `<div class="rt-sheet"><div class="rt-head"><div><div class="rt-brand">WonderNest · Visible thinking routine</div><h1>${esc(r.name)}</h1>
-    ${unit.centralIdea ? `<div class="rt-ci">${esc(unit.centralIdea)}</div>` : ""}</div><div class="rt-name">Name: ____________________<br>Date: ____________________</div></div>
-    <div class="rt-grid" style="grid-template-columns:repeat(${cols},1fr)">${secs.map(([label,prompt,example])=>`<div class="rt-box"><h2>${esc(label)}</h2><p class="rt-prompt">${esc(prompt||"")}</p>
-      ${ex && example ? `<div class="rt-ex"><b>Example:</b> ${esc(example)}</div>` : ""}<div class="rt-space" ${ed?'contenteditable="true"':""}></div></div>`).join("")}</div>
-    <div class="rt-foot">${esc(r.how||"")}</div></div>`;
+function tplFromLib(item, ci, exSections){ return { name: item.name, layout: item.layout, sections: exSections || item.sections, how: item.purpose, steps: item.steps, ci: ci || "", libId: item.id }; }
+function tplBox(s, o, extra){
+  const [label, prompt, example] = s;
+  return `<div class="rt-box ${extra||""}"><h2>${esc(label)}</h2>${prompt?`<p class="rt-prompt">${esc(prompt)}</p>`:""}${o.examples && example ? `<div class="rt-ex"><b>Example:</b> ${esc(example)}</div>` : ""}<div class="rt-space" ${o.editable?'contenteditable="true"':""}></div></div>`;
+}
+function tplBody(t, o){
+  const S = t.sections, n = S.length, B = (s, x) => tplBox(s, o, x);
+  switch(t.layout){
+    case "columns": case "tchart":
+      return `<div class="rt-grid ${t.layout==="tchart"?"rt-t":""}" style="grid-template-columns:repeat(${n},1fr)">${S.map(s=>B(s,"tall")).join("")}</div>`;
+    case "flow":
+      return `<div class="rt-flow">${S.map((s,i)=>B(s) + (i<n-1?`<div class="rt-arrow">➜</div>`:"")).join("")}</div>`;
+    case "cycle":
+      return `<div class="rt-flow rt-cyc">${S.map((s,i)=>B(s) + `<div class="rt-arrow">${i<n-1?"➜":"↻"}</div>`).join("")}</div><p class="rt-note">↻ The last stage leads back to the first.</p>`;
+    case "timeline":
+      return `<div class="rt-time">${S.map(s=>`<div class="rt-tick"><div class="rt-dot"></div>${B(s)}</div>`).join("")}</div>`;
+    case "web": {
+      const [c, ...rest] = S, pos = [[1,2],[2,3],[3,2],[2,1],[1,1],[1,3],[3,3],[3,1]];
+      return `<div class="rt-web">${B(c,"rt-centre")}${rest.slice(0,8).map((s,i)=>`<div style="grid-row:${pos[i][0]};grid-column:${pos[i][1]}">${B(s)}</div>`).join("")}</div>`;
+    }
+    case "compass":
+      return `<div class="rt-compass"><div style="grid-row:1;grid-column:2">${B(S[0])}</div><div style="grid-row:2;grid-column:3">${B(S[1])}</div><div style="grid-row:3;grid-column:2">${B(S[2])}</div><div style="grid-row:2;grid-column:1">${B(S[3])}</div><div class="rt-rose" style="grid-row:2;grid-column:2">🧭</div></div>`;
+    case "frayer":
+      return `<div class="rt-frayer">${S.slice(1).map(s=>B(s)).join("")}<div class="rt-fcentre">${B(S[0],"rt-centre")}</div></div>`;
+    case "venn":
+      return `<div class="rt-venn"><div class="rt-circ a"></div><div class="rt-circ b"></div><div class="rt-vl">${B(S[0],"rt-clear")}</div><div class="rt-vm">${B(S[1],"rt-clear")}</div><div class="rt-vr">${B(S[2],"rt-clear")}</div></div>`;
+    case "fishbone":
+      return `<div class="rt-fish"><div style="grid-row:1;grid-column:1">${B(S[1])}</div><div style="grid-row:1;grid-column:2">${B(S[2])}</div><div style="grid-row:2;grid-column:1">${B(S[3])}</div><div style="grid-row:2;grid-column:2">${B(S[4])}</div><div class="rt-spine"></div><div class="rt-head">${B(S[0],"rt-centre")}</div></div>`;
+    case "table": {
+      const [feat, ...items] = S;
+      return `<table class="rt-table"><tr><th>${esc(feat[0])}<br><small>${esc(feat[1]||"")}</small></th>${items.map(s=>`<th>${esc(s[0])}<br><small>${esc(s[1]||"")}</small></th>`).join("")}</tr>
+        ${[0,1,2,3].map(r=>`<tr><td ${o.editable?'contenteditable="true"':""}>${r===0&&o.examples?`<span class="rt-ex">${esc(feat[2]||"")}</span>`:""}</td>${items.map(s=>`<td ${o.editable?'contenteditable="true"':""}>${r===0&&o.examples?`<span class="rt-ex">${esc(s[2]||"")}</span>`:""}</td>`).join("")}</tr>`).join("")}</table>`;
+    }
+    default: {
+      const cols = n === 4 ? 2 : n >= 5 ? 3 : n;
+      return `<div class="rt-grid" style="grid-template-columns:repeat(${cols},1fr)">${S.map(s=>B(s)).join("")}</div>`;
+    }
+  }
+}
+function tplHTML(t, o){
+  return `<div class="rt-sheet"><div class="rt-head"><div><div class="rt-brand">WonderNest · ${LIB.find(x=>x.name===t.name && x.kind==="organiser") ? "Graphic organiser" : "Visible thinking routine"}</div><h1>${esc(t.name)}</h1>
+    ${t.ci ? `<div class="rt-ci">${esc(t.ci)}</div>` : ""}</div><div class="rt-name">Name: ____________________<br>Date: ____________________</div></div>
+    ${tplBody(t, o)}<div class="rt-foot">${esc(t.how||"")}</div></div>`;
 }
 const RT_CSS = `.rt-sheet{font-family:"Nunito","Segoe UI",Arial,sans-serif;color:#1d2433;max-width:1100px;margin:0 auto}
   .rt-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:3px solid #ffc83d;padding-bottom:12px;margin-bottom:16px}
@@ -1080,42 +1305,135 @@ const RT_CSS = `.rt-sheet{font-family:"Nunito","Segoe UI",Arial,sans-serif;color
   .rt-ci{font-size:14px;color:#475066;font-weight:700}
   .rt-name{font-size:14px;color:#475066;line-height:2;white-space:nowrap}
   .rt-grid{display:grid;gap:14px}
-  .rt-box{border:2.5px solid #14325c;border-radius:16px;padding:14px;display:flex;flex-direction:column;min-height:300px;break-inside:avoid}
-  .rt-box h2{font-size:22px;color:#14325c;margin:0 0 4px}
-  .rt-prompt{font-size:14px;color:#475066;margin:0 0 8px}
-  .rt-ex{background:#fff7e0;border:1px dashed #ffc83d;border-radius:10px;padding:8px 10px;font-size:13px;color:#6b4a00;margin-bottom:8px}
-  .rt-space{flex:1;min-height:160px;border-radius:10px;background:repeating-linear-gradient(#fff,#fff 31px,#dfe5ef 32px);outline:none;font-size:18px;line-height:32px;padding:0 6px}
-  .rt-space[contenteditable]:focus{box-shadow:0 0 0 3px rgba(47,111,214,.25)}
+  .rt-box{border:2.5px solid #14325c;border-radius:16px;padding:12px;display:flex;flex-direction:column;min-height:240px;break-inside:avoid;background:#fff;height:100%;box-sizing:border-box}
+  .rt-box.tall{min-height:460px}
+  .rt-box h2{font-size:20px;color:#14325c;margin:0 0 4px}
+  .rt-prompt{font-size:13.5px;color:#475066;margin:0 0 8px}
+  .rt-ex{display:block;background:#fff7e0;border:1px dashed #ffc83d;border-radius:10px;padding:7px 9px;font-size:12.5px;color:#6b4a00;margin-bottom:8px}
+  .rt-space{flex:1;min-height:110px;border-radius:10px;background:repeating-linear-gradient(transparent,transparent 31px,#dfe5ef 32px);outline:none;font-size:17px;line-height:32px;padding:0 6px}
+  .rt-space[contenteditable]:focus,td[contenteditable]:focus{box-shadow:0 0 0 3px rgba(47,111,214,.25);outline:none}
+  .rt-t .rt-box:first-child{border-right-width:6px}
+  .rt-flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
+  .rt-flow .rt-box{flex:1;min-width:180px;min-height:300px}
+  .rt-arrow{align-self:center;font-size:28px;color:#2f6fd6;font-weight:900}
+  .rt-note{font-size:13px;color:#475066;margin-top:6px}
+  .rt-time{display:flex;gap:10px;border-top:6px solid #14325c;padding-top:0;margin-top:20px}
+  .rt-tick{flex:1;display:flex;flex-direction:column;align-items:center}
+  .rt-dot{width:20px;height:20px;border-radius:50%;background:#ffc83d;border:4px solid #14325c;margin:-13px 0 10px}
+  .rt-tick .rt-box{width:100%;min-height:280px}
+  .rt-web,.rt-compass{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto);gap:12px}
+  .rt-web .rt-box{min-height:190px}
+  .rt-centre{grid-row:2;grid-column:2;background:#e8f1ff;border-color:#2f6fd6;border-width:4px;border-radius:24px}
+  .rt-web > .rt-centre{grid-row:2;grid-column:2}
+  .rt-rose{display:grid;place-items:center;font-size:72px}
+  .rt-compass .rt-box{min-height:220px}
+  .rt-frayer{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .rt-frayer .rt-box{min-height:260px}
+  .rt-fcentre{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:200px}
+  .rt-fcentre .rt-box{height:auto} .rt-fcentre .rt-space{min-height:34px;flex:none;height:34px}
+  .rt-frayer > .rt-box:nth-child(odd){padding-right:80px} .rt-frayer > .rt-box:nth-child(even){padding-left:80px}
+  .rt-frayer > .rt-box:nth-child(3),.rt-frayer > .rt-box:nth-child(4){padding-top:46px}
+  .rt-fcentre .rt-box{min-height:130px;border-radius:50%/40%;text-align:center;padding:16px 22px}
+  .rt-venn{position:relative;height:520px}
+  .rt-circ{position:absolute;top:0;width:62%;height:100%;border:4px solid #14325c;border-radius:50%}
+  .rt-circ.a{left:0;background:rgba(47,111,214,.06)} .rt-circ.b{right:0;background:rgba(255,200,61,.10)}
+  .rt-vl,.rt-vm,.rt-vr{position:absolute;top:18%;height:64%}
+  .rt-vl{left:6%;width:28%} .rt-vm{left:38%;width:24%} .rt-vr{right:6%;width:28%}
+  .rt-clear{border:0;background:transparent;min-height:0;padding:0}
+  .rt-fish{display:grid;grid-template-columns:1fr 1fr 240px;grid-template-rows:auto auto;gap:14px;position:relative}
+  .rt-fish .rt-box{min-height:200px}
+  .rt-spine{position:absolute;left:0;right:240px;top:50%;border-top:6px solid #14325c}
+  .rt-head{grid-row:1 / span 2;grid-column:3;display:flex;align-items:center}
+  .rt-head .rt-box{min-height:260px;border-radius:24px 80px 80px 24px}
+  .rt-table{width:100%;border-collapse:collapse} .rt-table th{background:#14325c;color:#fff;padding:10px;text-align:left;font-size:15px} .rt-table th small{font-weight:400;opacity:.8}
+  .rt-table td{border:2px solid #14325c;height:90px;vertical-align:top;padding:8px;font-size:16px}
   .rt-foot{margin-top:14px;font-size:12.5px;color:#667085}
-  @media print{ .noprint{display:none !important} body{margin:10mm} .rt-box{min-height:420px} }`;
-function rtOpen(i){ rt.open = i; render(); }
-function rtModal(){
-  if(rt.open === null || !unit.routines[rt.open]) return "";
-  const r = unit.routines[rt.open], i = rt.open;
-  return `<div class="modal-bg" onclick="if(event.target===this){rt.open=null;render()}"><div class="modal" style="width:min(1000px,96vw)">
+  @media print{ .noprint{display:none !important} body{margin:8mm} }`;
+const tpl = { cur: null, examples: true, unitIdx: null };
+function tplOpen(t){ tpl.cur = t; render(); }
+function tplModal(){
+  if(!tpl.cur) return "";
+  const t = tpl.cur, lu = libS.unitId ? savedUnits().find(u => u.id === libS.unitId) : null;
+  return `<div class="modal-bg" onclick="if(event.target===this){tpl.cur=null;render()}"><div class="modal" style="width:min(1100px,97vw)">
     <style>${RT_CSS}</style>
-    <div class="actions" style="margin-top:0;margin-bottom:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px"><input type="checkbox" ${rt.examples?"checked":""} onchange="rt.examples=this.checked;render()" style="width:18px;height:18px"> Show examples</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small ghost" onclick="rtWindow(${i},true,false)">🖥️ Use online</button><button class="btn small ghost" onclick="rtWindow(${i},false,true)">🖨️ Print / PDF</button><button class="btn small ghost" onclick="rtWord(${i})">⬇️ Word</button><button class="btn small" onclick="rt.open=null;render()">Close</button></div></div>
-    ${rtTemplate(r, {examples: rt.examples, editable: false})}</div></div>`;
+    <div class="actions" style="margin-top:0;margin-bottom:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px"><input type="checkbox" ${tpl.examples?"checked":""} onchange="tpl.examples=this.checked;render()" style="width:18px;height:18px"> Show examples</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${t.libId && lu ? `<button class="btn small ghost" onclick="libExamples('${t.libId}')">✨ Examples for my unit</button><button class="btn small ghost" onclick="libAddToUnit('${t.libId}')">➕ Add to unit</button>` : ""}
+        <button class="btn small ghost" onclick="tplWindow(tpl.cur,true,false)">🖥️ Use online</button><button class="btn small ghost" onclick="tplWindow(tpl.cur,false,true)">🖨️ Print / PDF</button><button class="btn small ghost" onclick="tplWord(tpl.cur)">⬇️ Word</button><button class="btn small" onclick="tpl.cur=null;render()">Close</button></div></div>
+    ${t.steps && t.steps.length ? `<div class="hint" style="margin-bottom:12px"><b>How to use it:</b> ${t.steps.map((s,i)=>`${i+1}. ${esc(s)}`).join(" ")}</div>` : ""}
+    ${tplHTML(t, {examples: tpl.examples, editable: false})}</div></div>`;
 }
-function rtWindow(i, editable, print){
-  const r = unit.routines[i]; const w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to open the template");
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(r.name)} · WonderNest</title><style>body{margin:24px;background:#f6f8fc}${RT_CSS}
+function tplWindow(t, editable, print){
+  const w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to open the template");
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(t.name)} · WonderNest</title><style>body{margin:24px;background:#f6f8fc}${RT_CSS}
     .bar{max-width:1100px;margin:0 auto 14px;display:flex;gap:10px;justify-content:flex-end;font-family:Arial} .bar button{background:#2f6fd6;color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;font-size:14px} .bar button.g{background:#fff;color:#2f6fd6;border:1.5px solid #2f6fd6}
     .rt-sheet{background:#fff;padding:24px;border-radius:16px} @media print{body{background:#fff;margin:0} .rt-sheet{padding:0}}</style></head><body>
     <div class="bar noprint">${editable ? `<span style="margin-right:auto;color:#475066;font-size:14px;align-self:center">Click inside a box to type. Great for the class board.</span>` : ""}<button class="g" onclick="document.querySelectorAll('.rt-ex').forEach(e=>e.style.display=e.style.display==='none'?'':'none')">Show / hide examples</button><button onclick="print()">🖨️ Print or save as PDF</button></div>
-    ${rtTemplate(r, {examples: rt.examples, editable})}${print ? "<script>setTimeout(()=>print(),400)<\/script>" : ""}</body></html>`);
+    ${tplHTML(t, {examples: tpl.examples, editable})}${print ? "<script>setTimeout(()=>print(),400)<\/script>" : ""}</body></html>`);
   w.document.close();
 }
-function rtWord(i){
-  const r = unit.routines[i], secs = rtSections(r);
-  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#1d2433} h1{color:#14325c;font-size:22pt;margin:0} td{border:2pt solid #14325c;vertical-align:top;padding:8pt;width:${Math.floor(100/secs.length)}%} h2{color:#14325c;font-size:15pt;margin:0} .p{color:#475066;font-size:10pt} .ex{background:#fff7e0;font-size:10pt;color:#6b4a00;padding:4pt}</style></head><body>
-    <p style="color:#2f6fd6;font-size:9pt;font-weight:bold">WONDERNEST · VISIBLE THINKING ROUTINE</p><h1>${esc(r.name)}</h1>
-    ${unit.centralIdea ? `<p><b>${esc(unit.centralIdea)}</b></p>` : ""}<p>Name: ______________________ &nbsp;&nbsp; Date: ______________</p>
-    <table style="border-collapse:collapse;width:100%"><tr>${secs.map(([label,prompt,example])=>`<td><h2>${esc(label)}</h2><p class="p">${esc(prompt||"")}</p>${rt.examples && example ? `<p class="ex"><b>Example:</b> ${esc(example)}</p>` : ""}<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></td>`).join("")}</tr></table>
-    <p style="color:#667085;font-size:9pt">${esc(r.how||"")}</p></body></html>`;
-  const blob = new Blob(["\ufeff", h], {type:"application/msword"}); const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "WonderNest routine - " + r.name + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+function tplWord(t){
+  const lines = '<p>&nbsp;</p>'.repeat(6);
+  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#1d2433} h1{color:#14325c;font-size:22pt;margin:0} td{border:2pt solid #14325c;vertical-align:top;padding:8pt} h2{color:#14325c;font-size:14pt;margin:0} .p{color:#475066;font-size:10pt} .ex{background:#fff7e0;font-size:10pt;color:#6b4a00;padding:4pt}</style></head><body>
+    <p style="color:#2f6fd6;font-size:9pt;font-weight:bold">WONDERNEST</p><h1>${esc(t.name)}</h1>${t.ci ? `<p><b>${esc(t.ci)}</b></p>` : ""}
+    <p>Name: ______________________ &nbsp;&nbsp; Date: ______________</p>
+    ${t.steps && t.steps.length ? `<p class="p"><b>How to use it:</b> ${t.steps.map((s,i)=>`${i+1}. ${esc(s)}`).join(" ")}</p>` : ""}
+    <table style="border-collapse:collapse;width:100%">${t.sections.map(([label,prompt,example])=>`<tr><td><h2>${esc(label)}</h2><p class="p">${esc(prompt||"")}</p>${tpl.examples && example ? `<p class="ex"><b>Example:</b> ${esc(example)}</p>` : ""}${lines}</td></tr>`).join("")}</table>
+    <p style="color:#667085;font-size:9pt">${esc(t.how||"")}</p></body></html>`;
+  const blob = new Blob(["﻿", h], {type:"application/msword"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "WonderNest - " + t.name + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+// unit routines (step 5) use the same templates
+function rtOpen(i){ tplOpen(tplFromRoutine(unit.routines[i])); }
+function rtWindow(i, editable, print){ tplWindow(tplFromRoutine(unit.routines[i]), editable, print); }
+function rtWord(i){ tplWord(tplFromRoutine(unit.routines[i])); }
+function rtModal(){ return tplModal(); }
+
+/* ---------- library page ---------- */
+const libS = { q: "", kind: "all", cat: "", unitId: "", ex: {} };
+function libView(){
+  const units = savedUnits(), lu = units.find(u => u.id === libS.unitId);
+  const items = LIB.filter(x => (libS.kind === "all" || x.kind === libS.kind) && (!libS.cat || x.cat === libS.cat) && (!libS.q || norm(x.name + " " + x.purpose + " " + x.cat).includes(norm(libS.q))));
+  const chip = (on, label, js) => `<button class="chip ${on?"on":""}" onclick="${js};render()">${label}</button>`;
+  return `<div class="top"><div><div class="crumb">WonderNest</div><h1>🧠 Routines & organisers</h1></div></div>
+  ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
+  <div class="card">
+    <div class="fields" style="grid-template-columns:1.3fr 1fr;margin:0 0 12px">
+      <div><label>Search</label><input type="text" id="libq" value="${esc(libS.q)}" placeholder="For example: compare, perspective, timeline" oninput="libS.q=this.value;clearTimeout(window._lq);window._lq=setTimeout(()=>{render();const e=$('#libq');e.focus();e.setSelectionRange(e.value.length,e.value.length)},250)"></div>
+      <div><label>Examples for</label><select onchange="libS.unitId=this.value;render()"><option value="">General examples</option>${units.map(u=>`<option value="${u.id}" ${u.id===libS.unitId?"selected":""}>${esc(u.centralIdea||"Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select></div>
+    </div>
+    <div class="chips" style="margin-bottom:8px">${chip(libS.kind==="all","All (" + LIB.length + ")","libS.kind='all'")}${chip(libS.kind==="routine","🧠 Thinking routines","libS.kind='routine'")}${chip(libS.kind==="organiser","🗂️ Graphic organisers","libS.kind='organiser'")}</div>
+    <div class="chips" style="margin:0">${chip(!libS.cat,"Any purpose","libS.cat=''")}${LIB_CATS.map(c=>chip(libS.cat===c, esc(c), `libS.cat=${esc(JSON.stringify(c))}`)).join("")}</div>
+    ${lu ? `<div class="hint" style="margin-top:10px">✨ Open any template and click <b>Examples for my unit</b> to rewrite the examples for <b>${esc(lu.centralIdea)}</b>, or <b>Add to unit</b> to add it to the unit's routines.</div>` : ""}
+  </div>
+  <div class="libgrid">${items.map(x=>`<div class="libcard"><div class="libtop"><span class="kind ${x.kind}">${x.kind==="routine"?"🧠 Routine":"🗂️ Organiser"}</span><span class="hint">${esc(x.ages)}</span></div>
+    <h4>${esc(x.name)}</h4><div class="libcat">${esc(x.cat)}</div><p>${esc(x.purpose)}</p>
+    <div class="blinks"><button class="blink" onclick="libOpen('${x.id}')">👁 View</button><button class="blink" onclick="tplWindow(libTpl('${x.id}'),true,false)">🖥️ Use online</button><button class="blink" onclick="tplWindow(libTpl('${x.id}'),false,true)">🖨️ Print</button><button class="blink" onclick="tplWord(libTpl('${x.id}'))">⬇️ Word</button></div></div>`).join("") || `<div class="card empty">Nothing matches. Try another word.</div>`}</div>
+  ${tplModal()}`;
+}
+function libTpl(id){
+  const item = LIB.find(x => x.id === id), u = libS.unitId ? savedUnits().find(x => x.id === libS.unitId) : null;
+  return tplFromLib(item, u ? u.centralIdea : "", libS.ex[libS.unitId + "|" + id]);
+}
+function libOpen(id){ tplOpen(libTpl(id)); }
+async function libExamples(id){
+  const item = LIB.find(x => x.id === id), u = savedUnits().find(x => x.id === libS.unitId); if(!u) return;
+  error = ""; loading(true, "Writing examples for your unit…");
+  try{
+    const d = await ai("template_examples", u, { template: item.name, purpose: item.purpose, sections: item.sections.map(s => ({ label: s[0], prompt: s[1] })) });
+    const ex = d.examples || [];
+    libS.ex[u.id + "|" + id] = item.sections.map((s, i) => [s[0], s[1], ex[i] || s[2]]);
+    tpl.cur = libTpl(id); tpl.examples = true; toast("Examples written for your unit ✓");
+  }catch(e){ error = e.message || "Something went wrong. Please try again."; tpl.cur = null; }
+  finally{ loading(false); render(); }
+}
+function libAddToUnit(id){
+  const u = savedUnits().find(x => x.id === libS.unitId); if(!u) return;
+  const t = libTpl(id);
+  u.routines = u.routines || [];
+  u.routines.push({ name: t.name, when: "Added from library", how: t.how, sections: t.sections.map(s => ({ label: s[0], prompt: s[1], example: s[2] })) });
+  storeUnit(u); if(unit.id === u.id){ unit.routines = u.routines; saveCurrent(); }
+  toast(`Added to "${(u.centralIdea||"").slice(0,40)}…" ✓`);
 }
 
 /* ---------- actions ---------- */
@@ -1205,6 +1523,7 @@ document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("cl
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  template_examples: {examples:["Frogs need a pond","Both need water","Birds need trees","Plants","Shade","Water"]},
   atl_toolkit: {kidStatement:"I can listen and share my ideas", lookFors:["Looks at the speaker and waits for a turn","Repeats or builds on a friend's idea","Asks a question to find out more","Shares an idea in a full sentence"],
     practices:[{title:"Talk partners",how:"Each day, partners take turns to share and say back one thing they heard."},{title:"Thinking time",how:"Count to five silently before anyone answers a question."},{title:"Building on",how:"Use the starter 'I agree with… and I want to add…'."}],
     activities:[{title:"Habitat listening walk",time:"20 minutes",materials:"Clipboards, pencils",steps:["Walk around the school garden","Listen for animal sounds","Share one sound with a partner","Draw where it might live"]},{title:"Pass the shell",time:"15 minutes",materials:"A shell or soft toy",steps:["Sit in a circle","Only the person holding the shell speaks","Others listen and nod","Pass it on"]},{title:"Expert interviews",time:"30 minutes",materials:"Question cards",steps:["In pairs, choose an animal","Ask each other three questions","Report one new fact to the class"]}],
