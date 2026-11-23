@@ -280,6 +280,15 @@
   .aibox{background:#f4f0ff;border-radius:12px;padding:12px;margin-top:8px;font-size:13.5px}.aibox p{margin-bottom:6px}
   .exg label{display:block;margin-top:8px}.exg input,.exg textarea,.exg select{width:100%}.exg .kidpick label{display:flex;margin:0}.exg .kidpick input{width:auto}
   .qrph{width:66px;height:66px;border-radius:10px;background:var(--bg);display:grid;place-items:center;font-size:26px}
+
+  .conceptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:16px}
+  .conceptcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+  .conceptcard h3{color:var(--navy);font-size:19px}.cic{font-size:34px}.ckq{font-weight:800;color:var(--blue);margin:2px 0 8px}
+  .stem{background:var(--bg);border-radius:8px;padding:6px 10px;margin-top:5px;font-size:13.5px}
+  .cncell{background:var(--bg);border-radius:10px;padding:8px 10px;text-align:left;min-width:110px;display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+  .depthpick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}.depthpick button{background:var(--bg);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;text-align:left;border:2px solid transparent}.depthpick button.on{border-color:var(--leaf);background:#e7f7ef}.depthpick span{font-size:26px}.depthpick small{color:var(--muted);font-size:11.5px}
+  .cicheck{background:#f4f0ff;border-radius:12px;padding:12px;margin-top:10px;font-size:14px}.cicheck p{margin-bottom:5px}
+  .cqline{border-left:3px solid var(--lilac);padding:4px 0 4px 12px;margin-top:10px;font-size:13.5px}.cqline p{margin-top:4px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -394,6 +403,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
     <button class="nav" data-view="library">🧠 Routines & organisers</button>
+    <button class="nav" data-view="concepts">💡 Concepts</button>
     <button class="nav" data-view="settings">⚙️ School settings</button>
     <button class="nav" data-view="stories">📚 Story library</button>
     <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
@@ -561,6 +571,7 @@ function render(){
   else if(view === "inquiry") m.innerHTML = oiView();
   else if(view === "stories") m.innerHTML = storiesView();
   else if(view === "sdg") m.innerHTML = sdgView();
+  else if(view === "concepts") m.innerHTML = conceptsView();
   else if(view === "exh") m.innerHTML = exView();
   else if(view === "school") m.innerHTML = sch.school ? schoolView() : schoolSetupView();
   else m.innerHTML = builderView();
@@ -733,7 +744,7 @@ async function syncUnits(){
   store.set("wn_units", merged);
   if(view === "home" || view === "classes" || view === "summative") render();
 }
-function makeCU(u){ const t = themeOf(u.theme) || {}; return { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", atl: u.atl || [], storySpark: u.spark || "" }; }
+function makeCU(u){ const t = themeOf(u.theme) || {}; return { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", atl: u.atl || [], keyConcepts: u.keyConcepts || [], lines: (u.lines || []).map(l => l.text), storySpark: u.spark || "" }; }
 const assign = { open:false, classes:[] };
 async function openAssign(){
   await saveUnit(true);
@@ -2105,6 +2116,7 @@ function downloadWord(){
   <h2>Lines of inquiry</h2><table><tr><th>Line of inquiry</th><th>${esc(cl)}</th></tr>${unit.lines.map(l=>`<tr><td>${esc(l.text)}</td><td>${esc(l.concept)}</td></tr>`).join("")}</table>
   <h2>${esc(cl)}</h2><p>${esc(unit.keyConcepts.join(", "))}</p>
   <h2>Related concepts</h2><p>${esc(unit.relatedConcepts.join(", "))}</p>
+  ${(unit.conceptQuestions||[]).length ? `<h2>Conceptual questions</h2>${unit.conceptQuestions.map((l,i)=>`<p><b>Line ${i+1} (${esc(l.concept||"")})</b><br>Factual: ${esc((l.factual||[]).join(" "))}<br>Conceptual: ${esc((l.conceptual||[]).join(" "))}<br>Debatable: ${esc((l.debatable||[]).join(" "))}</p>`).join("")}` : ""}
   <h2>ATL skills</h2><ul>${unit.atl.map(a=>`<li>${esc(a)}${unit.atlWhy[a]?" — "+esc(unit.atlWhy[a]):""}</li>`).join("")}</ul>
   <h2>Learner profile</h2><p>${esc(unit.learnerProfile.join(", "))}</p>
   <h2>Sustainable Development Goals</h2><ul>${SDGS.filter(s=>unit.sdgs.includes(s[0])).map(([n,name])=>`<li>SDG ${n} ${name}${unit.sdgWhy[n]?" — "+esc(unit.sdgWhy[n]):""}</li>`).join("")}</ul>
@@ -2125,6 +2137,8 @@ document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("cl
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  central_idea_check:{criteria:[{name:"Conceptual",ok:true,comment:"It is a big idea about relationships, not a topic."},{name:"Transferable",ok:true,comment:"It applies to any habitat, not only one."},{name:"Open to perspectives",ok:true,comment:"Children can explore whose choices matter."},{name:"Right for the age",ok:true,comment:"The words suit six and seven year olds."},{name:"Connected to the theme",ok:true,comment:"It links people and nature in Sharing the planet."}],feedback:"A strong conceptual central idea. You could make the action part more open.",versions:["Living things depend on their habitats, and people's choices can protect or harm them.","The choices people make affect the habitats that living things depend on."]},
+  concept_questions:{factual:["What is a habitat?","What do animals need to survive?","Which animals live in our school garden?","What happens to rubbish we drop?"],conceptual:["How are living things connected to their habitats?","Why do habitats change?","How do people's choices affect habitats?","What makes a habitat healthy?"],debatable:["Should people build on wild land?","Is it everyone's job to protect habitats?","Are some habitats more important than others?"],lines:[{concept:"Form",factual:["What is a habitat?","What does a pond habitat have?"],conceptual:["How does a habitat meet the needs of living things?","Why are habitats different?"],debatable:["Which habitat would you most like to protect?"]},{concept:"Causation",factual:["What happens when trees are cut down?","What is pollution?"],conceptual:["How do human actions change habitats?","Why do some animals lose their homes?"],debatable:["Should people stop building new roads?"]},{concept:"Responsibility",factual:["Who looks after parks?","What is recycling?"],conceptual:["How can our choices protect habitats?","Why does it matter who takes action?"],debatable:["Is it children's job to protect nature?"]}]},
   exh_group_ideas:{centralIdeas:["People's choices about water affect communities near and far.","Access to clean water shapes the opportunities people have.","Communities can work together to protect their water."],lines:["Where our water comes from","How water use affects people and places","Our responsibility to protect water"],concepts:["Causation","Responsibility"],actions:["Run a water-saving campaign in school","Fix or report dripping taps","Raise funds for a water charity","Make a family water pledge"]},
   sdg_story_questions:{questions:["What problem did the person notice, and why did it matter to them?","What helped them keep going when things were hard?","How could an idea like this work in our community?"],actions:["Find out about a similar problem near school","Make a poster to share the story","Plan one small action as a class"]},
   feedback_starter: {comment:"You asked a great question and collected clues in lots of ways, especially your interview. Next, can you compare two of your clues and explain what they tell you together?"},
@@ -2247,9 +2261,9 @@ function schoolSetupView(){
   return `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏫 Set up your school</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
   <div class="card" style="max-width:820px"><p style="margin-bottom:6px">WonderNest works best when your whole school is together: one set of school settings, shared stories, and an overview for leaders.</p><p class="hint">You only do this once.</p></div>
   <div class="grid2" style="max-width:820px;grid-template-columns:1fr 1fr">
-    <div class="card"><div class="label">🌱 My school is new to WonderNest</div><label>School name</label><input id="schName" placeholder="For example: Ajman Academy" value="${esc(settings.school||"")}">
+    <div class="card exg"><div class="label">🌱 My school is new to WonderNest</div><label>School name</label><input id="schName" placeholder="For example: Ajman Academy" value="${esc(settings.school||"")}">
       <p class="hint" style="margin:8px 0">You become the school admin. You can make other teachers admins later.</p><button class="btn wide" onclick="schCreate()">Create my school</button></div>
-    <div class="card"><div class="label">🤝 My school already uses WonderNest</div><label>School code (8 characters, from your school admin)</label><input id="schCode" placeholder="ABCD1234" style="text-transform:uppercase;letter-spacing:2px">
+    <div class="card exg"><div class="label">🤝 My school already uses WonderNest</div><label>School code (8 characters, from your school admin)</label><input id="schCode" placeholder="ABCD1234" style="text-transform:uppercase;letter-spacing:2px">
       <p class="hint" style="margin:8px 0">Ask your coordinator or another teacher for the code. It is on their 🏫 My school page.</p><button class="btn wide ghost" onclick="schJoin()">Join my school</button></div>
   </div>`;
 }
@@ -2617,6 +2631,142 @@ document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("cl
   if(v === "school"){ sch.overview = null; render(); }
   if(v === "inquiry"){ oi2.fam = null; oi2.walk = null; }
 }));
+
+
+/* =====================================================================
+   CONCEPTUAL UNDERSTANDING
+   ===================================================================== */
+const CONCEPTS = [
+  {k:"Form", ic:"🔷", q:"What is it like?", kid:"What is it like? What do I notice about it?", what:"Things have features we can observe, describe, compare and sort.",
+   stems:["What are the features of…?","How can we describe…?","What makes … different from …?","How can we sort or group…?"]},
+  {k:"Function", ic:"⚙️", q:"How does it work?", kid:"How does it work? What is it for?", what:"Things have a purpose, a role or a way of working that we can investigate.",
+   stems:["How does … work?","What is the purpose of…?","What role does … play?","What would happen without…?"]},
+  {k:"Causation", ic:"🎯", q:"Why is it like it is?", kid:"Why does it happen? What makes it happen?", what:"Things happen for reasons, and actions lead to effects.",
+   stems:["Why does … happen?","What causes…?","What are the effects of…?","What might happen if…?"]},
+  {k:"Change", ic:"🔄", q:"How is it transforming?", kid:"How is it changing? How did it change?", what:"Things move from one state to another; change happens everywhere and all the time.",
+   stems:["How has … changed over time?","What causes … to change?","How might … change in the future?","Is change always good?"]},
+  {k:"Connection", ic:"🔗", q:"How is it linked to other things?", kid:"How is it connected to other things?", what:"Things are part of systems, so what happens to one part affects the others.",
+   stems:["How is … connected to…?","How does … affect…?","What is the relationship between … and …?","What patterns can we see?"]},
+  {k:"Perspective", ic:"👀", q:"What are the points of view?", kid:"How do different people see it?", what:"People see things differently depending on who they are, where they are and what they know.",
+   stems:["How might different people see…?","Whose voice is missing?","How do we know…?","Why might people disagree about…?"]},
+  {k:"Responsibility", ic:"🤝", q:"What are our obligations?", kid:"What should we do? How can we help?", what:"Our understanding shapes our choices, and the actions we take make a difference.",
+   stems:["What is our responsibility to…?","What choices can we make about…?","How can we take action on…?","Who should take care of…?"]}
+];
+const RELATED = {
+  "Language":["Audience","Communication","Genre","Meaning","Point of view","Purpose","Structure","Voice","Inference","Persuasion"],
+  "Mathematics":["Pattern","Quantity","Measurement","Relationship","Shape","Position","Data","Probability","Sequence","Estimation"],
+  "Science":["Adaptation","Cycles","Energy","Forces","Interdependence","Properties","Systems","Living things","Matter","Transformation"],
+  "Social studies":["Belief","Community","Conflict","Culture","Environment","Identity","Interaction","Migration","Rights","Sustainability","Citizenship","Resources"],
+  "Arts":["Composition","Creativity","Expression","Interpretation","Style","Audience","Technique","Imagination"],
+  "PSPE":["Balance","Cooperation","Identity","Wellbeing","Relationships","Safety","Choices","Growth"]
+};
+const DEPTH = [["🌱","Facts","Knows some facts about the topic"],["🌿","Big idea","Explains the concept and the big idea in their own words"],["🌳","Transfer","Uses the understanding in a new situation or another subject"]];
+const cnS = { tab: "guide", open: null, qTopic: "", qConcepts: [], qOut: null, classes: null, cls: null, kids: [], recs: [], ents: [], modal: null };
+function conceptsView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>💡 Conceptual understanding</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  const tabs = `<div class="tabs" style="max-width:none">${[["guide","📘 Concept guide"],["questions","❓ Question maker"],["tracker","📈 Understanding tracker"]].map(([k,l])=>`<button class="${cnS.tab===k?"on":""}" onclick="cnS.tab='${k}';render()">${l}</button>`).join("")}</div>`;
+  let body = "";
+  if(cnS.tab === "guide") body = cnGuide();
+  if(cnS.tab === "questions") body = cnQuestions();
+  if(cnS.tab === "tracker") body = cnTracker();
+  return top + tabs + body;
+}
+function cnGuide(){
+  const cl = settings.conceptLabel || "Specified concepts";
+  return `<div class="card"><div class="actions" style="margin-top:0"><p class="hint" style="max-width:720px">Concepts are big ideas that help children connect learning across subjects and transfer it to new situations. Each ${esc(cl.toLowerCase().replace(/s$/,""))} has a key question. Children also use related concepts from each subject.</p><button class="btn small ghost" onclick="cnGuideWord()">⬇️ Guide as Word</button></div></div>
+  <div class="conceptgrid">${CONCEPTS.map(c=>`<div class="conceptcard"><div class="cic">${c.ic}</div><h3>${c.k}</h3><p class="ckq">${esc(c.q)}</p><p class="hint">${esc(c.what)}</p><div class="label" style="margin-top:10px">For children</div><p>“${esc(c.kid)}”</p><div class="label" style="margin-top:10px">Question stems</div>${c.stems.map(s=>`<p class="stem">${esc(s)}</p>`).join("")}</div>`).join("")}</div>
+  <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="card"><div class="label">Factual, conceptual and debatable questions</div>
+    <p><b>🔎 Factual:</b> can be answered by looking it up. <i>“What do plants need to grow?”</i></p>
+    <p><b>💡 Conceptual:</b> builds a big idea that transfers. <i>“How are living things connected to their environment?”</i></p>
+    <p><b>⚖️ Debatable:</b> has no single answer and invites perspectives. <i>“Should people be allowed to build on green land?”</i></p>
+    <p class="hint" style="margin-top:8px">Strong inquiries move children from factual to conceptual understanding, then test it with debatable questions.</p></div>
+  <div class="card"><div class="label">Depth of understanding</div>${DEPTH.map(d=>`<p><b>${d[0]} ${d[1]}:</b> ${d[2]}</p>`).join("")}<p class="hint" style="margin-top:8px">Track this for each child in 📈 Understanding tracker. Children rate themselves in their 💡 Big ideas space.</p></div></div>
+  <div class="card"><div class="label">Related concepts by subject</div>${Object.entries(RELATED).map(([s,l])=>`<p style="margin-bottom:6px"><b>${s}:</b> ${l.map(esc).join(" · ")}</p>`).join("")}</div>`;
+}
+function cnGuideWord(){
+  wordDownload("WonderNest concept guide", `<h1>Conceptual understanding: teacher guide</h1>${CONCEPTS.map(c=>`<h2>${c.k}: ${esc(c.q)}</h2><p>${esc(c.what)}</p><p><b>For children:</b> “${esc(c.kid)}”</p><p><b>Question stems:</b> ${c.stems.map(esc).join(" · ")}</p>`).join("")}<h2>Factual, conceptual and debatable questions</h2><p>Factual: can be answered by looking it up. Conceptual: builds a big idea that transfers. Debatable: has no single answer and invites perspectives.</p><h2>Depth of understanding</h2><ul>${DEPTH.map(d=>`<li><b>${d[1]}:</b> ${d[2]}</li>`).join("")}</ul><h2>Related concepts by subject</h2><table><tr><th>Subject</th><th>Related concepts</th></tr>${Object.entries(RELATED).map(([s,l])=>`<tr><td>${s}</td><td>${l.join(", ")}</td></tr>`).join("")}</table>`);
+}
+function cnQuestions(){
+  const o = cnS.qOut;
+  return `<div class="card exg"><div class="label">Make factual, conceptual and debatable questions</div>
+    <label>Topic or line of inquiry</label><input id="cnTopic" value="${esc(cnS.qTopic || (unit.lines[0] && unit.lines[0].text) || "")}" placeholder="For example: How human actions affect habitats">
+    <label style="margin-top:8px">Concepts</label><div class="chips">${CONCEPTS.map(c=>`<button class="chip ${cnS.qConcepts.includes(c.k)?"on":""}" onclick="cnS.qTopic=$('#cnTopic').value;toggle(cnS.qConcepts,'${c.k}');render()">${c.ic} ${c.k}</button>`).join("")}</div>
+    <div class="actions"><span class="hint">Grade: ${esc(gradeLabel(unit) || "any")}</span><button class="btn" onclick="cnMakeQ()">✨ Make questions</button></div></div>
+  ${o ? `<div class="grid2" style="grid-template-columns:1fr 1fr 1fr">${[["factual","🔎 Factual"],["conceptual","💡 Conceptual"],["debatable","⚖️ Debatable"]].map(([k,l])=>`<div class="card"><div class="label">${l}</div>${(o[k]||[]).map(x=>`<p class="stem">${esc(x)}</p>`).join("")}</div>`).join("")}</div>
+    <div class="card"><button class="btn small ghost" onclick="navigator.clipboard.writeText(['factual','conceptual','debatable'].map(k=>k.toUpperCase()+'\\n'+(cnS.qOut[k]||[]).join('\\n')).join('\\n\\n')).then(()=>toast('Copied ✓'))">📋 Copy all</button></div>` : ""}`;
+}
+async function cnMakeQ(){
+  cnS.qTopic = $("#cnTopic").value.trim(); if(!cnS.qTopic) return toast("Type a topic or line of inquiry");
+  loading(true, "Writing questions…");
+  try{ cnS.qOut = await ai("concept_questions", unit, { topic: cnS.qTopic, concepts: cnS.qConcepts.length ? cnS.qConcepts : unit.keyConcepts }); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+async function cnOpen(id){
+  if(!id){ cnS.cls = null; return render(); }
+  cnS.cls = cnS.classes.find(c => c.id === id);
+  const [k, r, e] = await Promise.all([db.from("students").select("id, first_name, picture").eq("class_id", id).order("first_name"),
+    db.from("concept_records").select("*").eq("class_id", id).order("created_at", { ascending: false }),
+    db.from("entries").select("*").eq("class_id", id).eq("kind", "concept").order("created_at", { ascending: false })]);
+  if(r.error){ error = tcErr(r.error); }
+  cnS.kids = k.data || []; cnS.recs = r.data || []; cnS.ents = e.data || []; render();
+}
+function cnTracker(){
+  if(!db || !tc.user) return `<div class="card">Please sign in first.</div>`;
+  if(cnS.classes === null){ myClasses().then(c => { cnS.classes = c; render(); }); return `<div class="card">Loading…</div>`; }
+  const pick = `<div class="card"><select onchange="cnOpen(this.value)"><option value="">Choose a class…</option>${cnS.classes.map(c=>`<option value="${c.id}" ${cnS.cls&&cnS.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
+  if(!cnS.cls) return pick;
+  const cu = cnS.cls.current_unit || {}, cs = (cu.keyConcepts && cu.keyConcepts.length ? cu.keyConcepts : CONCEPTS.map(c => c.k));
+  const last = (kid, c, src) => cnS.recs.find(r => r.student_id === kid && r.concept === c && r.source === src);
+  const cell = (kid, c) => { const t = last(kid, c, "teacher"), s = last(kid, c, "self");
+    return `<button class="cncell" onclick="cnS.modal={kid:'${kid}',concept:'${c}',level:0};render()">${t ? `<b>${DEPTH[t.level-1][0]} ${DEPTH[t.level-1][1]}</b>` : `<span class="hint">Not yet</span>`}${s ? `<small>🧒 ${DEPTH[s.level-1][0]}</small>` : ""}</button>`; };
+  return pick + `<div class="card"><div class="label">Depth of understanding${cu.centralIdea ? ` · ${esc(cu.centralIdea)}` : ""}</div><p class="hint" style="margin-bottom:8px">🌱 Facts → 🌿 Big idea → 🌳 Transfer. Click a box to record what you saw. 🧒 shows the child's own rating.${cu.keyConcepts ? "" : " Use this unit with the class again from the unit builder to show only its concepts."}</p>
+    <div style="overflow-x:auto"><table class="tbl"><tr><th>Child</th>${cs.map(c=>`<th>${(CONCEPTS.find(x=>x.k===c)||{}).ic||""} ${esc(c)}</th>`).join("")}</tr>
+    ${cnS.kids.map(k=>`<tr><td><b>${esc(k.picture)} ${esc(k.first_name)}</b></td>${cs.map(c=>`<td>${cell(k.id,c)}</td>`).join("")}</tr>`).join("")}</table></div></div>
+  <div class="card"><div class="label">💭 Children's thinking (I used to think… now I think…)</div>${cnS.ents.slice(0,30).map(e=>{const k=cnS.kids.find(x=>x.id===e.student_id)||{}; return `<div class="hist"><b>${esc(k.picture||"")} ${esc(k.first_name||"")}</b> · ${esc(e.content.concept||"")} · ${new Date(e.created_at).toLocaleDateString("en-GB")}${e.content.usedTo?`<br>I used to think: ${esc(e.content.usedTo)}`:""}${e.content.nowThink?`<br>Now I think: ${esc(e.content.nowThink)}`:""}${e.content.lens?`<br>${esc(e.content.question||"")}: ${esc(e.content.lens)}`:""}</div>`;}).join("") || `<p class="hint">Nothing yet. Children add this in 💡 Big ideas.</p>`}</div>
+  ${cnS.modal ? cnModal() : ""}`;
+}
+function cnModal(){
+  const m = cnS.modal, k = cnS.kids.find(x => x.id === m.kid) || {}, hist = cnS.recs.filter(r => r.student_id === m.kid && r.concept === m.concept);
+  return `<div class="modal-bg" onclick="if(event.target===this){cnS.modal=null;render()}"><div class="modal"><h3 style="color:var(--navy)">${esc(k.picture)} ${esc(k.first_name)} · ${esc(m.concept)}</h3>
+    <div class="depthpick">${DEPTH.map((d,i)=>`<button class="${m.level===i+1?"on":""}" onclick="cnS.modal.level=${i+1};render()"><span>${d[0]}</span><b>${d[1]}</b><small>${d[2]}</small></button>`).join("")}</div>
+    <textarea id="cnNote" placeholder="Evidence: what did the child say or do?" style="min-height:70px;margin-top:8px"></textarea>
+    <div class="actions"><button class="link" onclick="cnS.modal=null;render()">Cancel</button><button class="btn" ${m.level?"":"disabled"} onclick="cnSave()">Save</button></div>
+    ${hist.length ? `<div class="label" style="margin-top:12px">History</div>${hist.slice(0,6).map(r=>`<div class="hist">${r.source==="self"?"🧒 ":"👩‍🏫 "}${DEPTH[r.level-1][0]} ${DEPTH[r.level-1][1]} · ${new Date(r.created_at).toLocaleDateString("en-GB")}${r.note?" · "+esc(r.note):""}</div>`).join("")}` : ""}</div></div>`;
+}
+async function cnSave(){
+  const m = cnS.modal, row = { student_id: m.kid, class_id: cnS.cls.id, concept: m.concept, level: m.level, source: "teacher", note: ($("#cnNote").value || "").trim().slice(0, 500), unit_label: (cnS.cls.current_unit || {}).centralIdea || "" };
+  const { error: e } = await db.from("concept_records").insert(row);
+  if(e){ error = tcErr(e); cnS.modal = null; return render(); }
+  cnS.recs.unshift(Object.assign({ created_at: new Date().toISOString() }, row)); cnS.modal = null; toast("Saved ✓"); render();
+}
+/* ---------- unit builder: check the central idea, conceptual questions, related concepts ---------- */
+function ciCheckCard(){
+  const c = unit.ciCheck;
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">🔍 Is it conceptual?</div><p class="hint">Check that the central idea is a big, transferable understanding, not a topic or a fact.</p></div><button class="btn small ghost" onclick="ciCheck()">🔍 Check my central idea</button></div>
+    ${c ? `<div class="cicheck">${(c.criteria||[]).map(x=>`<p>${x.ok?"✅":"⚠️"} <b>${esc(x.name)}:</b> ${esc(x.comment)}</p>`).join("")}${c.feedback?`<p style="margin-top:6px">${esc(c.feedback)}</p>`:""}
+      ${(c.versions||[]).length?`<div class="label" style="margin-top:10px">Stronger versions to consider</div>${c.versions.map(v=>`<p>💡 ${esc(v)} <button class="link" onclick="unit.centralIdea=${esc(JSON.stringify(v))};unit.ciCheck=null;saveCurrent();render()">Use this</button></p>`).join("")}`:""}</div>` : ""}</div>`;
+}
+async function ciCheck(){
+  if(!unit.centralIdea.trim()) return toast("Choose or write a central idea first");
+  loading(true, "Checking the central idea…");
+  try{ unit.ciCheck = await ai("central_idea_check"); saveCurrent(); }catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+function conceptQCard(){
+  const cq = unit.conceptQuestions || [];
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">❓ Conceptual questions for each line</div><p class="hint">Teacher questions that move children from facts to the big idea.</p></div><button class="btn small ghost" onclick="cqMake()">✨ Write questions</button></div>
+    ${cq.map((l,i)=>`<div class="cqline"><b>Line ${i+1} · ${esc(l.concept||"")}</b>${["factual","conceptual","debatable"].map(k=>(l[k]||[]).length?`<p><span class="tag">${k}</span> ${(l[k]||[]).map(esc).join(" · ")}</p>`:"").join("")}</div>`).join("")}
+    <div class="label" style="margin-top:10px">Add related concepts from a subject</div><div class="chips">${Object.keys(RELATED).map(s=>`<button class="chip ${cnS.relSub===s?"on":""}" onclick="cnS.relSub=cnS.relSub==='${s}'?null:'${s}';render()">${s}</button>`).join("")}</div>
+    ${cnS.relSub ? `<div class="chips">${RELATED[cnS.relSub].map(r=>`<button class="chip ${unit.relatedConcepts.includes(r)?"on":""}" onclick="toggle(unit.relatedConcepts,'${r}');saveCurrent();render()">${esc(r)}</button>`).join("")}</div>` : ""}</div>`;
+}
+async function cqMake(){
+  if(!unit.lines.length) return toast("Add lines of inquiry first");
+  loading(true, "Writing conceptual questions…");
+  try{ const r = await ai("concept_questions", unit, { lines: unit.lines.map(l => ({ text: l.text, concept: l.concept })) }); unit.conceptQuestions = r.lines || []; saveCurrent(); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+const _step2Base = step2; step2 = function(){ return _step2Base() + ciCheckCard(); };
+const _step3Base = step3; step3 = function(){ return _step3Base() + conceptQCard(); };
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { if(n.dataset.view === "concepts"){ cnS.classes = null; cnS.cls = null; cnS.modal = null; render(); } }));
 
 render();
 initAuth();

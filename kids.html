@@ -271,6 +271,15 @@ const SDG_STORIES = [
   select.title{width:100%;padding:12px;border-radius:14px;border:2px solid #e4e8f0;font:inherit;font-weight:700;background:#fff;color:inherit}
   .x{background:none;color:#c2410c;font-weight:900}
   .stars{display:flex;gap:8px}.starb{font-size:34px;filter:grayscale(1);opacity:.4;background:none}.starb.on{filter:none;opacity:1}
+
+  .ccards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .ccard{background:#fff;border:3px solid var(--c);border-radius:20px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left}
+  .ccard span{font-size:32px}.ccard b{font-size:18px;color:var(--c)}.ccard small{font-weight:800;color:var(--muted);font-size:13px}
+  .ccard.small{padding:10px}.ccard.small span{font-size:22px}.ccard.small b{font-size:15px}
+  .sortit{background:var(--cream);border-radius:14px;padding:10px;margin-bottom:8px;border:2px solid transparent}.sortit p{font-weight:800}
+  .sortit div{display:flex;gap:6px;margin-top:6px}.sortit div button{flex:1;background:#fff;border-radius:10px;padding:8px;font-weight:900;border:2px solid #e4e8f0}
+  .sortit.right{border-color:var(--leaf);background:#e7f7ef}.sortit.wrong{border-color:#f59e0b}.sortit small{font-weight:800}
+  .depthk{display:flex;gap:10px;align-items:center;width:100%;background:#f4f6fb;border-radius:14px;padding:12px;margin-bottom:8px;font-weight:900;font-size:16px;text-align:left;border:3px solid transparent}.depthk span{font-size:28px}.depthk.on{border-color:var(--leaf);background:#e7f7ef}
 </style>
 </head>
 <body>
@@ -1187,6 +1196,63 @@ const _draw2 = draw;
 draw = function(){ if(NEW_SCREENS[screen]){ const r = NEW_SCREENS[screen](); if(typeof r === "string") $("#app").innerHTML = r; return; } _draw2(); };
 const _loadEntries2 = loadEntries;
 loadEntries = async function(){ await _loadEntries2(); try{ await loadHeroes(); }catch(e){ heroes = []; } };
+
+
+/* =====================================================================
+   BIG IDEAS: children's conceptual understanding
+   ===================================================================== */
+const KCONCEPTS = [
+  {k:"Form", ic:"🔷", q:"What is it like?", c:"#2f6fd6"}, {k:"Function", ic:"⚙️", q:"How does it work?", c:"#0ea5e9"},
+  {k:"Causation", ic:"🎯", q:"Why does it happen?", c:"#ff7a59"}, {k:"Change", ic:"🔄", q:"How is it changing?", c:"#3bb07a"},
+  {k:"Connection", ic:"🔗", q:"How is it connected?", c:"#8a6cf0"}, {k:"Perspective", ic:"👀", q:"How do others see it?", c:"#f59e0b"},
+  {k:"Responsibility", ic:"🤝", q:"What should we do?", c:"#be123c"}
+];
+const KDEPTH = [["🌱","I know some facts"],["🌿","I understand the big idea"],["🌳","I can use it somewhere new"]];
+let bigC = null, sortGame = null, sortPick = {}, cRecs = [];
+const unitConcepts = () => { const ks = (me.current_unit && me.current_unit.keyConcepts) || []; return ks.length ? KCONCEPTS.filter(c => ks.includes(c.k)) : KCONCEPTS; };
+async function goBig(){ const r = await db.from("concept_records").select("*").eq("student_id", me.student_id).order("created_at", { ascending: false }); cRecs = r.data || []; go("big"); }
+Object.assign(NEW_SCREENS, {
+  big(){ const mine = unitConcepts(), others = KCONCEPTS.filter(c => !mine.includes(c));
+    return khead("Big ideas 💡", "Concepts help me understand", "linear-gradient(135deg,#8a6cf0,#2f6fd6)") + `<div class="body">
+      <div class="card"><h2>💡 What is a big idea?<button class="speak" onclick="speak('A big idea helps you understand lots of things, not just one. Concepts are questions you can ask about anything.')">🔊</button></h2><p style="font-weight:700">A big idea helps you understand lots of things, not just one fact. Pick a concept card and look at our unit through it.</p></div>
+      ${me.current_unit && me.current_unit.centralIdea ? `<div class="card" style="background:#f4f0ff"><p style="font-weight:800;color:var(--muted)">Our central idea</p><p style="font-size:18px;font-weight:900;color:var(--navy)">${esc(me.current_unit.centralIdea)}</p></div>` : ""}
+      <div class="ccards">${mine.map(c => conceptCard(c)).join("")}</div>
+      ${others.length && mine.length < 7 ? `<p style="font-weight:800;color:var(--muted);margin:6px 0 8px">More concepts</p><div class="ccards">${others.map(c => conceptCard(c, true)).join("")}</div>` : ""}</div>`; },
+  bigc(){ const c = KCONCEPTS.find(x => x.k === bigC); if(!c) return go("big");
+    const last = cRecs.find(r => r.concept === c.k && r.source === "self");
+    return khead(`${c.ic} ${c.k}`, esc(c.q), c.c, "big", "‹ Big ideas") + `<div class="body">
+      <div class="card"><h2>🔍 Look through the ${c.k} lens<button class="speak" onclick="speak(${esc(JSON.stringify(c.q + " Think about our unit."))})">🔊</button></h2>
+        <p style="font-size:19px;font-weight:900;color:${c.c};margin-bottom:8px">${esc(c.q)}</p><p style="font-weight:700;color:var(--muted);margin-bottom:8px">Think about our unit. Write or say your answer.</p>
+        <div class="mic-row">${micBtn("lens")}<textarea id="lens" placeholder="I think…"></textarea></div>${langSwitch()}
+        <button class="btn wide" style="margin-top:10px;background:${c.c}" onclick="saveLens()">💾 Save my thinking</button></div>
+      ${aiOn() ? `<div class="card"><h2>🧩 Fact or big idea?</h2>${sortGame && sortGame.concept === c.k ? sortHTML() : `<p style="font-weight:700;color:var(--muted);margin-bottom:8px">Sort sentences about our unit: is it a fact, or a big idea?</p><button class="btn ghost wide" onclick="startSort()">🧩 Play</button>`}</div>` : ""}
+      <div class="card"><h2>💭 I used to think… now I think…</h2><p class="lbl">I used to think…</p><div class="mic-row">${micBtn("used", true)}<textarea id="used" style="min-height:56px"></textarea></div>
+        <p class="lbl">Now I think…</p><div class="mic-row">${micBtn("nowt", true)}<textarea id="nowt" style="min-height:56px"></textarea></div>
+        <button class="btn wide leaf" style="margin-top:10px" onclick="saveUsed()">💾 Add to my portfolio</button></div>
+      <div class="card"><h2>🌳 How well do I understand ${c.k}?</h2>${KDEPTH.map((d,i)=>`<button class="depthk ${last&&last.level===i+1?"on":""}" onclick="rateDepth(${i+1})"><span>${d[0]}</span>${d[1]}</button>`).join("")}</div></div>`; }
+});
+function conceptCard(c, small){ return `<button class="ccard ${small?"small":""}" style="--c:${c.c}" onclick="bigC='${c.k}';sortGame=null;go('bigc')"><span>${c.ic}</span><b>${c.k}</b><small>${esc(c.q)}</small></button>`; }
+function sortHTML(){
+  const items = sortGame.items || [], done = items.every((_, i) => sortPick[i]);
+  return `${items.map((it,i)=>`<div class="sortit ${sortPick[i] ? (sortPick[i]===it.type?"right":"wrong") : ""}"><p>${esc(it.text)}</p><div><button onclick="pickSort(${i},'fact')">🔎 Fact</button><button onclick="pickSort(${i},'big')">💡 Big idea</button></div>${sortPick[i] ? `<small>${sortPick[i]===it.type ? "✅ Yes!" : "🤔 Look again: it's a " + (it.type==="big"?"big idea":"fact")}</small>` : ""}</div>`).join("")}
+    ${done ? `<p style="font-weight:900;color:var(--leaf);margin-top:8px">🎉 ${items.filter((it,i)=>sortPick[i]===it.type).length} of ${items.length} right!</p><button class="btn ghost wide" onclick="startSort()">Play again</button>` : ""}`;
+}
+async function startSort(){
+  const c = bigC; toast("🐦 Getting the game ready…");
+  try{ const r = await kidAI("concept_sort", { concept: c }); sortGame = { concept: c, items: (r.items || []).slice(0, 6) }; sortPick = {}; }catch(e){ toast(e.message); }
+  draw();
+}
+function pickSort(i, t){ sortPick[i] = t; const keep = [($("#lens")||{}).value, ($("#used")||{}).value, ($("#nowt")||{}).value]; draw(); if($("#lens")){ $("#lens").value = keep[0]||""; $("#used").value = keep[1]||""; $("#nowt").value = keep[2]||""; } }
+async function saveLens(){ const t = $("#lens").value.trim(); if(!t) return toast("Write or say your thinking first!"); const c = KCONCEPTS.find(x => x.k === bigC); if(await addEntry("concept", c.k + " lens", { concept: c.k, question: c.q, lens: t })) $("#lens").value = ""; }
+async function saveUsed(){ const u = $("#used").value.trim(), n = $("#nowt").value.trim(); if(!u || !n) return toast("Fill in both boxes!"); if(await addEntry("concept", "I used to think… now I think…", { concept: bigC, usedTo: u, nowThink: n })){ $("#used").value = ""; $("#nowt").value = ""; } }
+async function rateDepth(level){
+  const unitL = me.current_unit ? (me.current_unit.centralIdea || "") : "";
+  const { error } = await db.from("concept_records").insert({ student_id: me.student_id, class_id: me.class_id, concept: bigC, level, source: "self", unit_label: unitL });
+  if(error) return toast("Oh no, it didn't save. Try again.");
+  cRecs.unshift({ concept: bigC, level, source: "self" }); toast(KDEPTH[level-1][0] + " Saved!"); draw();
+}
+const _homeExtraTiles = homeExtraTiles;
+homeExtraTiles = function(){ return `<button class="tile" onclick="goBig()" style="background:linear-gradient(135deg,#8a6cf0,#2f6fd6);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>💡</span>Big ideas</button>` + _homeExtraTiles(); };
 
 start();
 </script>
