@@ -280,6 +280,10 @@ const SDG_STORIES = [
   .sortit div{display:flex;gap:6px;margin-top:6px}.sortit div button{flex:1;background:#fff;border-radius:10px;padding:8px;font-weight:900;border:2px solid #e4e8f0}
   .sortit.right{border-color:var(--leaf);background:#e7f7ef}.sortit.wrong{border-color:#f59e0b}.sortit small{font-weight:800}
   .depthk{display:flex;gap:10px;align-items:center;width:100%;background:#f4f6fb;border-radius:14px;padding:12px;margin-bottom:8px;font-weight:900;font-size:16px;text-align:left;border:3px solid transparent}.depthk span{font-size:28px}.depthk.on{border-color:var(--leaf);background:#e7f7ef}
+
+  .sect{font-family:"Fredoka",sans-serif;color:var(--navy);font-size:19px;margin:16px 4px 8px}
+  .depthrow{display:flex;gap:6px}.depthrow button{flex:1;background:#f4f6fb;border-radius:14px;padding:8px 4px;font-size:24px;display:flex;flex-direction:column;align-items:center;border:3px solid transparent}.depthrow button small{font-size:11px;font-weight:800;color:var(--muted)}.depthrow button.on{border-color:var(--leaf);background:#e7f7ef}
+  .lpgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.lpb{background:#f4f6fb;border-radius:12px;padding:8px 2px;font-size:22px;display:flex;flex-direction:column;align-items:center;border:3px solid transparent}.lpb small{font-size:9.5px;font-weight:800;color:var(--muted)}.lpb.on{border-color:var(--sun);background:#fff4cf}
 </style>
 </head>
 <body>
@@ -885,7 +889,7 @@ async function startRec(){
     recorder.ondataavailable = e => chunks.push(e.data);
     recorder.onstop = async () => { stream.getTracks().forEach(t => t.stop()); recOn = false;
       const blob = new Blob(chunks, { type: recorder.mimeType || "audio/mp4" }); const r = new FileReader();
-      r.onload = async () => { const q = curInq(); keepShareFields(); q.data.share.audio = r.result; if(await saveInq(q)) toast("🎙️ Saved!"); draw(); }; r.readAsDataURL(blob); };
+      r.onload = async () => { const q = curInq(); keepShareFields(); q.data.share.audio = await uploadMedia(blob); if(await saveInq(q)) toast("🎙️ Saved!"); draw(); }; r.readAsDataURL(blob); };
     recorder.start(); recOn = true; draw(); setTimeout(() => { if(recOn) stopRec(); }, 45000);
   }catch(e){ toast("I can't use the microphone. Ask your teacher to allow it."); }
 }
@@ -1225,11 +1229,11 @@ Object.assign(NEW_SCREENS, {
         <p style="font-size:19px;font-weight:900;color:${c.c};margin-bottom:8px">${esc(c.q)}</p><p style="font-weight:700;color:var(--muted);margin-bottom:8px">Think about our unit. Write or say your answer.</p>
         <div class="mic-row">${micBtn("lens")}<textarea id="lens" placeholder="I think…"></textarea></div>${langSwitch()}
         <button class="btn wide" style="margin-top:10px;background:${c.c}" onclick="saveLens()">💾 Save my thinking</button></div>
-      ${aiOn() ? `<div class="card"><h2>🧩 Fact or big idea?</h2>${sortGame && sortGame.concept === c.k ? sortHTML() : `<p style="font-weight:700;color:var(--muted);margin-bottom:8px">Sort sentences about our unit: is it a fact, or a big idea?</p><button class="btn ghost wide" onclick="startSort()">🧩 Play</button>`}</div>` : ""}
+      ${(me.current_unit && me.current_unit.sorts && me.current_unit.sorts[c.k]) ? `<div class="card"><h2>🧩 Fact or big idea?</h2>${sortGame && sortGame.concept === c.k ? sortHTML() : `<p style="font-weight:700;color:var(--muted);margin-bottom:8px">Sort sentences about our unit: is it a fact, or a big idea?</p><button class="btn ghost wide" onclick="startSort()">🧩 Play</button>`}</div>` : ""}
       <div class="card"><h2>💭 I used to think… now I think…</h2><p class="lbl">I used to think…</p><div class="mic-row">${micBtn("used", true)}<textarea id="used" style="min-height:56px"></textarea></div>
         <p class="lbl">Now I think…</p><div class="mic-row">${micBtn("nowt", true)}<textarea id="nowt" style="min-height:56px"></textarea></div>
         <button class="btn wide leaf" style="margin-top:10px" onclick="saveUsed()">💾 Add to my portfolio</button></div>
-      <div class="card"><h2>🌳 How well do I understand ${c.k}?</h2>${KDEPTH.map((d,i)=>`<button class="depthk ${last&&last.level===i+1?"on":""}" onclick="rateDepth(${i+1})"><span>${d[0]}</span>${d[1]}</button>`).join("")}</div></div>`; }
+      <button class="btn ghost wide" onclick="goGrowth()">🌱 Rate my understanding in My growth</button></div>`; }
 });
 function conceptCard(c, small){ return `<button class="ccard ${small?"small":""}" style="--c:${c.c}" onclick="bigC='${c.k}';sortGame=null;go('bigc')"><span>${c.ic}</span><b>${c.k}</b><small>${esc(c.q)}</small></button>`; }
 function sortHTML(){
@@ -1237,11 +1241,7 @@ function sortHTML(){
   return `${items.map((it,i)=>`<div class="sortit ${sortPick[i] ? (sortPick[i]===it.type?"right":"wrong") : ""}"><p>${esc(it.text)}</p><div><button onclick="pickSort(${i},'fact')">🔎 Fact</button><button onclick="pickSort(${i},'big')">💡 Big idea</button></div>${sortPick[i] ? `<small>${sortPick[i]===it.type ? "✅ Yes!" : "🤔 Look again: it's a " + (it.type==="big"?"big idea":"fact")}</small>` : ""}</div>`).join("")}
     ${done ? `<p style="font-weight:900;color:var(--leaf);margin-top:8px">🎉 ${items.filter((it,i)=>sortPick[i]===it.type).length} of ${items.length} right!</p><button class="btn ghost wide" onclick="startSort()">Play again</button>` : ""}`;
 }
-async function startSort(){
-  const c = bigC; toast("🐦 Getting the game ready…");
-  try{ const r = await kidAI("concept_sort", { concept: c }); sortGame = { concept: c, items: (r.items || []).slice(0, 6) }; sortPick = {}; }catch(e){ toast(e.message); }
-  draw();
-}
+function startSort(){ const items = (me.current_unit && me.current_unit.sorts && me.current_unit.sorts[bigC]) || []; sortGame = { concept: bigC, items: items.slice().sort(() => Math.random() - .5) }; sortPick = {}; draw(); }
 function pickSort(i, t){ sortPick[i] = t; const keep = [($("#lens")||{}).value, ($("#used")||{}).value, ($("#nowt")||{}).value]; draw(); if($("#lens")){ $("#lens").value = keep[0]||""; $("#used").value = keep[1]||""; $("#nowt").value = keep[2]||""; } }
 async function saveLens(){ const t = $("#lens").value.trim(); if(!t) return toast("Write or say your thinking first!"); const c = KCONCEPTS.find(x => x.k === bigC); if(await addEntry("concept", c.k + " lens", { concept: c.k, question: c.q, lens: t })) $("#lens").value = ""; }
 async function saveUsed(){ const u = $("#used").value.trim(), n = $("#nowt").value.trim(); if(!u || !n) return toast("Fill in both boxes!"); if(await addEntry("concept", "I used to think… now I think…", { concept: bigC, usedTo: u, nowThink: n })){ $("#used").value = ""; $("#nowt").value = ""; } }
@@ -1253,6 +1253,127 @@ async function rateDepth(level){
 }
 const _homeExtraTiles = homeExtraTiles;
 homeExtraTiles = function(){ return `<button class="tile" onclick="goBig()" style="background:linear-gradient(135deg,#8a6cf0,#2f6fd6);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>💡</span>Big ideas</button>` + _homeExtraTiles(); };
+
+
+/* =====================================================================
+   HOME (Wonder / Learn / Grow), routines from the teacher, My growth, action wall, summative task
+   ===================================================================== */
+let wallAll = false, classRoutines = [], rtCur = null, myActions = [], wallActions = [], actPhoto = "", lpPick = null, peerFor = null;
+const LP = [["Inquirers","🔍"],["Knowledgeable","📚"],["Thinkers","💭"],["Communicators","🗣️"],["Principled","⚖️"],["Open-minded","🌍"],["Caring","💗"],["Risk-takers","🧗"],["Balanced","⚖️"],["Reflective","🪞"]];
+const ACT_K = [["participation","🤝 Joining in and helping"],["advocacy","📣 Speaking up"],["social-justice","⚖️ Making things fair"],["social-entrepreneurship","💡 Making something for good"],["lifestyle","🌿 Changing how I live"]];
+const homeHead = () => { const u = me.current_unit || {}; return `<div class="head"><div class="hi">Hello,</div><h1>${esc(me.first_name)}'s Wonder Nest 🐦</h1>${u.centralIdea ? `<div class="unit">${esc(u.themeIcon||"🌍")} ${esc(u.themeName||"Our unit")}<b>${esc(u.centralIdea)}</b></div>` : ""}<button class="back" onclick="if(confirm('Leave your Wonder Nest?')) logout()">👋 Bye</button></div>`; };
+const tileW = (ic, label, bg, on, full) => `<button class="tile" style="background:${bg}${full?";grid-column:1/-1;min-height:76px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start":""}" onclick="${on}"><span>${ic}</span>${label}</button>`;
+NEW_SCREENS.home = function(){
+  const wonders = entries.filter(e => e.kind === "wonder"), show = wallAll ? wonders : wonders.slice(0, 8), sum = me.current_unit && me.current_unit.summative;
+  return homeHead() + `<div class="body">
+    <h3 class="sect">💭 Wonder</h3>
+    <div class="card"><h2>💭 My wonder wall <button class="speak" onclick="speak('What are you wondering about today?')">🔊</button></h2>
+      <div class="wall">${show.map((w,i)=>`<div class="bub" style="background:${BUBBLE_COLOURS[i%6]}">${esc(w.content.text)}</div>`).join("") || `<div class="empty">Your wonders will live here.</div>`}</div>
+      ${wonders.length > 8 ? `<button class="btn ghost wide" style="margin-top:8px" onclick="wallAll=!wallAll;draw()">${wallAll ? "Show fewer" : "See all " + wonders.length + " wonders"}</button>` : ""}
+      <div class="mic-row" style="margin-top:10px">${micBtn("wonderText")}<textarea id="wonderText" placeholder="I wonder…" style="min-height:64px"></textarea></div>${langSwitch()}
+      <button class="btn leaf wide" style="margin-top:10px" onclick="saveWonder()">Add to my wonder wall</button></div>
+    <div class="tiles">${tileW("🌱","My Wonder Garden","linear-gradient(135deg,#2f9e6b,#2f6fd6)","goAdventures()",true)}</div>
+    <h3 class="sect">📚 Learn</h3>
+    <div class="tiles">${tileW("🧠","Thinking routines","var(--blue)","goRoutines()")}${tileW("💡","Big ideas","linear-gradient(135deg,#8a6cf0,#2f6fd6)","goBig()")}
+      ${heroes.length ? tileW("🌍","Real-life heroes","linear-gradient(135deg,#0a97d9,#56c02b)","go('heroes')") : ""}${tileW("📖","My stories","var(--lilac)","go('stories')")}
+      ${tileW("📚","Class bookshelf","linear-gradient(135deg,#8a6cf0,#ff7a59)","goShelf()", !!heroes.length)}</div>
+    <h3 class="sect">🌳 Grow</h3>
+    <div class="tiles">${tileW("🌱","My growth","var(--coral)","goGrowth()")}${tileW("🧱","Action wall","#0f766e","goActions()")}
+      ${sum ? tileW("🎯","Our task","#b45309","go('sumtask')") : ""}${quests.length ? tileW("🧩","Skill quests","linear-gradient(135deg,#f59e0b,#ff7a59)","go('quests')") : ""}
+      ${me.exhibition ? tileW("🏆","My Exhibition","linear-gradient(135deg,#14325c,#8a6cf0)","goExh()", true) : ""}</div></div>`;
+};
+
+/* ---------- thinking routines from the teacher ---------- */
+async function goRoutines(){ const { data } = await db.from("class_routines").select("*").eq("class_id", me.class_id).order("created_at", { ascending: false }); classRoutines = data || []; go("rlist"); }
+NEW_SCREENS.rlist = () => khead("Thinking routines 🧠", "Make my thinking visible", "var(--blue)") + `<div class="body">
+  ${classRoutines.map(r => `<button class="card herocard" onclick="rtCur='${r.id}';go('rdo')"><span style="font-size:38px">🧠</span><div><b>${esc(r.data.name)}</b><p>${esc(r.data.purpose||"")}</p></div></button>`).join("")}
+  <button class="card herocard" onclick="go('routine')"><span style="font-size:38px">👀</span><div><b>See · Think · Wonder</b><p>Look closely and wonder</p></div></button></div>`;
+NEW_SCREENS.rdo = () => { const r = classRoutines.find(x => x.id === rtCur); if(!r) return go("rlist");
+  return khead(esc(r.data.name), "Thinking routine", "var(--blue)", "rlist", "‹ Routines") + `<div class="body">
+    ${r.data.purpose ? `<div class="card"><p style="font-weight:700">${esc(r.data.purpose)}</p></div>` : ""}
+    ${(r.data.sections||[]).map((s,i)=>`<div class="card"><h2>${esc(s.label)}<button class="speak" onclick="speak(${esc(JSON.stringify(s.prompt||s.label))})">🔊</button></h2><p style="font-weight:700;color:var(--muted);margin-bottom:8px">${esc(s.prompt)}</p><div class="mic-row">${micBtn("rt"+i)}<textarea id="rt${i}"></textarea></div></div>`).join("")}
+    ${langSwitch()}<button class="btn wide" style="margin-top:10px" onclick="saveRt()">Add to my portfolio 🎒</button></div>`; };
+async function saveRt(){
+  const r = classRoutines.find(x => x.id === rtCur), answers = (r.data.sections||[]).map((s,i) => ({ label: s.label, text: ($("#rt"+i)||{}).value.trim() }));
+  if(!answers.some(a => a.text)) return toast("Write or say your thinking first!");
+  if(await addEntry("routine", r.data.name, { routine: r.data.name, answers })) go("rlist");
+}
+
+/* ---------- My growth: ATL, concepts, learner profile ---------- */
+async function goGrowth(){ const r = await db.from("concept_records").select("*").eq("student_id", me.student_id).order("created_at", { ascending: false }); cRecs = r.data || []; go("growth"); }
+NEW_SCREENS.growth = function(){
+  screen = "grown"; _draw2(); screen = "growth";
+  const app = $("#app"); const h1 = app.querySelector(".head h1"); if(h1) h1.textContent = "My growth 🌱";
+  const cs = unitConcepts(), lps = entries.filter(e => e.kind === "lp");
+  const extra = `<div class="card"><h2>💡 How well do I understand the big ideas?</h2>${cs.map(c => { const last = cRecs.find(r => r.concept === c.k && r.source === "self");
+      return `<p style="font-weight:900;color:${c.c};margin:8px 0 4px">${c.ic} ${c.k}: ${esc(c.q)}</p><div class="depthrow">${KDEPTH.map((d,i)=>`<button class="${last&&last.level===i+1?"on":""}" onclick="bigC='${c.k}';rateDepth(${i+1})">${d[0]}<small>${d[1]}</small></button>`).join("")}</div>`; }).join("")}</div>
+    <div class="card"><h2>🌟 My learner profile</h2><p style="font-weight:700;color:var(--muted);margin-bottom:8px">Which one did you show this week? Tap it.</p>
+      <div class="lpgrid">${LP.map(([l,ic])=>`<button class="lpb ${lpPick===l?"on":""}" onclick="lpPick='${l}';draw()">${ic}<small>${l}</small></button>`).join("")}</div>
+      ${lpPick ? `<p class="lbl">I was ${esc(lpPick.toLowerCase())} when…</p><div class="mic-row">${micBtn("lpT")}<textarea id="lpT"></textarea></div><button class="btn wide leaf" style="margin-top:8px" onclick="saveLp()">💾 Save</button>` : ""}
+      ${lps.slice(0,6).map(e=>`<div class="item"><b>${esc(e.content.attr)}</b><br>${esc(e.content.text)}</div>`).join("")}</div>`;
+  const body = app.querySelector(".body"); if(body) body.insertAdjacentHTML("beforeend", extra);
+};
+async function saveLp(){ const t = $("#lpT").value.trim(); if(!t) return toast("Tell me what you did!"); if(await addEntry("lp", lpPick, { attr: lpPick, text: t })){ lpPick = null; draw(); } }
+
+/* ---------- action wall ---------- */
+async function goActions(){ const { data } = await db.from("entries").select("*").eq("class_id", me.class_id).eq("kind", "action").order("created_at", { ascending: false }); const all = data || []; wallActions = all.filter(e => e.publish === "approved"); myActions = all.filter(e => e.student_id === me.student_id); await loadMates(); go("actions"); }
+async function loadMates(){ if(!mates.length){ const m = await db.rpc("my_classmates"); mates = m.data || []; } }
+NEW_SCREENS.actions = () => khead("Action wall 🧱", "Things we did because of our learning", "#0f766e") + `<div class="body">
+  <div class="card"><h2>🌱 I took action!</h2><p style="font-weight:700;color:var(--muted);margin-bottom:8px">Did you do something at home or school because of what you learned?</p>
+    <select class="title" id="acT"><option value="">What kind of action?</option>${ACT_K.map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select>
+    <p class="lbl">What did you do?</p><div class="mic-row">${micBtn("acX")}<textarea id="acX"></textarea></div>
+    <label class="btn ghost wide" style="margin-top:8px">📷 Add a photo<input type="file" accept="image/*" style="display:none" onchange="actionPhoto(this)"></label>${actPhoto?`<img src="${actPhoto}" style="width:100%;border-radius:14px;margin-top:8px">`:""}
+    <button class="btn wide leaf" style="margin-top:10px" onclick="saveAction()">Send to my teacher 💌</button></div>
+  ${myActions.filter(e=>e.publish!=="approved").map(e=>`<div class="item">⏳ ${esc(e.content.text)} <small>(waiting for your teacher)</small></div>`).join("")}
+  <h3 class="sect">🧱 Our wall</h3>${wallActions.map(e=>`<div class="card">${e.content.photo?`<img src="${e.content.photo}" style="width:100%;border-radius:14px;margin-bottom:8px">`:""}<p style="font-weight:900;color:var(--navy)">${esc(e.student_id===me.student_id?"Me":mateName(e.student_id))} · ${esc((ACT_K.find(a=>a[0]===e.content.type)||["",""])[1])}</p><p>${esc(e.content.text)}</p></div>`).join("") || `<div class="card center">Our wall is waiting for the first action!</div>`}</div>`;
+async function actionPhoto(input){ const f = input.files && input.files[0]; if(!f) return; actPhoto = await resizeImage(f); const t = [$("#acT").value, $("#acX").value]; draw(); $("#acT").value = t[0]; $("#acX").value = t[1]; }
+async function saveAction(){
+  const type = $("#acT").value, text = $("#acX").value.trim(); if(!text) return toast("Tell me what you did!");
+  const unitL = me.current_unit ? (me.current_unit.centralIdea || "") : "";
+  const { error } = await db.from("entries").insert({ student_id: me.student_id, class_id: me.class_id, kind: "action", title: text.slice(0, 80), content: { type, text, photo: actPhoto }, unit_label: unitL, publish: "pending" });
+  if(error) return toast("Oh no, it didn't send. Try again."); actPhoto = ""; toast("Sent to your teacher! 🌱"); goActions();
+}
+
+/* ---------- our summative task ---------- */
+const FACES3 = [["😟","Not yet"],["🙂","Getting there"],["😄","Got it!"]];
+NEW_SCREENS.sumtask = () => { const t = me.current_unit && me.current_unit.summative; if(!t) return go("home"); const crit = t.successCriteria || [];
+  return khead("Our task 🎯", esc(t.title||"Summative task"), "#b45309") + `<div class="body">
+    <div class="card"><h2>🎯 ${esc(t.title||"")}<button class="speak" onclick="speak(${esc(JSON.stringify(t.childBrief||""))})">🔊</button></h2><p style="white-space:pre-wrap">${esc(t.childBrief||"")}</p>
+      ${(t.formats||[]).length?`<p class="lbl">You can show your learning as:</p>${t.formats.map(f=>`<div class="item">✨ ${esc(f)}</div>`).join("")}`:""}</div>
+    <div class="card"><h2>✅ Our success criteria</h2>${crit.map(c=>`<div class="item">✔️ ${esc(c)}</div>`).join("") || `<p>Your class will write these together.</p>`}
+      <p class="lbl">💡 I think success looks like…</p><div class="mic-row">${micBtn("crS", true)}<input class="title" id="crS" placeholder="I can…"></div><button class="btn ghost wide" style="margin-top:8px" onclick="suggestCrit()">Suggest to my teacher</button></div>
+    ${crit.length ? `<div class="card"><h2>🪞 How am I doing?</h2>${crit.map((c,i)=>`<p style="font-weight:800;margin:8px 0 4px">${esc(c)}</p><div class="depthrow" data-c="${esc(c)}" id="ss${i}">${FACES3.map((f,j)=>`<button onclick="pick3(this)" data-v="${j+1}">${f[0]}<small>${f[1]}</small></button>`).join("")}</div>`).join("")}
+      <p class="lbl">Next I will…</p><textarea id="ssC" style="min-height:56px"></textarea><button class="btn wide leaf" style="margin-top:8px" onclick="saveSum('self')">💾 Save</button></div>
+    <div class="card"><h2>🤝 Help a friend</h2><select class="title" onchange="peerFor=this.value" id="pf"><option value="">Choose a friend…</option>${mates.filter(m=>m.id!==me.student_id).map(m=>`<option value="${m.id}" ${peerFor===m.id?"selected":""}>${esc(m.first_name)}</option>`).join("")}</select>
+      ${crit.map((c,i)=>`<p style="font-weight:800;margin:8px 0 4px">${esc(c)}</p><div class="depthrow" data-c="${esc(c)}" data-peer="1">${FACES3.map((f,j)=>`<button onclick="pick3(this)" data-v="${j+1}">${f[0]}<small>${f[1]}</small></button>`).join("")}</div>`).join("")}
+      <p class="lbl">⭐ One thing they did well, and 🪄 one idea</p><textarea id="psC" style="min-height:56px"></textarea><button class="btn wide coral" style="margin-top:8px" onclick="saveSum('peer')">Send to my teacher 💌</button></div>` : ""}</div>`; };
+function pick3(b){ [...b.parentElement.children].forEach(x => x.classList.remove("on")); b.classList.add("on"); }
+async function suggestCrit(){ const t = $("#crS").value.trim(); if(!t) return toast("Write your idea first!"); if(await addEntry("criteria", t.slice(0, 80), { text: t })) $("#crS").value = ""; }
+async function saveSum(kind){
+  const peer = kind === "peer", ratings = {};
+  document.querySelectorAll(".depthrow[data-c]" + (peer ? "[data-peer]" : ":not([data-peer])")).forEach(r => { const on = r.querySelector(".on"); if(on) ratings[r.dataset.c] = Number(on.dataset.v); });
+  if(!Object.keys(ratings).length) return toast("Tap a face for at least one criterion!");
+  if(peer && !$("#pf").value) return toast("Choose a friend first!");
+  const content = { ratings, comment: $(peer ? "#psC" : "#ssC").value.trim() }; if(peer) content.for = $("#pf").value;
+  if(await addEntry(peer ? "sum_peer" : "sum_self", peer ? "Peer assessment" : "Self-assessment", content)) go("sumtask");
+}
+const _goSum = NEW_SCREENS.sumtask; NEW_SCREENS.sumtask = function(){ if(!mates.length){ loadMates().then(() => { if(screen === "sumtask") draw(); }); } return _goSum(); };
+
+/* ---------- photos and audio go to storage, not the database ---------- */
+const MEDIA_BUCKET = "wondernest-media";
+async function uploadMedia(dataUrlOrBlob, ext){
+  try{
+    const blob = typeof dataUrlOrBlob === "string" ? await (await fetch(dataUrlOrBlob)).blob() : dataUrlOrBlob;
+    const { data: { session } } = await db.auth.getSession(); const uid = session && session.user && session.user.id; if(!uid) throw new Error("no session");
+    const type = blob.type || "image/jpeg", e = ext || (type.includes("png") ? "png" : type.includes("audio") ? (type.includes("mp4") ? "m4a" : "webm") : "jpg");
+    const path = `${uid}/${crypto.randomUUID()}.${e}`;
+    const up = await db.storage.from(MEDIA_BUCKET).upload(path, blob, { contentType: type, upsert: false });
+    if(up.error) throw up.error;
+    return db.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
+  }catch(e){ return typeof dataUrlOrBlob === "string" ? dataUrlOrBlob : await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(dataUrlOrBlob); }); }
+}
+const _resizeImage = resizeImage;
+resizeImage = async function(file){ return uploadMedia(await _resizeImage(file)); };
 
 start();
 </script>

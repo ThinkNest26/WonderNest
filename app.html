@@ -289,6 +289,15 @@
   .depthpick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}.depthpick button{background:var(--bg);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;text-align:left;border:2px solid transparent}.depthpick button.on{border-color:var(--leaf);background:#e7f7ef}.depthpick span{font-size:26px}.depthpick small{color:var(--muted);font-size:11.5px}
   .cicheck{background:#f4f0ff;border-radius:12px;padding:12px;margin-top:10px;font-size:14px}.cicheck p{margin-bottom:5px}
   .cqline{border-left:3px solid var(--lilac);padding:4px 0 4px 12px;margin-top:10px;font-size:13.5px}.cqline p{margin-top:4px}
+
+  details.why{background:#fff8e6;border:1px solid #ffe2a0;border-radius:12px;padding:10px 14px;margin-bottom:14px}
+  details.why summary{font-weight:800;color:var(--navy);cursor:pointer}details.why p{margin-top:8px;font-size:14px;line-height:1.55}
+  .steps8 li{margin:6px 0 6px 18px;line-height:1.5}
+  .wlist{margin-top:10px;max-height:260px;overflow:auto}.wrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+  .cmts{max-height:260px;overflow:auto}.cmt{background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13.5px}
+  table.poi td{min-width:160px}table.poi td.gap{background:#fff4ef}.poiu{background:var(--bg);border-radius:10px;padding:8px;margin-bottom:6px;font-size:12.5px}.poiu b{color:var(--navy)}
+  .navg{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;opacity:.55;font-weight:800;margin:12px 0 2px 10px}
+  .side{overflow-y:auto}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -400,19 +409,25 @@ const SDG_STORIES = [
 <div class="app">
   <aside class="side">
     <div class="logo"><div class="mark" style="background:linear-gradient(135deg,#ffd76a,#ffb347)"><img src="bird.png" alt="" style="width:34px;height:34px;object-fit:contain" onerror="this.replaceWith('🐦')"></div><div>WonderNest<small>by ThinkNest Education</small></div></div>
+    <div class="navg">Plan</div>
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
-    <button class="nav" data-view="library">🧠 Routines & organisers</button>
+    <button class="nav" data-view="poi">📚 Programme of inquiry</button>
     <button class="nav" data-view="concepts">💡 Concepts</button>
-    <button class="nav" data-view="settings">⚙️ School settings</button>
-    <button class="nav" data-view="stories">📚 Story library</button>
-    <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
+    <button class="nav" data-view="library">🧠 Routines & organisers</button>
     <button class="nav" data-view="sdg">🌍 SDG stories</button>
-    <button class="nav" data-view="exh">🏆 PYP Exhibition</button>
+    <button class="nav" data-view="stories">📚 Story library</button>
+    <div class="navg">Teach & assess</div>
     <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
+    <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
     <button class="nav" data-view="atl">📈 ATL growth</button>
     <button class="nav" data-view="summative">🎯 Summative tasks</button>
+    <button class="nav" data-view="exh">🏆 PYP Exhibition</button>
+    <div class="navg">School</div>
     <button class="nav" data-view="school">🏫 My school</button>
+    <button class="nav" data-view="settings">⚙️ School settings</button>
+    <button class="nav" data-view="basics">📖 PYP basics</button>
+    <a class="nav" href="privacy.html" target="_blank" style="text-decoration:none">🔒 Privacy</a>
     <div class="foot" id="footSchool">Your school's programme of inquiry</div>
   </aside>
   <main class="main" id="main"></main>
@@ -572,6 +587,8 @@ function render(){
   else if(view === "stories") m.innerHTML = storiesView();
   else if(view === "sdg") m.innerHTML = sdgView();
   else if(view === "concepts") m.innerHTML = conceptsView();
+  else if(view === "basics") m.innerHTML = basicsView();
+  else if(view === "poi") m.innerHTML = poiView();
   else if(view === "exh") m.innerHTML = exView();
   else if(view === "school") m.innerHTML = sch.school ? schoolView() : schoolSetupView();
   else m.innerHTML = builderView();
@@ -582,7 +599,7 @@ function render(){
 function header(title){
   const t = themeOf(unit.theme);
   return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}${unit.grade ? " · " + esc(unit.grade) : ""}</div><h1>${title}</h1></div>
-    ${unit.step === 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn ghost" onclick="openAssign()">📌 Use with a class</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>${assignModal()}
+    ${unit.step >= 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="openTeam()">👥 Team</button><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn ghost" onclick="openAssign()">📌 Use with a class</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>${assignModal()}
     ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> the AI is not connected yet, so WonderNest shows sample suggestions for a habitats unit. Real suggestions start once the AI Worker is connected.</div>`}
     ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
     <div class="steps">${STEP_NAMES.map((n,i)=>{
@@ -592,8 +609,8 @@ function header(title){
 }
 
 function builderView(){
-  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry"];
-  const body = [step1, step2, step3, step4, step5][unit.step-1]();
+  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry","Plan, assess and reflect"];
+  const body = [step1, step2, step3, step4, step5, step6][unit.step-1]();
   return header(titles[unit.step-1]) + body;
 }
 
@@ -939,7 +956,7 @@ function classesView(){
   const nameOf = id => (tc.students.find(s=>s.id===id)||{}).first_name || "";
   if(tc.kid){
     const k = tc.students.find(s=>s.id===tc.kid); const mine = tc.entries.filter(e=>e.student_id===tc.kid);
-    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["atl","🧩 Skill quests"],["story","📖 Stories"],["reflection","🌱 How I've grown"]];
+    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["atl","🧩 Skill quests"],["story","📖 Stories"],["reflection","🌱 How I've grown"],["lp","🌟 Learner profile"],["action","🧱 Action"],["concept","💡 Big ideas"]];
     return top(`${esc(k.picture)} ${esc(k.first_name)}'s Wonder Nest`) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.kid=null;render()">‹ Back to ${esc(c.name)}</button></div>
       <div class="grid2"><div>${kinds.slice(0,2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div><div>${kinds.slice(2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div></div>`;
   }
@@ -973,7 +990,7 @@ Sara"></textarea>
 }
 function kindCard(list, kind, label){
   const items = list.filter(e=>e.kind===kind);
-  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : kind==="atl" ? (e.content.type==="quiz" ? `${esc(e.content.skill)}: quiz ${e.content.score}/${e.content.total}` : `${esc(e.content.skill)}: ${esc(e.content.starter)} ${esc(e.content.text)}`) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
+  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="lp" ? `🌟 ${esc(e.content.attr)}: ${esc(e.content.text)}` : kind==="action" ? `🧱 ${esc(e.content.text)}` : kind==="concept" ? esc([e.content.concept, e.content.usedTo && ("I used to think: " + e.content.usedTo), e.content.nowThink && ("Now I think: " + e.content.nowThink), e.content.lens].filter(Boolean).join("\n")) : kind==="routine" && e.content.answers ? e.content.answers.map(x => `${esc(x.label)}: ${esc(x.text)}`).join("\n") : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : kind==="atl" ? (e.content.type==="quiz" ? `${esc(e.content.skill)}: quiz ${e.content.score}/${e.content.total}` : `${esc(e.content.skill)}: ${esc(e.content.starter)} ${esc(e.content.text)}`) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
   return `<div class="card"><div class="label">${label} (${items.length})</div>${items.map(e=>`<div class="entry"><button class="link danger del" title="Delete" onclick="tDelEntry('${e.id}')">✕</button>${kind==="story"?`<h4>${esc(e.title)}</h4>`:""}<p>${body(e)}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.unit_label ? " · " + esc(e.unit_label) : ""}</small></div>`).join("") || `<div class="hint">Nothing yet.</div>`}</div>`;
 }
 async function tAuth(){
@@ -1727,10 +1744,11 @@ function oiView(){
   const pick = `<div class="card"><select onchange="oiOpen(this.value)"><option value="">Choose a class…</option>${oi.classes.map(c=>`<option value="${c.id}" ${oi.cls && oi.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
   if(!oi.cls) return top + pick;
   const qCount = oi.inqs.filter(q => q.data && q.data.expertQ && (q.data.expertIds||[]).length).length;
-  const tabs = `<div class="tabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar & mystery parcels"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`],["museum","🏛️ Museum & radio"],["families","👪 Families"]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar & mystery parcels"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`],["museum","🏛️ Museum & radio"],["families","👪 Families"],["actions","🧱 Action wall"]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
   let body = "";
   if(oi.tab === "museum") body = oiMuseumTab();
   if(oi.tab === "families") body = oiFamiliesTab();
+  if(oi.tab === "actions") body = oiActionsTab();
   if(oi.tab === "board"){
     const kids = oi.students.map(k => ({ k, qs: oi.inqs.filter(q => q.student_id === k.id) }));
     const counts = [0,1,2,3,4,5,6].map(st => oi.inqs.filter(q => q.stage === st).length);
@@ -2120,6 +2138,7 @@ function downloadWord(){
   <h2>ATL skills</h2><ul>${unit.atl.map(a=>`<li>${esc(a)}${unit.atlWhy[a]?" — "+esc(unit.atlWhy[a]):""}</li>`).join("")}</ul>
   <h2>Learner profile</h2><p>${esc(unit.learnerProfile.join(", "))}</p>
   <h2>Sustainable Development Goals</h2><ul>${SDGS.filter(s=>unit.sdgs.includes(s[0])).map(([n,name])=>`<li>SDG ${n} ${name}${unit.sdgWhy[n]?" — "+esc(unit.sdgWhy[n]):""}</li>`).join("")}</ul>
+  ${planWordHTML()}
   <h2>Books</h2><ul>${unit.books.map(b=>`<li><b>${esc(b.title)}</b>, ${esc(b.author)} — ${esc(b.why)}<br><a href="${(b.ol&&b.ol.url)||"https://openlibrary.org/search?q="+q(b)}">Open Library${b.ol&&b.ol.readable?" (read online free)":""}</a> · <a href="https://search.worldcat.org/search?q=${q(b)}">Find in a library</a></li>`).join("")}</ul>
   ${unit.story ? `<h2>Original story: ${esc(unit.story.title)}</h2><p>${esc(unit.story.text).replace(/\n/g,"<br>")}</p>${unit.story.textSecond?`<p dir="rtl">${esc(unit.story.textSecond).replace(/\n/g,"<br>")}</p>`:""}` : ""}
   ${unit.spark ? `<h2>Story spark</h2><p>${esc(unit.spark)}</p>` : ""}
@@ -2767,6 +2786,311 @@ async function cqMake(){
 const _step2Base = step2; step2 = function(){ return _step2Base() + ciCheckCard(); };
 const _step3Base = step3; step3 = function(){ return _step3Base() + conceptQCard(); };
 document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { if(n.dataset.view === "concepts"){ cnS.classes = null; cnS.cls = null; cnS.modal = null; render(); } }));
+
+
+/* =====================================================================
+   IB GUIDANCE: why-this-matters notes, New to the PYP mode, PYP basics
+   ===================================================================== */
+let newPYP = store.get("wn_newpyp", false);
+const WHY = {
+  step1: ["Why start with a theme?", "The six transdisciplinary themes are the organisers of the whole programme of inquiry. Each unit sits under one theme so that, across a year, children explore ideas that matter beyond any one subject. Read the theme description with your team and ask: what does this theme mean for children of this age?"],
+  step2: ["What makes a strong central idea?", "A central idea is a big, true understanding children build over the unit. It is conceptual (about relationships, not a topic), transferable (it applies beyond this one context), open to different perspectives, and written so children can understand it. It is a statement, not a question, and it is not a fact to memorise."],
+  step3: ["Why lines of inquiry and concepts?", "Lines of inquiry break the central idea into 3 or 4 parts to explore. Each line is driven by a specified concept, which gives it a lens (for example Causation asks Why?). Related concepts come from the subjects and deepen understanding. Together they move children from facts to the big idea."],
+  step4: ["Why connect to the SDGs?", "The Sustainable Development Goals help children see that their learning connects to real issues in the world. This builds international-mindedness and gives meaningful reasons for action. Choose goals that genuinely connect; one or two strong links are better than many weak ones."],
+  step5: ["Why stories, routines and provocations?", "Stories open windows onto other lives and perspectives. Thinking routines make children's thinking visible so you can respond to it. Provocations spark children's own questions, which is where agency in inquiry begins."],
+  step6: ["Why plan and reflect like this?", "The IB planning process is collaborative and ongoing. Learning goals and success criteria make the purpose clear to children. Teacher and student questions drive the inquiry. Formative assessment lets you adjust as you go. Reflections before, during and after the unit improve the next unit and the whole programme."],
+  concepts: ["Why concepts?", "Concepts are the big ideas that connect subjects and help children transfer understanding to new situations. Teaching through concepts moves learning beyond knowing facts to understanding why and how."],
+  atl: ["Why ATL skills?", "Approaches to learning are the skills children need to learn how to learn: thinking, research, communication, social and self-management. They are taught explicitly, practised in context and assessed over time, with children reflecting on their own growth."],
+  summative: ["How should summative assessment work in the PYP?", "A summative task lets children show their understanding of the central idea in a way they choose. Share the success criteria with children at the start, ideally written together, so they know what success looks like. Children assess themselves and each other as well as being assessed by you."],
+  exh: ["What is the PYP Exhibition?", "The exhibition is the culminating experience of the PYP. Children inquire collaboratively into a real issue they care about, guided by mentors, take action and share their learning with the community. It shows their agency and everything they have learned across the programme."],
+  inquiry: ["Why open inquiry?", "In open inquiry children choose what to investigate and how. This builds agency (voice, choice and ownership) and ATL skills. Your role is to guide, question and give feedback, not to give answers."]
+};
+const whyBox = k => WHY[k] ? `<details class="why" ${newPYP ? "open" : ""}><summary>💡 ${esc(WHY[k][0])}</summary><p>${esc(WHY[k][1])}</p></details>` : "";
+const CI_EXAMPLES = `<details class="why" ${newPYP ? "open" : ""}><summary>📏 Weak and strong central ideas</summary>
+  <table class="tbl" style="margin-top:8px"><tr><th>Weak</th><th>Why it's weak</th><th>Stronger</th></tr>
+  <tr><td>We will learn about the rainforest.</td><td>A topic, not an understanding.</td><td>Living things depend on their environment, and changes to it affect their survival.</td></tr>
+  <tr><td>Plants need water and sunlight.</td><td>A fact to memorise; nothing to inquire into.</td><td>Living things have needs that are met through their relationships with the world around them.</td></tr>
+  <tr><td>How do people celebrate?</td><td>A question, not a statement.</td><td>Celebrations reflect the beliefs and values of communities.</td></tr>
+  <tr><td>Recycling helps the planet.</td><td>True, but narrow and one-sided.</td><td>The choices people make about resources have consequences for communities and the environment.</td></tr></table></details>`;
+const GLOSSARY = [
+  ["Transdisciplinary themes","Six themes (Who we are, Where we are in place and time, How we express ourselves, How the world works, How we organise ourselves, Sharing the planet) that organise learning across subjects."],
+  ["Programme of inquiry (POI)","The whole school's plan of units across all grades and themes. Coordinators use it to check balance and progression."],
+  ["Unit of inquiry","A few weeks of learning around one central idea under one theme."],
+  ["Central idea","A big, conceptual understanding that children build during the unit."],
+  ["Lines of inquiry","Three or four parts of the central idea that the class explores."],
+  [settings.conceptLabel || "Specified concepts","Seven big lenses (Form, Function, Causation, Change, Connection, Perspective, Responsibility). Each has a key question."],
+  ["Related concepts","Concepts from the subjects (for example Adaptation in science, Pattern in maths) that deepen understanding."],
+  ["Approaches to learning (ATL)","Thinking, research, communication, social and self-management skills: how children learn to learn."],
+  ["Learner profile","Ten attributes (Inquirers, Knowledgeable, Thinkers, Communicators, Principled, Open-minded, Caring, Risk-takers, Balanced, Reflective) the whole community aims to develop."],
+  ["Agency","Children having voice, choice and ownership in their learning."],
+  ["Action","What children do as a result of their learning: participation, advocacy, social justice, social entrepreneurship or lifestyle choices."],
+  ["Assessment","Monitoring, documenting and measuring learning, with children assessing themselves and each other."],
+  ["Provocation","Something that sparks children's curiosity and questions at the start of an inquiry."],
+  ["PYP Exhibition","The final-year collaborative inquiry into a real issue, guided by mentors and shared with the community."]
+];
+function basicsView(){
+  return `<div class="top"><div><div class="crumb">WonderNest</div><h1>📖 PYP basics</h1></div></div>
+  <div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">🧭 New to the PYP mode</div><p class="hint">When it is on, WonderNest opens the 💡 guidance notes on every page and shows examples. Turn it off when you feel confident.</p></div>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:800"><input type="checkbox" style="width:auto" ${newPYP?"checked":""} onchange="newPYP=this.checked;store.set('wn_newpyp',newPYP);toast(newPYP?'Guidance on ✓':'Guidance off');render()"> On</label></div></div>
+  <div class="card"><div class="label">Your first unit in 8 steps</div><ol class="steps8">
+    <li>Plan with your grade team: open ✨ Unit builder together and add colleagues with 👥 Team.</li><li>Choose the theme and read its description together.</li>
+    <li>Choose or write a central idea, then press 🔍 Check my central idea.</li><li>Agree 3 lines of inquiry, each with a ${esc(settings.conceptLabel||"specified concept")}.</li>
+    <li>Choose 2 ATL skills and learner profile attributes to focus on.</li><li>In Plan & reflect, write learning goals and success criteria in children's words.</li>
+    <li>Start with a provocation and collect children's wonders. Let them shape the inquiry.</li><li>Reflect as a team before, during and after the unit.</li></ol></div>
+  <div class="card"><div class="label">Words you will hear</div>${GLOSSARY.map(g=>`<p style="margin-bottom:8px"><b>${esc(g[0])}:</b> ${esc(g[1])}</p>`).join("")}</div>
+  ${CI_EXAMPLES}`;
+}
+const _s1 = step1; step1 = () => whyBox("step1") + _s1();
+const _s2c = step2; step2 = () => whyBox("step2") + CI_EXAMPLES + _s2c();
+const _s3c = step3; step3 = () => whyBox("step3") + `<div class="actions" style="margin:0 0 12px"><span class="hint">Planning with your grade team? Add them so you can edit together, comment and see the history.</span><button class="btn small ghost" onclick="openTeam()">👥 Team</button></div>` + _s3c();
+const _s4 = step4; step4 = () => whyBox("step4") + _s4();
+const _s5 = step5; step5 = () => whyBox("step5") + _s5() + `<div class="actions"><span></span><button class="btn" onclick="goStep(6)">Next: plan & reflect →</button></div>`;
+const _cv = conceptsView; conceptsView = () => _cv().replace('<div class="tabs"', whyBox("concepts") + '<div class="tabs"');
+const _av = atlView; atlView = () => { const h = _av(); return h.replace(/(<\/h1><\/div><\/div>)/, "$1" + whyBox("atl")) + lpCard(); };
+const _sv = summativeView; summativeView = () => _sv().replace(/(<\/h1><\/div><\/div>)/, "$1" + whyBox("summative")) + sumVoicesCard();
+const _ev = exView; exView = () => _ev().replace(/(<\/h1><\/div><\/div>)/, "$1" + whyBox("exh"));
+
+/* =====================================================================
+   STEP 6: PLAN & REFLECT (the IB planning process)
+   ===================================================================== */
+STEP_NAMES.push("Plan & reflect");
+const FORMATIVE = ["Observation","Conversations","Exit tickets","Thinking routines","Self-assessment","Peer feedback","Conferences","Learning journals","Quizzes","Work samples"];
+function planObj(){ return unit.plan = Object.assign({ goals: "", criteria: "", teacherQs: "", studentQs: "", formative: [], formativeNotes: "", agency: "", im: "", languages: "", subjects: "", before: "", during: "", after: "" }, unit.plan || {}); }
+const planTA = (k, label, ph, h = 70) => `<label>${label}</label><textarea style="min-height:${h}px" placeholder="${esc(ph||"")}" oninput="planObj().${k}=this.value;saveCurrent()">${esc(planObj()[k]||"")}</textarea>`;
+const wonderS = { list: null };
+function step6(){
+  const p = planObj();
+  return whyBox("step6") + `<div class="grid2"><div>
+    <div class="card exg"><div class="label">🎯 Learning goals and success criteria</div>
+      ${planTA("goals","What do we want children to understand, know and be able to do? (one per line)","Children will understand that…")}
+      ${planTA("criteria","Success criteria in children's words (one per line)","I can explain… I can show…")}
+      <p class="hint">Tip: write success criteria with the children in the first week, then add them to the summative task.</p></div>
+    <div class="card exg"><div class="label">❓ Questions</div>
+      ${planTA("teacherQs","Teacher questions (factual, conceptual, debatable)", (unit.conceptQuestions||[]).length ? "Use the questions from step 3" : "")}
+      ${(unit.conceptQuestions||[]).length ? `<button class="link" onclick="planObj().teacherQs=[planObj().teacherQs, ...unit.conceptQuestions.flatMap(l=>[...(l.factual||[]),...(l.conceptual||[]),...(l.debatable||[])])].filter(Boolean).join('\\n');saveCurrent();render()">＋ Add the conceptual questions from step 3</button>` : ""}
+      ${planTA("studentQs","Children's questions (from their wonders)","Children's own questions shape the inquiry")}
+      <button class="btn small ghost" onclick="loadClassWonders()">💭 See my classes' wonders</button>
+      ${wonderS.list ? `<div class="wlist">${wonderS.list.length ? wonderS.list.map((w,i)=>`<div class="wrow"><span>💭 ${esc(w.text)} <small class="hint">${esc(w.who)}</small></span><span><button class="link" onclick="wonderTo('q',${i})">＋ Question</button> <button class="link" onclick="wonderTo('line',${i})">＋ Line of inquiry</button></span></div>`).join("") : `<p class="hint">No wonders yet from classes using this unit.</p>`}</div>` : ""}</div>
+    <div class="card exg"><div class="label">🔁 Formative assessment</div><div class="chips">${FORMATIVE.map(f=>`<button class="chip ${p.formative.includes(f)?"on":""}" onclick="toggle(planObj().formative,'${f}');saveCurrent();render()">${f}</button>`).join("")}</div>
+      ${planTA("formativeNotes","How will we check understanding along the way?","")}</div></div>
+  <div><div class="card exg"><div class="label">🙋 Agency, international-mindedness and languages</div>
+      ${planTA("agency","How will children have voice, choice and ownership?","Children choose…")}
+      ${planTA("im","International-mindedness: local and global perspectives","")}
+      ${planTA("languages","Home and additional languages","Key words in Arabic and English, family stories…",56)}
+      ${planTA("subjects","Subject connections (subject: learning objectives)","Science: … Maths: …")}</div>
+    <div class="card exg"><div class="label">🪞 Team reflections</div>
+      ${planTA("before","Before the unit: what do children already know? What might be challenging?","")}
+      ${planTA("during","During the unit: what is working? What are we changing?","")}
+      ${planTA("after","After the unit: what did children learn? What will we change next time?","")}</div>
+    <div class="card"><div class="actions" style="margin-top:0"><span class="hint">Everything here is included in the Word download.</span><button class="btn" onclick="saveUnit()">💾 Save unit</button></div></div></div></div>`;
+}
+async function loadClassWonders(){
+  const { data: cls } = await db.from("classes").select("id, name, current_unit");
+  const mine = (cls || []).filter(c => c.current_unit && c.current_unit.unitId === unit.id);
+  if(!mine.length){ wonderS.list = []; return render(); }
+  const { data } = await db.from("entries").select("content, class_id, created_at").in("class_id", mine.map(c => c.id)).eq("kind", "wonder").order("created_at", { ascending: false }).limit(80);
+  wonderS.list = (data || []).map(e => ({ text: e.content.text || "", who: (mine.find(c => c.id === e.class_id) || {}).name || "" })).filter(w => w.text);
+  render();
+}
+function wonderTo(where, i){
+  const w = wonderS.list[i]; if(!w) return;
+  if(where === "q"){ planObj().studentQs = [planObj().studentQs, w.text].filter(Boolean).join("\n"); }
+  else unit.lines.push({ text: w.text, concept: "Form" });
+  saveCurrent(); toast(where === "q" ? "Added to children's questions ✓" : "Added as a line of inquiry (step 3) ✓"); render();
+}
+function planWordHTML(){
+  const p = unit.plan; if(!p) return "";
+  const lines = s => (s||"").split("\n").filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("");
+  return `<h2>Learning goals</h2><ul>${lines(p.goals)}</ul><h2>Success criteria</h2><ul>${lines(p.criteria)}</ul><h2>Teacher questions</h2><ul>${lines(p.teacherQs)}</ul><h2>Children's questions</h2><ul>${lines(p.studentQs)}</ul>
+    <h2>Formative assessment</h2><p>${esc((p.formative||[]).join(", "))}</p><p>${esc(p.formativeNotes||"")}</p><h2>Agency</h2><p>${esc(p.agency||"")}</p><h2>International-mindedness</h2><p>${esc(p.im||"")}</p>
+    <h2>Languages</h2><p>${esc(p.languages||"")}</p><h2>Subject connections</h2><ul>${lines(p.subjects)}</ul><h2>Team reflections</h2><p><b>Before:</b> ${esc(p.before||"")}</p><p><b>During:</b> ${esc(p.during||"")}</p><p><b>After:</b> ${esc(p.after||"")}</p>`;
+}
+
+/* =====================================================================
+   TEAM PLANNING: colleagues, comments, versions, safe saving
+   ===================================================================== */
+const tm = { open: false, row: null, members: [], comments: [], versions: [], conflict: null };
+pushUnit = async function(u){
+  if(!db || !tc.user || !isUuid(u.id)) return false;
+  const clean = Object.assign({}, u); delete clean.shared; delete clean._v; delete clean.canEdit;
+  const r = await db.from("units").select("version, updated_by, owner").eq("id", u.id);
+  const row = (r.data || [])[0];
+  if(row && u._v && row.version && row.version > u._v && row.updated_by && row.updated_by !== tc.user.id){ tm.conflict = { remote: row }; render(); return false; }
+  const payload = { data: clean, central_idea: u.centralIdea || "", theme: u.theme || "", grade: u.grade || "", in_poi: !!u.inPoi, updated_at: new Date().toISOString() };
+  const res = row ? await db.from("units").update(payload).eq("id", u.id) : await db.from("units").insert(Object.assign({ id: u.id }, payload));
+  if(res.error) return false;
+  const v = await db.from("units").select("version").eq("id", u.id); const nv = ((v.data || [])[0] || {}).version;
+  if(nv){ u._v = nv; if(unit.id === u.id){ unit._v = nv; saveCurrent(); } }
+  return true;
+};
+const _openUnit = openUnit;
+openUnit = async function(id){
+  if(db && tc.user && isUuid(id)){
+    const { data } = await db.from("units").select("id, data, owner, version, collaborators").eq("id", id);
+    const r = (data || [])[0];
+    if(r){ const u = Object.assign({}, r.data, { id: r.id, _v: r.version, shared: r.owner !== tc.user.id, canEdit: r.owner === tc.user.id || (r.collaborators || []).includes(tc.user.id) });
+      const all = store.get("wn_units", []).filter(x => x.id !== id); all.unshift(u); store.set("wn_units", all); }
+  }
+  _openUnit(id);
+};
+function conflictModal(){
+  if(!tm.conflict) return "";
+  return `<div class="modal-bg"><div class="modal"><h3 style="color:var(--navy)">⚠️ A colleague changed this unit</h3><p style="margin:8px 0">Someone in your team saved a newer version while you were working. What would you like to do?</p>
+    <div class="actions"><button class="btn ghost" onclick="tm.conflict=null;openUnit(unit.id)">Load their version</button><button class="btn" onclick="unit._v=tm.conflict.remote.version;tm.conflict=null;saveUnit()">Keep mine and save</button></div>
+    <p class="hint">"Keep mine" saves your version as the newest. Their version stays in 🕘 History.</p></div></div>`;
+}
+async function openTeam(){
+  await saveUnit(true);
+  const [u, m, c, v] = await Promise.all([db.from("units").select("owner, collaborators, in_poi").eq("id", unit.id), db.from("school_members").select("user_id, email"),
+    db.from("unit_comments").select("*").eq("unit_id", unit.id).order("created_at"), db.from("unit_versions").select("id, version, saved_at, saved_by, data").eq("unit_id", unit.id).order("saved_at", { ascending: false })]);
+  tm.row = (u.data || [])[0] || { owner: tc.user.id, collaborators: [] }; tm.members = m.data || []; tm.comments = c.data || []; tm.versions = v.data || []; tm.open = true; render();
+}
+function teamModal(){
+  if(!tm.open) return "";
+  const owner = tm.row.owner === tc.user.id, who = id => ((tm.members.find(x => x.user_id === id) || {}).email || "A colleague");
+  return `<div class="modal-bg" onclick="if(event.target===this){tm.open=false;render()}"><div class="modal" style="width:min(820px,96vw)">
+    <div class="actions" style="margin-top:0"><h3 style="color:var(--navy)">👥 Plan together</h3><button class="btn small" onclick="tm.open=false;render()">Close</button></div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><div>
+      <div class="label">Planning team</div>${owner ? (tm.members.filter(x => x.user_id !== tc.user.id).map(x=>`<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin:4px 0"><input type="checkbox" style="width:auto" ${(tm.row.collaborators||[]).includes(x.user_id)?"checked":""} onchange="tmCollab('${x.user_id}',this.checked)"> ${esc(x.email||"Teacher")}</label>`).join("") || `<p class="hint">Colleagues appear here once they join your school with the school code.</p>`)
+        : `<p>Owner: ${esc(who(tm.row.owner))}</p><p class="hint">You can edit this unit. Only the owner changes the team.</p>`}
+      <label style="display:flex;gap:8px;align-items:center;font-weight:800;margin-top:12px"><input type="checkbox" style="width:auto" ${unit.inPoi?"checked":""} onchange="unit.inPoi=this.checked;saveUnit()"> 📚 Part of our programme of inquiry</label>
+      <p class="hint">Units in the programme of inquiry appear on the school POI grid for all teachers.</p>
+      <div class="label" style="margin-top:14px">🕘 History (last 30 saves)</div>${tm.versions.slice(0,10).map(v=>`<div class="hist">Version ${v.version} · ${new Date(v.saved_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · ${esc(who(v.saved_by))} · <button class="link" onclick="tmRestore('${v.id}')">Restore</button></div>`).join("") || `<p class="hint">Older versions appear here after the next save.</p>`}</div>
+    <div><div class="label">💬 Comments</div><div class="cmts">${tm.comments.map(c=>`<div class="cmt"><b>${esc(c.author_email||"Teacher")}</b> <small class="hint">${new Date(c.created_at).toLocaleDateString("en-GB")}</small><p>${esc(c.text)}</p></div>`).join("") || `<p class="hint">No comments yet.</p>`}</div>
+      <textarea id="tmC" placeholder="Leave a comment for your team" style="min-height:60px;margin-top:8px"></textarea><button class="btn small" style="margin-top:6px" onclick="tmComment()">Post</button></div></div></div></div>`;
+}
+async function tmCollab(id, on){
+  const c = new Set(tm.row.collaborators || []); on ? c.add(id) : c.delete(id);
+  const { error: e } = await db.from("units").update({ collaborators: [...c] }).eq("id", unit.id);
+  if(e){ error = tcErr(e); tm.open = false; return render(); } tm.row.collaborators = [...c]; toast(on ? "Added to the team ✓" : "Removed from the team");
+}
+async function tmComment(){ const t = $("#tmC").value.trim(); if(!t) return; const { error: e } = await db.from("unit_comments").insert({ unit_id: unit.id, text: t, author_email: tc.user.email || "" }); if(e){ error = tcErr(e); return render(); } openTeam(); }
+async function tmRestore(id){ const v = tm.versions.find(x => x.id === id); if(!v || !confirm("Restore version " + v.version + "? Your current version stays in History.")) return; unit = Object.assign({}, v.data, { id: unit.id, _v: unit._v }); saveCurrent(); tm.open = false; await saveUnit(); render(); }
+
+/* =====================================================================
+   PROGRAMME OF INQUIRY
+   ===================================================================== */
+const poiS = { units: null };
+async function poiLoad(){ const { data } = await db.from("units").select("id, data, grade, theme, in_poi, owner").eq("in_poi", true); poiS.units = (data || []).map(r => Object.assign({}, r.data, { id: r.id })); render(); }
+function poiView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest${sch.school ? " · " + esc(sch.school.name) : ""}</div><h1>📚 Programme of inquiry</h1></div>${poiS.units && poiS.units.length ? `<button class="btn ghost" onclick="poiWord()">⬇️ Word</button>` : ""}</div>`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(poiS.units === null){ poiLoad(); return top + `<div class="card">Loading…</div>`; }
+  const U = poiS.units, grades = GRADES.map(g => g[0]).filter(g => U.some(u => u.grade === g));
+  if(!U.length) return top + `<div class="card empty">📚<br><br>No units in the programme of inquiry yet.<p class="hint" style="margin-top:8px">Open a unit in ✨ Unit builder → 👥 Team, and tick <b>Part of our programme of inquiry</b>.</p></div>`;
+  const cell = (g, t) => U.filter(u => u.grade === g && u.theme === t.id).map(u => `<div class="poiu"><b>${esc(u.centralIdea||"Untitled")}</b><div>${(u.keyConcepts||[]).map(c=>`<span class="tag">${esc(c)}</span>`).join(" ")}</div><small>${(u.sdgs||[]).map(n=>sdgBadge(Number(n))).join("")}</small></div>`).join("");
+  const count = (g, f) => { const m = {}; U.filter(u => u.grade === g).forEach(u => (f(u)||[]).forEach(x => m[x] = (m[x]||0) + 1)); return m; };
+  const atlCat = u => [...new Set((u.atl||[]).map(a => a.split(" · ")[0]))];
+  return top + whyBox("poi") + `<div class="card" style="overflow-x:auto"><table class="tbl poi"><tr><th>Grade</th>${THEMES.map(t=>`<th>${t.ic} ${esc(t.name)}</th>`).join("")}</tr>
+    ${grades.map(g=>`<tr><td><b>${esc(g)}</b><br><small class="hint">${U.filter(u=>u.grade===g).length} units</small></td>${THEMES.map(t=>{const c=cell(g,t);return `<td class="${c?"":"gap"}">${c||"<span class='hint'>–</span>"}</td>`;}).join("")}</tr>`).join("")}</table></div>
+  <div class="card" style="overflow-x:auto"><div class="label">Balance check</div><p class="hint" style="margin-bottom:8px">Look for concepts, ATL categories or learner profile attributes that are never or always chosen in a grade, and themes with no unit (shaded in the grid). From age 5, the PYP expects all six themes each year; younger children explore at least four.</p>
+    <table class="tbl"><tr><th>Grade</th><th>Themes</th><th>${esc(settings.conceptLabel||"Specified concepts")}</th><th>ATL</th><th>Learner profile</th><th>SDGs</th></tr>
+    ${grades.map(g=>{ const k = count(g, u=>u.keyConcepts), a = count(g, atlCat), l = count(g, u=>u.learnerProfile), s = count(g, u=>u.sdgs), th = new Set(U.filter(u=>u.grade===g).map(u=>u.theme)).size;
+      const missing = CONCEPTS.map(c=>c.k).filter(c=>!k[c]);
+      return `<tr><td><b>${esc(g)}</b></td><td>${th}/6</td><td>${Object.entries(k).map(([x,n])=>`${esc(x)} ×${n}`).join(", ")}${missing.length?`<br><small style="color:#c2410c">Not yet: ${missing.join(", ")}</small>`:""}</td><td>${Object.entries(a).map(([x,n])=>`${esc(x)} ×${n}`).join(", ")||"–"}</td><td>${Object.keys(l).length}/10</td><td>${Object.keys(s).sort((x,y)=>x-y).map(n=>sdgBadge(Number(n))).join("")||"–"}</td></tr>`; }).join("")}</table></div>`;
+}
+WHY.poi = ["Why look at the whole programme?", "The programme of inquiry is planned together so that learning builds across grades without gaps or repetition. Check that each grade covers the themes, that concepts, ATL skills and learner profile attributes are balanced, and that ideas grow in depth from one grade to the next."];
+function poiWord(){
+  const U = poiS.units, grades = GRADES.map(g => g[0]).filter(g => U.some(u => u.grade === g));
+  wordDownload("Programme of inquiry - " + (settings.school || "WonderNest"), `<h1>Programme of inquiry</h1><p>${esc(settings.school||"")}</p><table><tr><th>Grade</th>${THEMES.map(t=>`<th>${esc(t.name)}</th>`).join("")}</tr>${grades.map(g=>`<tr><td><b>${esc(g)}</b></td>${THEMES.map(t=>`<td>${U.filter(u=>u.grade===g&&u.theme===t.id).map(u=>`<b>${esc(u.centralIdea||"")}</b><br>Lines: ${(u.lines||[]).map(l=>esc(l.text)).join("; ")}<br>Concepts: ${esc((u.keyConcepts||[]).join(", "))}`).join("<br><br>")}</td>`).join("")}</tr>`).join("")}</table>`);
+}
+
+/* =====================================================================
+   LEARNER PROFILE (in ATL growth), ACTION WALL (in Open inquiry), SUMMATIVE VOICES
+   ===================================================================== */
+const lpS = {};
+function lpCard(){
+  if(!atlS.cls || atlS.kid) return "";
+  const id = atlS.cls.id;
+  if(!lpS[id]){ lpS[id] = "loading"; db.from("entries").select("*").eq("class_id", id).eq("kind", "lp").order("created_at", { ascending: false }).then(r => { lpS[id] = r.data || []; render(); }); return ""; }
+  if(lpS[id] === "loading") return "";
+  const L = lpS[id], cnt = {}; L.forEach(e => cnt[e.content.attr] = (cnt[e.content.attr]||0) + 1);
+  const name = sid => { const k = (atlS.students||[]).find(x => x.id === sid); return k ? k.picture + " " + k.first_name : ""; };
+  return `<div class="card"><div class="label">🌟 Learner profile: children's reflections</div><div class="chips">${LEARNER_PROFILE.map(l=>`<span class="chip ${cnt[l]?"on":""}">${l}${cnt[l]?" ×"+cnt[l]:""}</span>`).join("")}</div>
+    ${L.slice(0,20).map(e=>`<div class="hist"><b>${esc(name(e.student_id))}</b> · ${esc(e.content.attr)} · ${new Date(e.created_at).toLocaleDateString("en-GB")}<br>${esc(e.content.text||"")}</div>`).join("") || `<p class="hint">Children add these in 🌱 My growth.</p>`}</div>`;
+}
+const actS = { list: null, cls: null };
+async function actLoad(){ actS.cls = oi.cls.id; const { data } = await db.from("entries").select("*").eq("class_id", oi.cls.id).eq("kind", "action").order("created_at", { ascending: false }); actS.list = data || []; render(); }
+function oiActionsTab(){
+  if(!actS.list || actS.cls !== oi.cls.id){ actLoad(); return `<div class="card">Loading…</div>`; }
+  const pend = actS.list.filter(e => e.publish === "pending"), on = actS.list.filter(e => e.publish === "approved");
+  const row = e => { const k = oiKid(e.student_id); return `<div class="unit-row" style="align-items:flex-start"><div style="display:flex;gap:10px">${e.content.photo?`<img src="${e.content.photo}" style="width:70px;height:70px;object-fit:cover;border-radius:10px">`:""}<div><h4>${esc(k.picture||"")} ${esc(k.first_name||"")} · ${esc((ACTION_TYPES.find(a=>a[0]===e.content.type)||["",""])[1])}</h4><p>${esc(e.content.text||"")}</p></div></div>
+    ${e.publish==="pending"?`<button class="btn small" onclick="actSet('${e.id}','approved')">✅ Put on the wall</button>`:`<button class="link" onclick="actSet('${e.id}','none')">Take down</button>`}</div>`; };
+  return `<div class="card"><div class="label">🌱 Waiting for you (${pend.length})</div><p class="hint" style="margin-bottom:6px">Action children start themselves, at home or at school. Approve it to share it on the class action wall.</p>${pend.map(row).join("") || `<p class="hint">Nothing waiting.</p>`}</div>
+    <div class="card"><div class="label">🧱 Our action wall (${on.length})</div>${on.map(row).join("") || `<p class="hint">Empty for now.</p>`}</div>`;
+}
+async function actSet(id, v){ const { error: e } = await db.from("entries").update({ publish: v }).eq("id", id); if(e){ error = tcErr(e); return render(); } actS.list.find(x => x.id === id).publish = v; toast(v === "approved" ? "On the action wall ✓" : "Taken down"); render(); }
+const sv = { cls: null, list: null, key: null };
+function sumVoicesCard(){
+  if(!sumId || !sumUnit() || !sumUnit().summative) return "";
+  if(sv.key !== sumId){ sv.key = sumId; sv.list = null; db.from("classes").select("id, name, current_unit").then(async r => { sv.cls = (r.data || []); const ids = sv.cls.filter(c => c.current_unit && c.current_unit.summative && c.current_unit.summative.unitId === sumId).map(c => c.id);
+      if(ids.length){ const e = await db.from("entries").select("*").in("class_id", ids).in("kind", ["criteria","sum_self","sum_peer"]).order("created_at", { ascending: false }); sv.list = e.data || []; } else sv.list = []; render(); }); return ""; }
+  if(!sv.cls) return "";
+  const shared = sv.cls.filter(c => c.current_unit && c.current_unit.summative && c.current_unit.summative.unitId === sumId);
+  const L = sv.list || [], sug = L.filter(e => e.kind === "criteria"), self = L.filter(e => e.kind === "sum_self"), peer = L.filter(e => e.kind === "sum_peer");
+  return `<div class="card"><div class="label">📤 Share the task with children</div><p class="hint" style="margin-bottom:8px">Children see the task, choose how to show their learning, suggest success criteria and assess themselves and a friend.</p>
+    ${sv.cls.map(c=>`<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin:4px 0"><input type="checkbox" style="width:auto" ${shared.includes(c)?"checked":""} ${c.current_unit?"":"disabled"} onchange="sumShare('${c.id}',this.checked)"> ${esc(c.name)}${c.current_unit?"":" (use a unit with this class first)"}</label>`).join("")}</div>
+  <div class="card"><div class="label">👂 Children's voices</div>
+    <p style="font-weight:800;margin:6px 0">💡 Success criteria children suggested (${sug.length})</p>${sug.map(e=>`<div class="wrow"><span>${esc(e.content.text||"")}</span><button class="link" onclick="sumAddCrit(${esc(JSON.stringify(e.content.text||""))})">＋ Add to success criteria</button></div>`).join("") || `<p class="hint">None yet.</p>`}
+    <p style="font-weight:800;margin:10px 0 6px">🪞 Self-assessments (${self.length}) · 🤝 Peer assessments (${peer.length})</p>
+    ${[...self, ...peer].slice(0,20).map(e=>`<div class="hist">${e.kind==="sum_self"?"🪞":"🤝"} ${Object.entries(e.content.ratings||{}).map(([c,v])=>`${esc(c)}: ${["😟 Not yet","🙂 Getting there","😄 Got it"][v-1]||""}`).join(" · ")}${e.content.comment?`<br>${esc(e.content.comment)}`:""}</div>`).join("") || `<p class="hint">None yet.</p>`}</div>`;
+}
+async function sumShare(classId, on){
+  const c = sv.cls.find(x => x.id === classId), t = sumUnit().summative;
+  const cu = Object.assign({}, c.current_unit); if(on) cu.summative = { unitId: sumId, title: t.title, childBrief: t.childBrief, formats: t.formats, successCriteria: t.successCriteria }; else delete cu.summative;
+  const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", classId); if(e){ error = tcErr(e); return render(); }
+  c.current_unit = cu; toast(on ? "Shared with the class ✓" : "Hidden from the class"); render();
+}
+function sumAddCrit(t){ const d = draft(); d.successCriteria = d.successCriteria || []; if(!d.successCriteria.includes(t)) d.successCriteria.push(t); toast("Added. Press Save task ✓"); render(); }
+
+/* =====================================================================
+   ROUTINES TO A CLASS, SORT GAMES THE TEACHER CHECKS
+   ===================================================================== */
+const rtS = { pick: false, classes: null };
+const _tplModal = tplModal;
+tplModal = function(){ const h = _tplModal(); if(!h) return h; return h.replace(/(<button[^>]*>Close<\/button>)/, `<button class="btn small ghost" onclick="rtPick()">📤 Send to a class</button>$1`) + (rtS.pick ? rtSendModal() : ""); };
+async function rtPick(){ rtS.classes = await myClasses(); rtS.pick = true; render(); }
+function rtSendModal(){ return `<div class="modal-bg" style="z-index:60" onclick="if(event.target===this){rtS.pick=false;render()}"><div class="modal"><h3 style="color:var(--navy)">📤 Send "${esc(tpl.cur.name||"")}" to a class</h3><p class="hint" style="margin:6px 0 10px">Children will find it in 🧠 Thinking routines in their Wonder Nest.</p>${(rtS.classes||[]).map(c=>`<button class="btn ghost wide" style="margin-bottom:8px" onclick="rtSend('${c.id}')">${esc(c.name)} · ${esc(c.grade)}</button>`).join("") || `<p class="hint">Create a class first.</p>`}<button class="link" onclick="rtS.pick=false;render()">Cancel</button></div></div>`; }
+async function rtSend(classId){
+  const t = tpl.cur, sections = (t.sections || []).map(s => Array.isArray(s) ? { label: s[0], prompt: s[1] } : { label: s.label || "", prompt: s.prompt || "" });
+  const { error: e } = await db.from("class_routines").insert({ class_id: classId, data: { name: t.name || "Thinking routine", purpose: t.purpose || "", sections } });
+  rtS.pick = false; if(e){ error = tcErr(e); } else toast("Sent to the class ✓"); render();
+}
+const sgS = { cls: null, concept: "Form", items: null };
+const _cv2 = conceptsView;
+conceptsView = function(){
+  if(cnS.tab !== "sorts") return _cv2().replace('</div><div class="label">Make factual', '</div><div class="label">Make factual').replace(/(<button class="[^"]*" onclick="cnS.tab='tracker';render\(\)">📈 Understanding tracker<\/button>)/, `$1<button class="" onclick="cnS.tab='sorts';render()">🧩 Sort games</button>`);
+  const base = _cv2().replace(/(<button class="[^"]*" onclick="cnS.tab='tracker';render\(\)">📈 Understanding tracker<\/button>)/, `$1<button class="on" onclick="cnS.tab='sorts';render()">🧩 Sort games</button>`);
+  return base + sortsTab();
+};
+function sortsTab(){
+  if(cnS.classes === null){ myClasses().then(c => { cnS.classes = c; render(); }); return `<div class="card">Loading…</div>`; }
+  const c = cnS.classes.find(x => x.id === sgS.cls), sorts = (c && c.current_unit && c.current_unit.sorts) || {};
+  return `<div class="card exg"><div class="label">🧩 Fact or big idea? sorting games</div><p class="hint" style="margin-bottom:8px">Make a sorting game for your class's current unit, check every sentence, then share it. Children only see games you have checked.</p>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><div><label>Class</label><select onchange="sgS.cls=this.value;sgS.items=null;render()"><option value="">Choose…</option>${cnS.classes.map(x=>`<option value="${x.id}" ${sgS.cls===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
+    <div><label>Concept</label><select onchange="sgS.concept=this.value;sgS.items=null;render()">${CONCEPTS.map(x=>`<option ${sgS.concept===x.k?"selected":""}>${x.k}</option>`).join("")}</select></div></div>
+    ${c ? `<p class="hint" style="margin-top:8px">Unit: ${esc((c.current_unit||{}).centralIdea||"no current unit")} · Shared games: ${Object.keys(sorts).join(", ")||"none"}</p><div class="actions"><span></span><button class="btn" onclick="sgMake()">✨ Make sentences</button></div>` : ""}</div>
+  ${sgS.items ? `<div class="card exg"><div class="label">Check each sentence</div>${sgS.items.map((it,i)=>`<div class="mile"><input value="${esc(it.text)}" onchange="sgS.items[${i}].text=this.value" style="flex:3"><select onchange="sgS.items[${i}].type=this.value" style="width:150px"><option value="fact" ${it.type==="fact"?"selected":""}>🔎 Fact</option><option value="big" ${it.type==="big"?"selected":""}>💡 Big idea</option></select><button class="link" style="color:var(--coral)" onclick="sgS.items.splice(${i},1);render()">✕</button></div>`).join("")}
+    <button class="link" onclick="sgS.items.push({text:'',type:'fact'});render()">＋ Add a sentence</button><div class="actions"><span class="hint">Only share sentences you have checked are true.</span><button class="btn" onclick="sgShare()">📤 Share with the class</button></div></div>` : ""}`;
+}
+async function sgMake(){
+  const c = cnS.classes.find(x => x.id === sgS.cls); const cu = c.current_unit || {};
+  loading(true, "Writing sentences…");
+  try{ const r = await ai("concept_sort", Object.assign({}, unit, { centralIdea: cu.centralIdea || unit.centralIdea }), { concept: sgS.concept }); sgS.items = (r.items || []).slice(0, 8); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+async function sgShare(){
+  const items = sgS.items.filter(x => x.text.trim()); if(items.length < 2) return toast("Add at least two sentences");
+  const c = cnS.classes.find(x => x.id === sgS.cls); const cu = Object.assign({}, c.current_unit || {}); cu.sorts = Object.assign({}, cu.sorts || {}, { [sgS.concept]: items });
+  const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", c.id); if(e){ error = tcErr(e); return render(); }
+  c.current_unit = cu; toast("Shared with the class ✓"); render();
+}
+
+/* ---------- wiring ---------- */
+const _render2 = render;
+render = function(){ _render2(); if(tm.open || tm.conflict){ $("#main").insertAdjacentHTML("beforeend", teamModal() + conflictModal()); } };
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { const v = n.dataset.view; if(v === "poi"){ poiS.units = null; render(); } if(v === "inquiry"){ actS.list = null; } if(v === "summative"){ sv.key = null; } }));
+DEMO.concept_sort = { items: [{ text: "Frogs live in ponds.", type: "fact" }, { text: "Living things need their habitats to survive.", type: "big" }, { text: "A pond has water plants.", type: "fact" }, { text: "When a habitat changes, the animals in it are affected.", type: "big" }] };
 
 render();
 initAuth();
