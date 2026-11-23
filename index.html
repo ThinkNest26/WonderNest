@@ -123,6 +123,24 @@
   .story p{font-size:14px;line-height:1.65;margin-bottom:8px;white-space:pre-wrap}
   .story .ar{direction:rtl;text-align:right;font-family:"Geeza Pro","Arial",sans-serif;border-top:1px dashed #d9ccff;padding-top:10px;margin-top:10px}
   .spark{background:#ffe9e2;border-radius:12px;padding:12px 14px;font-size:14px;color:#8a2c0d;font-weight:700;line-height:1.45;margin-top:12px}
+  /* summative */
+  .sgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
+  .field-lbl{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+  .field-lbl:first-child{margin-top:0}
+  .brief{background:linear-gradient(135deg,#fff7e0,#fff);border:1px solid #ffe3a1;border-radius:14px;padding:16px}
+  .brief textarea{background:transparent;border-color:#ffe3a1;font-size:15.5px}
+  .listrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+  .listrow input{flex:1;padding:9px 12px;font-size:14px}
+  .rubric-wrap{overflow-x:auto}
+  table.rubric{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:720px}
+  table.rubric th{background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:12.5px}
+  table.rubric th:first-child{border-radius:10px 0 0 0} table.rubric th:last-child{border-radius:0 10px 0 0}
+  table.rubric td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:top;padding:0}
+  table.rubric td:first-child{border-left:1px solid var(--line);background:#f8faff}
+  table.rubric textarea{border:0;border-radius:0;min-height:96px;font-size:13px;padding:9px 10px;background:transparent;resize:vertical}
+  table.rubric .crit{font-weight:800;color:var(--navy)}
+  table.rubric .link{display:block;font-size:11px;font-weight:700;color:var(--lilac);padding:0 10px 9px}
+  .fmt{display:inline-flex;gap:6px;align-items:center}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -165,7 +183,7 @@
     <div class="nav soon">🔍 Open inquiry <span class="pill">Soon</span></div>
     <div class="nav soon">🌱 Class portfolios <span class="pill">Soon</span></div>
     <div class="nav soon">📈 ATL growth <span class="pill">Soon</span></div>
-    <div class="nav soon">🎯 Summative tasks <span class="pill">Soon</span></div>
+    <button class="nav" data-view="summative">🎯 Summative tasks</button>
     <div class="foot" id="footSchool">Your school's programme of inquiry</div>
   </aside>
   <main class="main" id="main"></main>
@@ -217,7 +235,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 };
-let settings = store.get("wn_settings", {school:"", conceptLabel:"Key concepts"});
+let settings = Object.assign({school:"", conceptLabel:"Key concepts", rubricLevels:"Beginning, Developing, Achieving, Extending"}, store.get("wn_settings", {}));
 function newUnit(){
   return {id:"u"+Date.now(), theme:"", description:"", grade:"", ageBand:"", duration:"6 weeks", languages:"English",
     centralIdeaOptions:[], centralIdea:"", lines:[], keyConcepts:[], relatedConcepts:[], atl:[], atlWhy:{},
@@ -237,10 +255,10 @@ function loading(on, text){ $("#loading").classList.toggle("show", on); if(text)
 function toggle(arr, v){ const i = arr.indexOf(v); i >= 0 ? arr.splice(i,1) : arr.push(v); }
 
 /* ---------- AI ---------- */
-async function ai(task){
-  const payload = {theme: themeOf(unit.theme)?.name || "", description: unit.description, ageBand: gradeLabel(unit),
-    duration: unit.duration, languages: unit.languages, centralIdea: unit.centralIdea,
-    lines: unit.lines.map(l => l.text), keyConcepts: unit.keyConcepts, atl: unit.atl};
+async function ai(task, u = unit, extra = {}){
+  const payload = Object.assign({theme: themeOf(u.theme)?.name || "", description: u.description, ageBand: gradeLabel(u),
+    duration: u.duration, languages: u.languages, centralIdea: u.centralIdea,
+    lines: (u.lines||[]).map(l => l.text), keyConcepts: u.keyConcepts, atl: u.atl}, extra);
   if(!WORKER_URL){ await new Promise(r => setTimeout(r, 700)); return DEMO[task]; }
   const res = await fetch(WORKER_URL, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({task, unit: payload})});
   const data = await res.json().catch(()=>({}));
@@ -271,19 +289,24 @@ function bookHTML(b){
   const warn = b.olChecked && ol.found === false ? `<div class="bwarn">⚠️ We couldn't find this book in Open Library. Please check the title and author.</div>` : "";
   return `<div class="book">${cover}<div><h4>${esc(b.title)}</h4><p>${esc(b.author)} · ${esc(b.why)}</p>${b.line?`<span class="tag">${esc(b.line)}</span>`:""}<div class="blinks">${bookLinks(b)}</div>${warn}</div></div>`;
 }
+let checkingBooks = false;
 async function checkBooks(){
+  if(checkingBooks) return;
   const todo = unit.books.filter(b => !b.olChecked);
   if(!todo.length) return;
+  checkingBooks = true;
+  let changed = false;
   await Promise.all(todo.map(async b => {
     try{
       const url = "https://openlibrary.org/search.json?limit=1&fields=key,cover_i,ebook_access&title=" + encodeURIComponent(b.title||"") + "&author=" + encodeURIComponent(String(b.author||"").split(/[(,]/)[0].trim());
       const r = await fetch(url); const d = await r.json(); const doc = (d.docs||[])[0];
       b.ol = doc ? {found:true, url:"https://openlibrary.org" + doc.key, cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : "", readable: ["borrowable","public"].includes(doc.ebook_access)} : {found:false};
-      b.olChecked = true;
-    }catch(e){ /* offline or blocked: keep plain search links */ }
+      b.olChecked = true; changed = true;
+    }catch(e){ b.olChecked = true; b.ol = null; /* offline or blocked: keep plain search links */ }
   }));
+  checkingBooks = false;
   saveCurrent();
-  if(view === "builder" && unit.step === 5) render();
+  if(changed && view === "builder" && unit.step === 5) render();
 }
 
 /* ---------- views ---------- */
@@ -293,6 +316,7 @@ function render(){
   const m = $("#main");
   if(view === "home") m.innerHTML = homeView();
   else if(view === "settings") m.innerHTML = settingsView();
+  else if(view === "summative") m.innerHTML = summativeView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
   if(view === "builder" && unit.step === 5) checkBooks();
@@ -421,9 +445,125 @@ function settingsView(){
     <div class="fields" style="grid-template-columns:1fr;margin:0">
       <div><label>School name</label><input type="text" id="setSchool" value="${esc(settings.school)}"></div>
       <div><label>What does your school call the key concepts?</label><input type="text" id="setConcept" value="${esc(settings.conceptLabel)}" placeholder="Key concepts"><div class="hint" style="margin-top:6px">For example "Specified concepts". WonderNest will use your term everywhere.</div></div>
+      <div><label>Rubric levels (from lowest to highest, separated by commas)</label><input type="text" id="setLevels" value="${esc(settings.rubricLevels)}"><div class="hint" style="margin-top:6px">For example "Beginning, Developing, Achieving, Extending" or "1, 2, 3, 4, 5, 6, 7". Used for new summative task rubrics.</div></div>
     </div>
     <div class="actions"><span></span><button class="btn" onclick="saveSettings()">Save settings</button></div>
   </div>`;
+}
+
+/* ---------- summative tasks ---------- */
+let sumId = null;
+function savedUnits(){ return store.get("wn_units", []); }
+function sumUnit(){ return savedUnits().find(u => u.id === sumId); }
+function storeUnit(u){
+  const units = savedUnits(); const i = units.findIndex(x => x.id === u.id);
+  if(i >= 0) units[i] = u; else units.unshift(u);
+  return store.set("wn_units", units);
+}
+function summativeView(){
+  const units = savedUnits();
+  if(!sumId || !sumUnit()){
+    return `<div class="top"><div><div class="crumb">WonderNest</div><h1>Summative tasks</h1></div></div>
+    <div class="card"><div class="label">Choose a saved unit</div>
+    ${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}${u.summative ? " · <b style='color:var(--leaf)'>task ready</b>" : ""}</p></div>
+      <button class="btn small ${u.summative?"ghost":""}" onclick="openSum('${u.id}')">${u.summative ? "Open task" : "✨ Create task"}</button></div>`).join("")
+    : `<div class="empty">🎯<br><br>No saved units yet.<br>Build a unit in the <b>Unit builder</b> and click <b>Save unit</b>, then come back here.</div>`}
+    </div>`;
+  }
+  const u = sumUnit(), t = u.summative ? draft() : null, cl = settings.conceptLabel || "Key concepts";
+  const head = `<div class="top"><div><div class="crumb"><button class="link" onclick="sumId=null;error='';render()">‹ All units</button> · ${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}</div><h1>Summative task</h1></div>
+    ${t ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="sumWord()">⬇️ Download as Word</button><button class="btn" onclick="sumSave()">💾 Save task</button></div>` : ""}</div>
+    ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> sample task shown.</div>`}
+    ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
+    <div class="card"><div class="label">Central idea</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(u.centralIdea)}</div>
+      <div class="chips" style="margin:10px 0 0">${(u.lines||[]).map((l,i)=>`<span class="chip">Line ${i+1}: ${esc(l.text)}</span>`).join("")}${(u.atl||[]).map(a=>`<span class="chip atl on">${esc(a.split(" · ")[1]||a)}</span>`).join("")}</div></div>`;
+  if(!t) return head + `<div class="card" style="text-align:center;padding:34px">
+      <div style="font-size:40px">🎯</div><h3 style="color:var(--navy);margin:8px 0">Create a summative task for this unit</h3>
+      <p class="hint" style="max-width:520px;margin:0 auto 16px">WonderNest suggests a task that lets children show their understanding of the central idea, with choice of format, checkpoints and a rubric linked to the lines of inquiry, ${esc(cl.toLowerCase())} and ATL skills. Everything can be edited.</p>
+      <div class="hint" style="margin-bottom:14px">Rubric levels: <b>${esc(settings.rubricLevels)}</b> (change in School settings)</div>
+      <button class="btn" onclick="sumGenerate()">✨ Suggest a summative task</button></div>`;
+  const L = t.levels;
+  return head + `<div class="sgrid">
+    <div>
+      <div class="card">
+        <div class="field-lbl">Task title</div>
+        <input type="text" value="${esc(t.title)}" oninput="sumSet('title',this.value)">
+        <div class="field-lbl">For the children</div>
+        <div class="brief"><textarea style="min-height:130px" oninput="sumSet('childBrief',this.value)">${esc(t.childBrief)}</textarea></div>
+        <div class="field-lbl">Teacher notes</div>
+        <textarea style="min-height:110px" oninput="sumSet('teacherNotes',this.value)">${esc(t.teacherNotes)}</textarea>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="field-lbl">Children choose how to show their learning</div>
+        ${listEditor('formats', t.formats)}
+        <div class="field-lbl">Success criteria</div>
+        ${listEditor('successCriteria', t.successCriteria)}
+        <div class="field-lbl">Checkpoints</div>
+        ${(t.checkpoints||[]).map((c,i)=>`<div class="listrow"><input type="text" style="max-width:120px;flex:none" value="${esc(c.when)}" oninput="sumCk(${i},'when',this.value)"><input type="text" value="${esc(c.what)}" oninput="sumCk(${i},'what',this.value)"><button class="link danger" onclick="sumDel('checkpoints',${i})">✕</button></div>`).join("")}
+        <button class="link" onclick="sumAdd('checkpoints',{when:'',what:''})">＋ Add checkpoint</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">Rubric</div>
+    <div class="rubric-wrap"><table class="rubric"><tr><th style="width:20%">Criterion</th>${L.map(l=>`<th>${esc(l)}</th>`).join("")}<th style="width:34px"></th></tr>
+    ${(t.rubric||[]).map((r,i)=>`<tr><td><textarea class="crit" style="min-height:60px" oninput="sumRub(${i},-1,this.value)">${esc(r.criterion)}</textarea><span class="link">${esc(r.linkedTo||"")}</span></td>
+      ${L.map((l,j)=>`<td><textarea oninput="sumRub(${i},${j},this.value)">${esc((r.descriptors||[])[j]||"")}</textarea></td>`).join("")}
+      <td style="text-align:center;padding-top:8px"><button class="link danger" title="Remove row" onclick="sumDel('rubric',${i})">✕</button></td></tr>`).join("")}
+    </table></div>
+    <div class="actions"><button class="link" onclick="sumAdd('rubric',{criterion:'New criterion',linkedTo:'',descriptors:${"[]"}})">＋ Add criterion</button>
+      <button class="link" onclick="if(confirm('Replace this task with a new suggestion? Your edits will be lost.')) sumGenerate()">↻ Suggest a new task</button></div>
+  </div>`;
+}
+function listEditor(key, arr){
+  return (arr||[]).map((v,i)=>`<div class="listrow"><input type="text" value="${esc(v)}" oninput="sumList('${key}',${i},this.value)"><button class="link danger" onclick="sumDel('${key}',${i})">✕</button></div>`).join("")
+    + `<button class="link" onclick="sumAdd('${key}','')">＋ Add</button>`;
+}
+let sumDraft = null;
+function openSum(id){ sumId = id; error = ""; const u = sumUnit(); sumDraft = u && u.summative ? JSON.parse(JSON.stringify(u.summative)) : null; render(); }
+function draft(){ const u = sumUnit(); if(!sumDraft && u && u.summative) sumDraft = JSON.parse(JSON.stringify(u.summative)); return sumDraft; }
+function sumSet(k,v){ draft()[k] = v; sumAutosave(); }
+function sumList(k,i,v){ draft()[k][i] = v; sumAutosave(); }
+function sumCk(i,k,v){ draft().checkpoints[i][k] = v; sumAutosave(); }
+function sumRub(i,j,v){ const r = draft().rubric[i]; if(j < 0) r.criterion = v; else { r.descriptors = r.descriptors || []; r.descriptors[j] = v; } sumAutosave(); }
+function sumAdd(k,v){ const d = draft(); d[k] = d[k] || []; d[k].push(v); sumAutosave(); render(); }
+function sumDel(k,i){ draft()[k].splice(i,1); sumAutosave(); render(); }
+let sumTimer = null;
+function sumAutosave(){ clearTimeout(sumTimer); sumTimer = setTimeout(() => { const u = sumUnit(); if(u && sumDraft){ u.summative = sumDraft; storeUnit(u); } }, 400); }
+function sumSave(){ const u = sumUnit(); u.summative = draft(); storeUnit(u) ? toast("Task saved ✓") : toast("Could not save on this device"); }
+async function sumGenerate(){
+  const u = sumUnit(); if(!u) return;
+  const levels = settings.rubricLevels.split(",").map(x => x.trim()).filter(Boolean);
+  error = ""; loading(true, "Designing the summative task…");
+  try{
+    const d = await ai("summative", u, {levels, learnerProfile: u.learnerProfile, relatedConcepts: u.relatedConcepts});
+    const t = {title: d.title||"", childBrief: d.childBrief||"", teacherNotes: d.teacherNotes||"", formats: d.formats||[],
+      successCriteria: d.successCriteria||[], checkpoints: (d.checkpoints||[]).map(c=>({when:c.when||"", what:c.what||""})),
+      levels, rubric: (d.rubric||[]).map(r=>({criterion:r.criterion||"", linkedTo:r.linkedTo||"", descriptors:(r.descriptors||[]).slice(0,levels.length)}))};
+    u.summative = t; sumDraft = JSON.parse(JSON.stringify(t)); storeUnit(u);
+  }catch(e){ error = e.message || "Something went wrong. Please try again."; }
+  finally{ loading(false); render(); }
+}
+function sumWord(){
+  const u = sumUnit(), t = draft(), th = themeOf(u.theme);
+  const li = a => (a||[]).filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("");
+  const h = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt;color:#1d2433}h1{color:#14325c;font-size:20pt}h2{color:#2f6fd6;font-size:13pt;margin-top:16pt}td,th{border:1px solid #ccd;padding:5pt;font-size:10pt;vertical-align:top}th{background:#14325c;color:#fff}table{border-collapse:collapse;width:100%}.brief{background:#fff7e0;border:1px solid #ffe3a1;padding:10pt;font-size:12.5pt}</style></head><body>
+  <p style="color:#667085">${esc(settings.school||"")} · WonderNest summative task · ${esc(th?th.name:"")} · ${esc(gradeLabel(u))}</p>
+  <h1>${esc(t.title)}</h1>
+  <p><b>Central idea:</b> ${esc(u.centralIdea)}</p>
+  <h2>For the children</h2><div class="brief">${esc(t.childBrief).replace(/\n/g,"<br>")}</div>
+  <h2>Ways to show your learning</h2><ul>${li(t.formats)}</ul>
+  <h2>Success criteria</h2><ul>${li(t.successCriteria)}</ul>
+  <h2>Checkpoints</h2><table><tr><th>When</th><th>What</th></tr>${(t.checkpoints||[]).map(c=>`<tr><td>${esc(c.when)}</td><td>${esc(c.what)}</td></tr>`).join("")}</table>
+  <h2>Teacher notes</h2><p>${esc(t.teacherNotes).replace(/\n/g,"<br>")}</p>
+  <h2>Rubric</h2><table><tr><th>Criterion</th>${t.levels.map(l=>`<th>${esc(l)}</th>`).join("")}</tr>
+  ${(t.rubric||[]).map(r=>`<tr><td><b>${esc(r.criterion)}</b><br><i>${esc(r.linkedTo||"")}</i></td>${t.levels.map((l,j)=>`<td>${esc((r.descriptors||[])[j]||"")}</td>`).join("")}</tr>`).join("")}</table>
+  </body></html>`;
+  const blob = new Blob(["\ufeff", h], {type:"application/msword"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "WonderNest summative task - " + (t.title || "task") + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
 /* ---------- actions ---------- */
@@ -478,7 +618,7 @@ function saveUnit(){
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
 function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); render(); } }
-function saveSettings(){ settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Key concepts"; store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
+function saveSettings(){ settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Key concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; store.set("wn_settings", settings); toast("Settings saved ✓"); render(); }
 
 function downloadWord(){
   const t = themeOf(unit.theme), cl = settings.conceptLabel || "Key concepts";
@@ -508,10 +648,24 @@ function downloadWord(){
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
-document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; render(); }));
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; if(view === "summative"){ sumId = null; sumDraft = null; } render(); }));
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  summative: {
+    title:"Habitat Helpers",
+    childBrief:"You are a Habitat Helper! Choose a habitat you care about. Show us who lives there, what they need, and how people's choices can harm or help it. Then share one action our class could take to protect it.",
+    teacherNotes:"Children work individually or in pairs over two weeks. Encourage them to use what they found in their own inquiries. Conference with each child at the draft checkpoint, using the success criteria.",
+    formats:["A story told from an animal's point of view","A poster or comic strip","A short podcast or video report","A model of the habitat with labels"],
+    successCriteria:["I can explain what a habitat is and how it meets living things' needs","I can show how a human action changes a habitat","I can suggest a way to protect a habitat and explain why","I can use information I gathered from different sources"],
+    checkpoints:[{when:"Week 5, day 1",what:"Choose a habitat and format; plan with a story map"},{when:"Week 5, day 4",what:"Draft ready; teacher and peer feedback"},{when:"Week 6, day 3",what:"Final version shared with the class and families"}],
+    rubric:[
+      {criterion:"Understanding of habitats",linkedTo:"Line 1 · Form",descriptors:["Names a habitat with support","Describes a habitat and some needs it meets","Explains clearly how a habitat meets living things' needs","Explains and compares how different habitats meet needs"]},
+      {criterion:"Human impact",linkedTo:"Line 2 · Causation",descriptors:["Names a human action with support","Describes one effect of a human action","Explains how human actions cause changes to a habitat","Explains causes and effects, including some that are not obvious"]},
+      {criterion:"Taking responsibility",linkedTo:"Line 3 · Responsibility",descriptors:["Suggests an action with support","Suggests a simple action to help","Suggests a realistic action and explains why it helps","Plans an action and explains its likely impact on others"]},
+      {criterion:"Research · Information literacy",linkedTo:"ATL skill",descriptors:["Uses one source with help","Gathers information from a source","Gathers and records information from different sources","Selects and checks information from several sources"]}
+    ]
+  },
   central_ideas: {centralIdeas: [
     "Living things depend on healthy habitats, and our choices can protect them.",
     "The actions of people change habitats and the lives of the living things in them.",
