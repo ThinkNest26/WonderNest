@@ -198,6 +198,11 @@ const SDGS = [
   [11,"Sustainable Cities and Communities","#FD9D24"],[12,"Responsible Consumption and Production","#BF8B2E"],[13,"Climate Action","#3F7E44"],
   [14,"Life Below Water","#0A97D9"],[15,"Life on Land","#56C02B"],[16,"Peace, Justice and Strong Institutions","#00689D"],[17,"Partnerships for the Goals","#19486A"]
 ];
+const GRADES = [
+  ["Pre-K","3–4"],["KG1","4–5"],["KG2","5–6"],["Grade 1","6–7"],["Grade 2","7–8"],
+  ["Grade 3","8–9"],["Grade 4","9–10"],["Grade 5","10–11"],["Grade 6","11–12"]
+];
+const gradeLabel = u => u.grade ? `${u.grade} (ages ${(GRADES.find(g=>g[0]===u.grade)||["",""])[1]})` : (u.ageBand ? "Ages " + u.ageBand : "");
 const STEP_NAMES = ["Theme & description","Central idea","Lines of inquiry & concepts","SDGs","Stories, routines & inquiry"];
 const ROUTINE_COLOURS = ["var(--sun)","var(--blue)","var(--coral)","var(--leaf)","var(--lilac)"];
 
@@ -208,7 +213,7 @@ const store = {
 };
 let settings = store.get("wn_settings", {school:"", conceptLabel:"Key concepts"});
 function newUnit(){
-  return {id:"u"+Date.now(), theme:"", description:"", ageBand:"7–9", duration:"6 weeks", languages:"English",
+  return {id:"u"+Date.now(), theme:"", description:"", grade:"", ageBand:"", duration:"6 weeks", languages:"English",
     centralIdeaOptions:[], centralIdea:"", lines:[], keyConcepts:[], relatedConcepts:[], atl:[], atlWhy:{},
     learnerProfile:[], sdgs:[], sdgWhy:{}, books:[], story:null, spark:"", routines:[], provocations:[], step:1, updated:null};
 }
@@ -227,7 +232,7 @@ function toggle(arr, v){ const i = arr.indexOf(v); i >= 0 ? arr.splice(i,1) : ar
 
 /* ---------- AI ---------- */
 async function ai(task){
-  const payload = {theme: themeOf(unit.theme)?.name || "", description: unit.description, ageBand: unit.ageBand,
+  const payload = {theme: themeOf(unit.theme)?.name || "", description: unit.description, ageBand: gradeLabel(unit),
     duration: unit.duration, languages: unit.languages, centralIdea: unit.centralIdea,
     lines: unit.lines.map(l => l.text), keyConcepts: unit.keyConcepts, atl: unit.atl};
   if(!WORKER_URL){ await new Promise(r => setTimeout(r, 700)); return DEMO[task]; }
@@ -256,7 +261,7 @@ function render(){
 
 function header(title){
   const t = themeOf(unit.theme);
-  return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}</div><h1>${title}</h1></div>
+  return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}${unit.grade ? " · " + esc(unit.grade) : ""}</div><h1>${title}</h1></div>
     ${unit.step === 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>
     ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> the AI is not connected yet, so WonderNest shows sample suggestions for a habitats unit. Real suggestions start once the AI Worker is connected.</div>`}
     ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
@@ -279,7 +284,7 @@ function step1(){
     <div class="label">2. Paste or type your unit description</div>
     <textarea id="desc" maxlength="2000" placeholder="For example: Students will explore how living things depend on their habitats, and how human choices can protect or harm these environments." oninput="unit.description=this.value;saveCurrent()">${esc(unit.description)}</textarea>
     <div class="fields">
-      <div><label>Age band</label><select onchange="unit.ageBand=this.value;saveCurrent()">${["3–5","5–7","7–9","9–12"].map(a=>`<option ${unit.ageBand===a?"selected":""}>${a}</option>`).join("")}</select></div>
+      <div><label>Grade</label><select onchange="pickGrade(this.value)"><option value="" ${unit.grade?"":"selected"} disabled>Choose a grade…</option>${GRADES.map(([g,a])=>`<option value="${g}" ${unit.grade===g?"selected":""}>${g} (ages ${a})</option>`).join("")}</select></div>
       <div><label>Duration</label><input type="text" value="${esc(unit.duration)}" oninput="unit.duration=this.value;saveCurrent()"></div>
       <div><label>Languages</label><input type="text" value="${esc(unit.languages)}" placeholder="English, Arabic" oninput="unit.languages=this.value;saveCurrent()"></div>
     </div>
@@ -291,7 +296,7 @@ function step1(){
 function step2(){
   const own = unit.centralIdea && !unit.centralIdeaOptions.includes(unit.centralIdea);
   return `<div class="card">
-    <div class="label">Central idea · pick one, edit it, or write your own</div>
+    <div class="label">Central idea for ${esc(gradeLabel(unit))} · pick one, edit it, or write your own</div>
     ${unit.centralIdeaOptions.map((c,i)=>`<button class="ci ${unit.centralIdea===c?"sel":""}" onclick="pickIdea(${i})"><div class="rb"></div><div>${esc(c)}</div></button>`).join("")}
     <div class="label" style="margin-top:16px">Your chosen central idea (you can edit it here)</div>
     <textarea id="ciText" style="min-height:70px" oninput="unit.centralIdea=this.value;saveCurrent()" placeholder="Choose an idea above or write your own">${esc(unit.centralIdea)}</textarea>
@@ -307,7 +312,7 @@ function step3(){
   const conceptOpts = c => KEY_CONCEPTS.map(k=>`<option ${c===k?"selected":""}>${k}</option>`).join("");
   return `<div class="grid2">
     <div>
-      <div class="card"><div class="label">Central idea</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(unit.centralIdea)}</div></div>
+      <div class="card"><div class="label">Central idea · ${esc(gradeLabel(unit))}</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(unit.centralIdea)}</div></div>
       <div class="card">
         <div class="label">Lines of inquiry</div>
         ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="unit.lines[${i}].text=this.value;saveCurrent()">${esc(l.text)}</textarea><select onchange="unit.lines[${i}].concept=this.value;saveCurrent()">${conceptOpts(l.concept)}</select><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
@@ -365,7 +370,7 @@ function step5(){
 function homeView(){
   const units = store.get("wn_units", []);
   return `<div class="top"><div><div class="crumb">WonderNest</div><h1>My units</h1></div><button class="btn" onclick="startNew()">＋ New unit</button></div>
-  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · Ages ${esc(u.ageBand)} · saved ${esc(u.updated||"")}</p></div>
+  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))} · saved ${esc(u.updated||"")}</p></div>
     <div style="display:flex;gap:14px;flex-shrink:0"><button class="link" onclick="openUnit('${u.id}')">Open</button><button class="link danger" onclick="deleteUnit('${u.id}')">Delete</button></div></div>`).join("")
     : `<div class="empty">🐦<br><br>No saved units yet.<br>Build your first unit and click <b>Save unit</b> at the end.</div>`}</div>
   <div class="hint">Units are saved on this device for now. Saving to your school account comes in the next stage.</div>`;
@@ -384,12 +389,14 @@ function settingsView(){
 
 /* ---------- actions ---------- */
 function goStep(s){ unit.step = s; error = ""; saveCurrent(); render(); }
+function pickGrade(g){ unit.grade = g; unit.ageBand = (GRADES.find(x=>x[0]===g)||["",""])[1]; saveCurrent(); }
 function pickTheme(id){ unit.theme = id; saveCurrent(); render(); }
 function pickIdea(i){ unit.centralIdea = unit.centralIdeaOptions[i]; saveCurrent(); render(); }
 function addRelated(){ const v = prompt("Add a related concept"); if(v && v.trim()){ unit.relatedConcepts.push(v.trim()); saveCurrent(); render(); } }
 
 function suggestIdeas(){
   if(!unit.theme){ error = "Please choose a transdisciplinary theme first."; return render(); }
+  if(!unit.grade){ error = "Please choose the grade, so the central idea fits the children's age."; return render(); }
   if(unit.description.trim().length < 20){ error = "Please write a little more in the unit description, so WonderNest can understand the unit."; return render(); }
   run("central_ideas", "Writing central ideas…", d => {
     unit.centralIdeaOptions = (d.centralIdeas || []).slice(0,5);
@@ -441,7 +448,7 @@ function downloadWord(){
   <p style="color:#667085">${esc(settings.school || "")} · WonderNest unit plan</p>
   <h1>${esc(t ? t.name : "Unit of inquiry")}</h1>
   <p><b>Central idea:</b> ${esc(unit.centralIdea)}</p>
-  <p><b>Age band:</b> ${esc(unit.ageBand)} &nbsp; <b>Duration:</b> ${esc(unit.duration)} &nbsp; <b>Languages:</b> ${esc(unit.languages)}</p>
+  <p><b>Grade:</b> ${esc(gradeLabel(unit))} &nbsp; <b>Duration:</b> ${esc(unit.duration)} &nbsp; <b>Languages:</b> ${esc(unit.languages)}</p>
   <h2>Unit description</h2><p>${esc(unit.description)}</p>
   <h2>Lines of inquiry</h2><table><tr><th>Line of inquiry</th><th>${esc(cl)}</th></tr>${unit.lines.map(l=>`<tr><td>${esc(l.text)}</td><td>${esc(l.concept)}</td></tr>`).join("")}</table>
   <h2>${esc(cl)}</h2><p>${esc(unit.keyConcepts.join(", "))}</p>
