@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>My Wonder Nest</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--navy:#14325c;--blue:#2f6fd6;--sky:#e8f1ff;--sun:#ffc83d;--coral:#ff7a59;--leaf:#3bb07a;--lilac:#8a6cf0;--ink:#1d2433;--muted:#667085;--cream:#fffdf7}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:"Nunito","Avenir Next","Segoe UI",Arial,sans-serif;color:var(--ink);background:linear-gradient(160deg,#ffe9b8 0%,#ffd6c9 45%,#d9e6ff 100%);min-height:100vh}
+  button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
+  textarea,input{font:inherit;color:var(--ink)}
+  .wrap{max-width:720px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  .head{background:var(--navy);color:#fff;padding:22px 20px 18px;border-radius:0 0 28px 28px;position:relative}
+  .head .hi{font-size:14px;opacity:.85}
+  .head h1{font-size:26px;font-weight:900;margin-top:2px}
+  .head .unit{margin-top:12px;background:rgba(255,255,255,.14);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.4}
+  .head .unit b{display:block;font-size:15px}
+  .head .back{position:absolute;top:18px;right:16px;background:rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:800}
+  .body{padding:18px 16px 30px;flex:1}
+  .card{background:#fff;border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:0 2px 0 rgba(0,0,0,.04)}
+  .card h2{font-size:17px;font-weight:900;color:var(--navy);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .center{text-align:center}
+  .big-title{font-size:30px;font-weight:900;color:var(--navy);text-align:center;margin:40px 0 6px}
+  .sub{text-align:center;color:#55607a;font-size:16px;margin-bottom:22px}
+  .code-input{width:100%;max-width:340px;display:block;margin:0 auto 14px;text-align:center;font-size:34px;font-weight:900;letter-spacing:8px;text-transform:uppercase;border:3px solid #fff;border-radius:20px;padding:16px;background:#fff}
+  .btn{background:var(--blue);color:#fff;border-radius:18px;padding:15px 22px;font-weight:900;font-size:18px;display:inline-flex;gap:8px;align-items:center;justify-content:center}
+  .btn.wide{width:100%}
+  .btn.leaf{background:var(--leaf)} .btn.coral{background:var(--coral)} .btn.ghost{background:#fff;color:var(--blue)}
+  .btn:disabled{opacity:.5}
+  .names{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+  .name{background:#fff;border-radius:20px;padding:20px 10px;font-size:20px;font-weight:900;color:var(--navy);box-shadow:0 3px 0 rgba(20,50,92,.1)}
+  .pics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:440px;margin:0 auto}
+  .pic{background:#fff;border-radius:22px;font-size:44px;aspect-ratio:1;display:grid;place-items:center;box-shadow:0 3px 0 rgba(20,50,92,.1)}
+  .pic:active{transform:scale(.94)}
+  .shake{animation:shake .4s}
+  @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .msg{text-align:center;font-weight:800;color:#b42318;margin:14px 0;min-height:22px}
+  .wall{display:flex;flex-wrap:wrap;gap:10px}
+  .bub{padding:11px 14px;border-radius:20px;font-size:15px;font-weight:800;line-height:1.35;max-width:100%}
+  .empty{color:var(--muted);text-align:center;padding:12px;font-size:15px}
+  .mic-row{display:flex;gap:12px;align-items:center}
+  .mic{width:58px;height:58px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-size:26px;flex-shrink:0;box-shadow:0 0 0 7px #ffe1d8}
+  .mic.on{animation:pulse 1s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 14px #ffd1c4}}
+  textarea{width:100%;border:2.5px solid #f0e6d0;border-radius:18px;padding:13px 14px;font-size:17px;line-height:1.5;min-height:90px;background:var(--cream);resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--blue)}
+  input.title{width:100%;border:2.5px solid #f0e6d0;border-radius:16px;padding:12px 14px;font-size:18px;font-weight:800;background:var(--cream);margin-bottom:10px}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tile{border-radius:22px;padding:16px;color:#fff;font-weight:900;font-size:17px;text-align:left;min-height:100px;display:flex;flex-direction:column;justify-content:space-between}
+  .tile span{font-size:28px}
+  .step{border-radius:18px;padding:12px;margin-bottom:12px;background:#fff;border-left:8px solid}
+  .step h3{font-size:17px;font-weight:900;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .small-mic{width:42px;height:42px;border-radius:50%;background:var(--coral);font-size:19px;display:grid;place-items:center;flex-shrink:0}
+  .small-mic.on{animation:pulse 1s infinite}
+  .speak{font-size:20px;background:var(--sky);border-radius:50%;width:38px;height:38px;display:grid;place-items:center}
+  .item{border-radius:18px;background:var(--cream);padding:12px 14px;margin-bottom:10px}
+  .item h4{color:var(--navy);font-size:16px;margin-bottom:4px}
+  .item p{font-size:15px;line-height:1.5;white-space:pre-wrap}
+  .item small{color:var(--muted);font-size:12px;font-weight:700}
+  .then{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .then div{border-radius:16px;padding:12px;font-size:15px;font-weight:700;line-height:1.4}
+  .then small{display:block;font-size:11px;font-weight:900;letter-spacing:.6px;opacity:.7;margin-bottom:4px}
+  .stats{display:flex;gap:10px}
+  .stat{flex:1;border-radius:18px;padding:14px;text-align:center;color:#fff;font-weight:900}
+  .stat b{display:block;font-size:30px}
+  .lang{display:flex;gap:8px;justify-content:center;margin-top:8px}
+  .lang button{background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:800;color:var(--muted)}
+  .lang button.on{background:var(--navy);color:#fff}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:13px 22px;border-radius:16px;font-weight:900;font-size:16px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  .loading{display:grid;place-items:center;min-height:60vh;font-size:44px}
+  .loading span{animation:hop 1s infinite}
+  @keyframes hop{50%{transform:translateY(-10px)}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="loading"><span>🐦</span></div></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ===== CONFIG: your Supabase project (public values) ===== */
+const SUPABASE_URL = "https://zmncqutjtgwxlvrdgwiq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_blNQT3mGUzNadaRARkRpew_dq-tmD4J";
+/* ========================================================== */
+
+const PICTURES = ["🐢","🌈","⭐","🍎","🚀","🐬","🌻","🦁","🎈","🐝","🍓","⚽"];
+const BUBBLE_COLOURS = ["#fff1c9","#e3f1ff","#ffe3da","#e6f7ec","#f1edff","#ffeef6"];
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: "wondernest-kids" } });
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let me = null, screen = "home", entries = [], roster = null, classCode = "", chosen = null, lang = localStorage.getItem("wn_lang") || "en-GB";
+
+function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 2000); }
+function speak(text){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = lang; u.rate = .9; speechSynthesis.speak(u); }catch(e){} }
+function setLang(l){ lang = l; localStorage.setItem("wn_lang", l); draw(); }
+
+/* ---------- dictation (speech to text) ---------- */
+let rec = null;
+function dictate(targetId, btn){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ toast("Tap the 🎤 on your keyboard to talk"); $("#"+targetId).focus(); return; }
+  if(rec){ rec.stop(); return; }
+  const box = $("#"+targetId), start = box.value ? box.value.trim() + " " : "";
+  rec = new SR(); rec.lang = lang; rec.interimResults = true; rec.continuous = true;
+  btn.classList.add("on");
+  rec.onresult = ev => { let t = ""; for(const r of ev.results) t += r[0].transcript; box.value = start + t; };
+  rec.onerror = () => toast("I couldn't hear you. Try again!");
+  rec.onend = () => { btn.classList.remove("on"); rec = null; };
+  rec.start();
+}
+const micBtn = (id, small) => `<button class="${small?"small-mic":"mic"}" onclick="dictate('${id}', this)" aria-label="Talk">🎤</button>`;
+const langSwitch = () => `<div class="lang"><button class="${lang==="en-GB"?"on":""}" onclick="setLang('en-GB')">English</button><button class="${lang==="ar-AE"?"on":""}" onclick="setLang('ar-AE')">العربية</button></div>`;
+
+/* ---------- start ---------- */
+async function start(){
+  try{
+    let { data: { session } } = await db.auth.getSession();
+    if(!session){ const r = await db.auth.signInAnonymously(); if(r.error) throw r.error; }
+    const { data } = await db.rpc("me_student");
+    if(data){ me = data; await loadEntries(); screen = "home"; return draw(); }
+    const code = new URLSearchParams(location.search).get("c");
+    if(code){ classCode = code; return loadRoster(); }
+    screen = "code"; draw();
+  }catch(e){ $("#app").innerHTML = `<div class="body"><div class="big-title">Oops!</div><p class="sub">WonderNest can't connect right now. Please ask your teacher.</p></div>`; }
+}
+async function loadRoster(){
+  const { data } = await db.rpc("class_roster", { p_code: classCode });
+  if(!data){ screen = "code"; draw(); $(".msg").textContent = "I can't find that class code. Check it with your teacher."; return; }
+  roster = data; screen = "names"; draw();
+}
+async function tryPicture(pic, el){
+  const { data, error } = await db.rpc("student_login", { p_code: classCode, p_student: chosen.id, p_picture: pic });
+  if(error){ $(".msg").textContent = "Something went wrong. Try again."; return; }
+  if(data.ok){ const r = await db.rpc("me_student"); me = r.data; await loadEntries(); screen = "home"; draw(); speak("Hello " + me.first_name + "!"); return; }
+  el.classList.add("shake"); setTimeout(()=>el.classList.remove("shake"), 400);
+  $(".msg").textContent = data.reason === "locked" ? "Too many tries. Please ask your teacher, or wait 10 minutes." : "Not that one. Try again!";
+}
+async function loadEntries(){
+  const { data } = await db.from("entries").select("*").eq("student_id", me.student_id).order("created_at", { ascending: false });
+  entries = data || [];
+}
+async function addEntry(kind, title, content){
+  const unit = me.current_unit ? (me.current_unit.centralIdea || "") : "";
+  const { error } = await db.from("entries").insert({ student_id: me.student_id, class_id: me.class_id, kind, title, content, unit_label: unit });
+  if(error){ toast("Oh no, it didn't save. Try again."); return false; }
+  await loadEntries(); toast("Saved in your nest! 🐦"); return true;
+}
+async function logout(){ await db.rpc("student_logout"); me = null; entries = []; screen = "code"; classCode = ""; draw(); }
+function go(s){ screen = s; draw(); window.scrollTo(0,0); }
+
+/* ---------- screens ---------- */
+function draw(){
+  const app = $("#app");
+  if(screen === "code") return app.innerHTML = `<div class="body">
+    <div class="big-title">🐦 Wonder Nest</div><p class="sub">Type your class code</p>
+    <input class="code-input" id="code" maxlength="6" autocomplete="off" autocapitalize="characters" value="${esc(classCode)}">
+    <div class="center"><button class="btn" onclick="classCode=$('#code').value.trim(); loadRoster()">Let's go! →</button></div>
+    <div class="msg"></div></div>`;
+  if(screen === "names") return app.innerHTML = `<div class="body">
+    <div class="big-title">Who are you?</div><p class="sub">${esc(roster.class_name)} · tap your name</p>
+    <div class="names">${roster.students.map((s,i)=>`<button class="name" onclick="chosen=roster.students[${i}]; go('picture')">${esc(s.first_name)}</button>`).join("")}</div>
+    ${roster.students.length ? "" : `<p class="sub" style="margin-top:20px">Your teacher hasn't added names yet.</p>`}
+    <div class="center" style="margin-top:22px"><button class="btn ghost" onclick="go('code')">‹ Different class</button></div></div>`;
+  if(screen === "picture") return app.innerHTML = `<div class="body">
+    <div class="big-title">Hi ${esc(chosen.first_name)}!</div><p class="sub">Tap your secret picture</p>
+    <div class="pics">${PICTURES.map(p=>`<button class="pic" onclick="tryPicture('${p}', this)">${p}</button>`).join("")}</div>
+    <div class="msg"></div>
+    <div class="center"><button class="btn ghost" onclick="go('names')">‹ That's not me</button></div></div>`;
+  if(!me) return start();
+  const u = me.current_unit || {};
+  const head = (title, hi, color) => `<div class="head" style="${color?`background:${color}`:""}"><div class="hi">${hi}</div><h1>${title}</h1>
+    ${screen === "home" && u.centralIdea ? `<div class="unit">${esc(u.themeIcon||"🌍")} ${esc(u.themeName||"Our unit")}<b>${esc(u.centralIdea)}</b></div>` : ""}
+    <button class="back" onclick="${screen==="home" ? "if(confirm('Leave your Wonder Nest?')) logout()" : "go('home')"}">${screen==="home" ? "👋 Bye" : "‹ Home"}</button></div>`;
+  const wonders = entries.filter(e=>e.kind==="wonder"), stories = entries.filter(e=>e.kind==="story"), routines = entries.filter(e=>e.kind==="routine"), refl = entries.filter(e=>e.kind==="reflection");
+
+  if(screen === "home") return app.innerHTML = head(`${esc(me.first_name)}'s Wonder Nest 🐦`, "Hello,") + `<div class="body">
+    <div class="card"><h2>💭 My wonder wall <button class="speak" onclick="speak('What are you wondering about today?')">🔊</button></h2>
+      <div class="wall">${wonders.slice(0,8).map((w,i)=>`<div class="bub" style="background:${BUBBLE_COLOURS[i%6]}">${esc(w.content.text)}</div>`).join("") || `<div class="empty">Your wonders will live here.</div>`}</div></div>
+    <div class="card"><h2>What are you wondering?</h2>
+      <div class="mic-row">${micBtn("wonderText")}<textarea id="wonderText" placeholder="I wonder…" style="min-height:70px"></textarea></div>
+      ${langSwitch()}
+      <button class="btn leaf wide" style="margin-top:12px" onclick="saveWonder()">Add to my wonder wall</button></div>
+    <div class="tiles">
+      <button class="tile" style="background:var(--blue)" onclick="go('routine')"><span>🧠</span>See · Think · Wonder</button>
+      <button class="tile" style="background:var(--lilac)" onclick="go('stories')"><span>📖</span>My stories</button>
+      <button class="tile" style="background:var(--coral)" onclick="go('grown')"><span>🌱</span>How I've grown</button>
+      <button class="tile" style="background:var(--leaf)" onclick="go('wonders')"><span>💭</span>All my wonders</button>
+    </div></div>`;
+
+  if(screen === "wonders") return app.innerHTML = head("All my wonders 💭", `${wonders.length} wonders`) + `<div class="body"><div class="card">
+    ${wonders.map((w,i)=>`<div class="item" style="background:${BUBBLE_COLOURS[i%6]}"><p><b>${esc(w.content.text)}</b></p><small>${new Date(w.created_at).toLocaleDateString()}</small></div>`).join("") || `<div class="empty">No wonders yet.</div>`}
+  </div></div>`;
+
+  if(screen === "routine") return app.innerHTML = head("See · Think · Wonder", "Thinking routine", "var(--blue)") + `<div class="body">
+    <div class="card"><p style="font-size:16px;font-weight:700">Look carefully at what your teacher shows you. Then tell me:</p></div>
+    ${[["see","👀 I see…","var(--sun)","What do you see?"],["think","💡 I think…","var(--blue)","What do you think about that?"],["wonder","❓ I wonder…","var(--coral)","What does it make you wonder?"]].map(([k,l,c,s])=>`
+      <div class="step" style="border-color:${c}"><h3>${l}<span style="display:flex;gap:8px"><button class="speak" onclick="speak('${s}')">🔊</button>${micBtn("r_"+k, true)}</span></h3><textarea id="r_${k}" style="min-height:70px"></textarea></div>`).join("")}
+    ${langSwitch()}
+    <button class="btn wide" style="margin-top:12px" onclick="saveRoutine()">Add to my portfolio 🎒</button>
+    ${routines.length ? `<div class="card" style="margin-top:16px"><h2>My thinking</h2>${routines.map(r=>`<div class="item"><p>👀 ${esc(r.content.see)}<br>💡 ${esc(r.content.think)}<br>❓ ${esc(r.content.wonder)}</p><small>${new Date(r.created_at).toLocaleDateString()}</small></div>`).join("")}</div>` : ""}
+  </div>`;
+
+  if(screen === "stories") return app.innerHTML = head("My stories 📖", "Story studio", "var(--lilac)") + `<div class="body">
+    <div class="card"><h2>Write or tell a new story <button class="speak" onclick="speak('Tell me your story. You can talk or type.')">🔊</button></h2>
+      ${u.storySpark ? `<div class="item" style="background:#ffe9e2"><p><b>✨ Idea: ${esc(u.storySpark)}</b></p></div>` : ""}
+      <input class="title" id="s_title" placeholder="My story's title">
+      <div class="mic-row" style="align-items:flex-start">${micBtn("s_text")}<textarea id="s_text" placeholder="Once upon a time…" style="min-height:160px"></textarea></div>
+      ${langSwitch()}
+      <button class="btn wide" style="margin-top:12px;background:var(--lilac)" onclick="saveStory()">Save my story</button></div>
+    ${stories.map(s=>`<div class="card"><h2>${esc(s.title || "My story")}<button class="speak" onclick="speak(${esc(JSON.stringify((s.title||"")+". "+(s.content.text||"")))})">🔊</button></h2><p style="font-size:16px;line-height:1.6;white-space:pre-wrap">${esc(s.content.text)}</p><small style="color:var(--muted)">${new Date(s.created_at).toLocaleDateString()}</small></div>`).join("")}
+  </div>`;
+
+  if(screen === "grown") return app.innerHTML = head("How I've grown 🌱", "My portfolio", "var(--leaf)") + `<div class="body">
+    <div class="stats"><div class="stat" style="background:var(--coral)"><b>${wonders.length}</b>wonders</div><div class="stat" style="background:var(--lilac)"><b>${stories.length}</b>stories</div><div class="stat" style="background:var(--blue)"><b>${routines.length}</b>thinking</div></div>
+    <div class="card" style="margin-top:14px"><h2>My thinking changed!</h2>
+      <div class="step" style="border-color:var(--sun)"><h3>I used to think…${micBtn("g_before", true)}</h3><textarea id="g_before" style="min-height:60px"></textarea></div>
+      <div class="step" style="border-color:var(--leaf)"><h3>Now I think…${micBtn("g_now", true)}</h3><textarea id="g_now" style="min-height:60px"></textarea></div>
+      ${langSwitch()}
+      <button class="btn leaf wide" style="margin-top:12px" onclick="saveReflection()">Save</button></div>
+    ${refl.map(r=>`<div class="card"><div class="then"><div style="background:#fff1c9"><small>I USED TO THINK</small>${esc(r.content.before)}</div><div style="background:#e6f7ec"><small>NOW I THINK</small>${esc(r.content.now)}</div></div><small style="color:var(--muted)">${new Date(r.created_at).toLocaleDateString()}</small></div>`).join("")}
+  </div>`;
+}
+
+/* ---------- saving ---------- */
+async function saveWonder(){ const t = $("#wonderText").value.trim(); if(!t) return toast("Tell me your wonder first!"); if(await addEntry("wonder", "", {text:t})) draw(); }
+async function saveRoutine(){
+  const c = {routine:"See-Think-Wonder", see:$("#r_see").value.trim(), think:$("#r_think").value.trim(), wonder:$("#r_wonder").value.trim()};
+  if(!c.see && !c.think && !c.wonder) return toast("Tell me what you see first!");
+  if(await addEntry("routine", "See-Think-Wonder", c)) draw();
+}
+async function saveStory(){ const t = $("#s_text").value.trim(); if(!t) return toast("Tell me your story first!"); if(await addEntry("story", $("#s_title").value.trim() || "My story", {text:t})) draw(); }
+async function saveReflection(){ const b = $("#g_before").value.trim(), n = $("#g_now").value.trim(); if(!b || !n) return toast("Fill in both boxes!"); if(await addEntry("reflection", "I used to think… Now I think…", {before:b, now:n})) draw(); }
+
+start();
+</script>
+</body>
+</html>

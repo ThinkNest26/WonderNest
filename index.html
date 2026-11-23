@@ -141,6 +141,30 @@
   table.rubric .crit{font-weight:800;color:var(--navy)}
   table.rubric .link{display:block;font-size:11px;font-weight:700;color:var(--lilac);padding:0 10px 9px}
   .fmt{display:inline-flex;gap:6px;align-items:center}
+  /* classes */
+  .auth{max-width:460px}
+  .auth .fields{grid-template-columns:1fr;margin:0}
+  .tabs{display:flex;gap:6px;margin-bottom:16px}
+  .tabs button{flex:1;padding:10px;border-radius:10px;font-weight:800;background:var(--bg);color:var(--muted)}
+  .tabs button.on{background:var(--navy);color:#fff}
+  .ok{background:#e6f7ec;border:1px solid #bfe8cf;color:#1f7a4d;border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:14px}
+  .codebox{display:flex;gap:14px;flex-wrap:wrap}
+  .codebox > div{flex:1;min-width:220px;background:var(--sky);border-radius:14px;padding:14px 16px}
+  .codebox b{display:block;font-size:26px;letter-spacing:4px;color:var(--navy);margin:4px 0}
+  .codebox a{color:var(--blue);font-weight:700;font-size:13px;word-break:break-all}
+  .kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+  .kid{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;text-align:left;background:#fff}
+  .kid:hover{border-color:#c9d3e6}
+  .kid .p{font-size:28px}
+  .kid b{display:block;color:var(--navy)} .kid small{color:var(--muted);font-size:12px}
+  .wonders{display:flex;flex-wrap:wrap;gap:8px}
+  .wbub{padding:9px 12px;border-radius:16px;font-size:13.5px;font-weight:700;line-height:1.35;background:#fff1c9}
+  .wbub small{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:2px}
+  .entry{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;position:relative}
+  .entry h4{color:var(--navy);font-size:14.5px;margin-bottom:4px}
+  .entry p{font-size:14px;line-height:1.5;white-space:pre-wrap}
+  .entry small{color:var(--muted);font-size:12px}
+  .entry .del{position:absolute;top:10px;right:12px}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -171,6 +195,7 @@
     .sdgs{grid-template-columns:repeat(3,1fr)}
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="app">
@@ -181,7 +206,7 @@
     <button class="nav" data-view="settings">⚙️ School settings</button>
     <div class="nav soon">📚 Story library <span class="pill">Soon</span></div>
     <div class="nav soon">🔍 Open inquiry <span class="pill">Soon</span></div>
-    <div class="nav soon">🌱 Class portfolios <span class="pill">Soon</span></div>
+    <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
     <div class="nav soon">📈 ATL growth <span class="pill">Soon</span></div>
     <button class="nav" data-view="summative">🎯 Summative tasks</button>
     <div class="foot" id="footSchool">Your school's programme of inquiry</div>
@@ -229,6 +254,13 @@ const GRADES = [
 const gradeLabel = u => u.grade ? `${u.grade} (ages ${(GRADES.find(g=>g[0]===u.grade)||["",""])[1]})` : (u.ageBand ? "Ages " + u.ageBand : "");
 const STEP_NAMES = ["Theme & description","Central idea","Lines of inquiry & concepts","SDGs","Stories, routines & inquiry"];
 const ROUTINE_COLOURS = ["var(--sun)","var(--blue)","var(--coral)","var(--leaf)","var(--lilac)"];
+
+/* ---------- Supabase (public project values) ---------- */
+const SUPABASE_URL = "https://zmncqutjtgwxlvrdgwiq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_blNQT3mGUzNadaRARkRpew_dq-tmD4J";
+const SITE_URL = "https://wondernest.thinknest.education";
+const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storageKey: "wondernest-teacher" } }) : null;
+const PICTURES = ["🐢","🌈","⭐","🍎","🚀","🐬","🌻","🦁","🎈","🐝","🍓","⚽"];
 
 /* ---------- storage ---------- */
 const store = {
@@ -317,6 +349,7 @@ function render(){
   if(view === "home") m.innerHTML = homeView();
   else if(view === "settings") m.innerHTML = settingsView();
   else if(view === "summative") m.innerHTML = summativeView();
+  else if(view === "classes") m.innerHTML = classesView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
   if(view === "builder" && unit.step === 5) checkBooks();
@@ -566,6 +599,190 @@ function sumWord(){
   a.download = "WonderNest summative task - " + (t.title || "task") + ".doc"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
+/* ---------- classes & portfolios (teachers) ---------- */
+const tc = {user:null, ready:false, mode:"signin", msg:"", classes:[], cls:null, students:[], entries:[], kid:null};
+async function initAuth(){
+  if(!db){ tc.ready = true; return; }
+  const { data:{ session } } = await db.auth.getSession();
+  tc.user = session ? session.user : null; tc.ready = true;
+  db.auth.onAuthStateChange((ev, session) => {
+    tc.user = session ? session.user : null;
+    if(ev === "PASSWORD_RECOVERY"){ tc.mode = "newpass"; view = "classes"; }
+    if(view === "classes") render();
+  });
+  if(location.hash.includes("type=recovery")){ tc.mode = "newpass"; view = "classes"; render(); }
+}
+const tcErr = e => (e && e.message) || "Something went wrong. Please try again.";
+async function tLoadClasses(){
+  const { data, error: e } = await db.from("classes").select("*").order("created_at");
+  if(e){ error = tcErr(e); } tc.classes = data || []; render();
+}
+async function tOpenClass(id){
+  error = ""; tc.kid = null;
+  const [c, s, en] = await Promise.all([
+    db.from("classes").select("*").eq("id", id).single(),
+    db.from("students").select("*").eq("class_id", id).order("first_name"),
+    db.from("entries").select("*").eq("class_id", id).order("created_at", {ascending:false}).limit(500)
+  ]);
+  if(c.error){ error = tcErr(c.error); return render(); }
+  tc.cls = c.data; tc.students = s.data || []; tc.entries = en.data || []; render();
+}
+function classesView(){
+  const top = t => `<div class="top"><div><div class="crumb">WonderNest${tc.user ? ` · signed in as ${esc(tc.user.email)} · <button class="link" onclick="tSignOut()">Sign out</button>` : ""}</div><h1>${t}</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}${tc.msg ? `<div class="ok">${esc(tc.msg)}</div>` : ""}`;
+  if(!db) return top("Classes & portfolios") + `<div class="card">WonderNest can't reach its database right now. Please check your internet connection and refresh.</div>`;
+  if(!tc.ready) return top("Classes & portfolios") + `<div class="card">Loading…</div>`;
+  if(tc.mode === "newpass") return top("Choose a new password") + `<div class="card auth"><div class="fields"><div><label>New password (at least 8 characters)</label><input type="password" id="np"></div></div><div class="actions"><span></span><button class="btn" onclick="tNewPass()">Save password</button></div></div>`;
+  if(!tc.user) return top("Classes & portfolios") + `<div class="card auth">
+    <div class="tabs"><button class="${tc.mode==="signin"?"on":""}" onclick="tc.mode='signin';tc.msg='';error='';render()">Sign in</button><button class="${tc.mode==="signup"?"on":""}" onclick="tc.mode='signup';tc.msg='';error='';render()">Create teacher account</button></div>
+    <div class="fields">
+      <div><label>School email</label><input type="text" id="em" autocomplete="email"></div>
+      ${tc.mode !== "forgot" ? `<div><label>Password${tc.mode==="signup"?" (at least 8 characters)":""}</label><input type="password" id="pw" autocomplete="${tc.mode==="signup"?"new-password":"current-password"}"></div>` : ""}
+    </div>
+    <div class="actions">
+      ${tc.mode === "signin" ? `<button class="link" onclick="tc.mode='forgot';render()">Forgot password?</button>` : "<span></span>"}
+      <button class="btn" onclick="tAuth()">${tc.mode==="signup" ? "Create account" : tc.mode==="forgot" ? "Send reset link" : "Sign in"}</button>
+    </div>
+    <p class="hint" style="margin-top:14px">Teacher accounts are for adults only. Children sign in on their own page with a class code and a picture password.</p></div>`;
+  if(!tc.cls){
+    if(!tc.loaded){ tc.loaded = true; tLoadClasses(); }
+    return top("My classes") + `<div class="card">
+      ${tc.classes.length ? tc.classes.map(c=>`<div class="unit-row"><div><h4>${esc(c.name)}</h4><p>${esc(c.grade)} · class code <b>${esc(c.code)}</b>${c.current_unit ? " · " + esc(c.current_unit.centralIdea) : ""}</p></div><button class="btn small" onclick="tOpenClass('${c.id}')">Open</button></div>`).join("") : `<div class="empty">🌱<br><br>No classes yet. Create your first class below.</div>`}
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="label">Create a class</div>
+        <div class="fields" style="grid-template-columns:1fr 1fr;margin:0"><div><label>Class name</label><input type="text" id="cn" placeholder="Grade 3B"></div>
+        <div><label>Grade</label><select id="cg">${GRADES.map(([g,a])=>`<option>${g}</option>`).join("")}</select></div></div>
+        <div class="actions"><span></span><button class="btn" onclick="tCreateClass()">＋ Create class</button></div></div>
+      <div class="card"><div class="label">Join a colleague's class</div>
+        <div class="fields" style="grid-template-columns:1fr;margin:0"><div><label>Teacher code (10 characters, from the class page)</label><input type="text" id="tcode"></div></div>
+        <div class="actions"><span></span><button class="btn ghost" onclick="tJoin()">Join class</button></div></div>
+    </div>`;
+  }
+  const c = tc.cls, kidsLink = `${SITE_URL}/kids.html?c=${c.code}`;
+  const nameOf = id => (tc.students.find(s=>s.id===id)||{}).first_name || "";
+  if(tc.kid){
+    const k = tc.students.find(s=>s.id===tc.kid); const mine = tc.entries.filter(e=>e.student_id===tc.kid);
+    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["story","📖 Stories"],["reflection","🌱 How I've grown"]];
+    return top(`${esc(k.picture)} ${esc(k.first_name)}'s Wonder Nest`) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.kid=null;render()">‹ Back to ${esc(c.name)}</button></div>
+      <div class="grid2"><div>${kinds.slice(0,2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div><div>${kinds.slice(2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div></div>`;
+  }
+  const units = savedUnits();
+  return top(esc(c.name)) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.cls=null;tc.loaded=false;tc.msg='';render()">‹ All classes</button> · ${esc(c.grade)}</div>
+    <div class="card"><div class="codebox">
+      <div><span class="label">Children's class code</span><b>${esc(c.code)}</b><a href="${kidsLink}" target="_blank" rel="noopener">${kidsLink}</a></div>
+      <div><span class="label">Teacher code (for co-teachers only)</span><b style="font-size:20px">${esc(c.teacher_code)}</b><span class="hint">Share only with colleagues. It gives access to children's work.</span></div>
+    </div></div>
+    <div class="card"><div class="label">Current unit (children see this on their home page)</div>
+      ${c.current_unit ? `<div style="font-weight:800;color:var(--navy);margin-bottom:10px">${esc(c.current_unit.themeIcon||"")} ${esc(c.current_unit.centralIdea)}</div>` : `<div class="hint" style="margin-bottom:10px">No unit chosen yet.</div>`}
+      ${units.length ? `<div class="edit-row"><select id="cu">${units.map(u=>`<option value="${u.id}">${esc(u.centralIdea || "Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select><button class="btn small" onclick="tSetUnit()">Set as current unit</button></div>` : `<div class="hint">Save a unit in the Unit builder first. Units saved on this device appear here.</div>`}
+    </div>
+    <div class="card"><div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">Children (${tc.students.length})</div>
+      ${tc.students.length ? `<button class="btn small ghost" onclick="tPrintCards()">🖨️ Print login cards</button>` : ""}</div>
+      <div class="kids">${tc.students.map(s=>{const n = tc.entries.filter(e=>e.student_id===s.id).length; return `<button class="kid" onclick="tc.kid='${s.id}';render()"><span class="p">${esc(s.picture)}</span><span><b>${esc(s.first_name)}</b><small>${n} item${n===1?"":"s"} in portfolio</small></span></button>`;}).join("")}</div>
+      <div class="label" style="margin-top:18px">Add children (first names only, one per line)</div>
+      <textarea id="newkids" style="min-height:90px" placeholder="Layla
+Omar
+Sara"></textarea>
+      <div class="actions"><span class="hint">Each child gets a picture password. Print the login cards to give them out.</span><button class="btn" onclick="tAddKids()">＋ Add children</button></div>
+    </div>
+    <div class="card"><div class="label">💭 Class wonder wall</div>
+      <div class="wonders">${tc.entries.filter(e=>e.kind==="wonder").slice(0,40).map(w=>`<div class="wbub"><small>${esc(nameOf(w.student_id))}</small>${esc(w.content.text)}</div>`).join("") || `<div class="hint">Children's wonders will appear here.</div>`}</div>
+    </div>
+    <div class="card"><div class="label">Manage</div>
+      <div class="actions" style="margin-top:0">${tc.students.length ? `<select id="rmkid" style="max-width:260px">${tc.students.map(s=>`<option value="${s.id}">${esc(s.first_name)}</option>`).join("")}</select><button class="link danger" onclick="tRemoveKid()">Remove child and their work</button>` : "<span></span>"}
+      <button class="link danger" onclick="tDeleteClass()">Delete this class</button></div>
+    </div>`;
+}
+function kindCard(list, kind, label){
+  const items = list.filter(e=>e.kind===kind);
+  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
+  return `<div class="card"><div class="label">${label} (${items.length})</div>${items.map(e=>`<div class="entry"><button class="link danger del" title="Delete" onclick="tDelEntry('${e.id}')">✕</button>${kind==="story"?`<h4>${esc(e.title)}</h4>`:""}<p>${body(e)}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.unit_label ? " · " + esc(e.unit_label) : ""}</small></div>`).join("") || `<div class="hint">Nothing yet.</div>`}</div>`;
+}
+async function tAuth(){
+  error = ""; tc.msg = "";
+  const em = $("#em").value.trim(), pw = $("#pw") ? $("#pw").value : "";
+  if(!em) { error = "Please type your email."; return render(); }
+  loading(true, "One moment…");
+  try{
+    if(tc.mode === "signup"){
+      if(pw.length < 8) throw new Error("Please choose a password with at least 8 characters.");
+      const { data, error: e } = await db.auth.signUp({ email: em, password: pw, options: { emailRedirectTo: SITE_URL } });
+      if(e) throw e;
+      if(!data.session) tc.msg = "Check your email and click the link to confirm your account, then sign in here.";
+      tc.mode = "signin";
+    } else if(tc.mode === "forgot"){
+      const { error: e } = await db.auth.resetPasswordForEmail(em, { redirectTo: SITE_URL });
+      if(e) throw e; tc.msg = "If that email has an account, a reset link is on its way."; tc.mode = "signin";
+    } else {
+      const { error: e } = await db.auth.signInWithPassword({ email: em, password: pw });
+      if(e) throw e; tc.loaded = false;
+    }
+  }catch(e){ error = tcErr(e); }
+  finally{ loading(false); render(); }
+}
+async function tNewPass(){ const p = $("#np").value; if(p.length < 8){ error = "At least 8 characters, please."; return render(); }
+  const { error: e } = await db.auth.updateUser({ password: p }); if(e){ error = tcErr(e); return render(); }
+  tc.mode = "signin"; tc.msg = "Password saved. You're signed in."; history.replaceState(null, "", location.pathname); render(); }
+async function tSignOut(){ await db.auth.signOut(); Object.assign(tc, {classes:[], cls:null, students:[], entries:[], kid:null, loaded:false, msg:""}); render(); }
+async function tCreateClass(){
+  const name = $("#cn").value.trim(); if(!name){ error = "Please give the class a name."; return render(); }
+  const { error: e } = await db.from("classes").insert({ name, grade: $("#cg").value });
+  if(e){ error = tcErr(e); return render(); } error = ""; tc.loaded = false; render();
+}
+async function tJoin(){
+  const { data, error: e } = await db.rpc("join_class_as_teacher", { p_teacher_code: $("#tcode").value });
+  if(e || !data || !data.ok){ error = "That teacher code didn't work. Check it with your colleague."; return render(); }
+  error = ""; tc.msg = `You joined ${data.name}.`; tc.loaded = false; render();
+}
+async function tSetUnit(){
+  const u = savedUnits().find(x => x.id === $("#cu").value); if(!u) return;
+  const t = themeOf(u.theme) || {};
+  const cu = { unitId: u.id, centralIdea: u.centralIdea, themeName: t.name || "", themeIcon: t.ic || "", grade: u.grade || "", storySpark: u.spark || "" };
+  const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", tc.cls.id);
+  if(e){ error = tcErr(e); return render(); } tc.cls.current_unit = cu; toast("Current unit set ✓"); render();
+}
+async function tAddKids(){
+  const names = $("#newkids").value.split(/\n|,/).map(n => n.trim()).filter(Boolean).slice(0, 60);
+  if(!names.length) return;
+  const used = tc.students.map(s => s.picture);
+  const rows = names.map((n, i) => {
+    const free = PICTURES.filter(p => !used.includes(p)); const pool = free.length ? free : PICTURES;
+    const pic = pool[Math.floor(Math.random() * pool.length)]; used.push(pic);
+    return { class_id: tc.cls.id, first_name: n.slice(0, 40), picture: pic };
+  });
+  const { error: e } = await db.from("students").insert(rows);
+  if(e){ error = tcErr(e); return render(); } toast(`${rows.length} added ✓`); tOpenClass(tc.cls.id);
+}
+async function tRemoveKid(){
+  const id = $("#rmkid").value, k = tc.students.find(s=>s.id===id);
+  if(!k || !confirm(`Remove ${k.first_name} and delete all of their work? This cannot be undone.`)) return;
+  const { error: e } = await db.from("students").delete().eq("id", id);
+  if(e){ error = tcErr(e); return render(); } tOpenClass(tc.cls.id);
+}
+async function tDeleteClass(){
+  if(!confirm(`Delete ${tc.cls.name}, all its children and all their work? This cannot be undone.`)) return;
+  const { error: e } = await db.from("classes").delete().eq("id", tc.cls.id);
+  if(e){ error = tcErr(e); return render(); } tc.cls = null; tc.loaded = false; render();
+}
+async function tDelEntry(id){
+  if(!confirm("Delete this item from the child's portfolio?")) return;
+  const { error: e } = await db.from("entries").delete().eq("id", id);
+  if(e){ error = tcErr(e); return render(); } tc.entries = tc.entries.filter(x => x.id !== id); render();
+}
+function tPrintCards(){
+  const c = tc.cls, link = `${SITE_URL}/kids.html?c=${c.code}`;
+  const w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to print cards");
+  w.document.write(`<html><head><meta charset="utf-8"><title>${esc(c.name)} login cards</title><style>
+    body{font-family:Arial,sans-serif;margin:20px} .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .c{border:2px dashed #94a3b8;border-radius:14px;padding:14px;text-align:center;break-inside:avoid}
+    .c b{display:block;font-size:22px;color:#14325c;margin-bottom:6px} .c .p{font-size:54px;line-height:1.1}
+    .c small{display:block;color:#475569;font-size:12px;margin-top:8px} h1{font-size:18px;color:#14325c}
+  </style></head><body><h1>${esc(c.name)} · WonderNest login cards</h1><div class="grid">
+  ${tc.students.map(s=>`<div class="c"><b>${esc(s.first_name)}</b><div class="p">${s.picture}</div><small>Class code: <b style="display:inline;font-size:14px">${esc(c.code)}</b><br>${esc(link)}</small></div>`).join("")}
+  </div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
+  w.document.close();
+}
+
 /* ---------- actions ---------- */
 function goStep(s){ unit.step = s; error = ""; saveCurrent(); render(); }
 function pickGrade(g){ unit.grade = g; unit.ageBand = (GRADES.find(x=>x[0]===g)||["",""])[1]; saveCurrent(); }
@@ -648,7 +865,7 @@ function downloadWord(){
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
-document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; if(view === "summative"){ sumId = null; sumDraft = null; } render(); }));
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; tc.msg = ""; if(view === "summative"){ sumId = null; sumDraft = null; } if(view === "classes"){ tc.cls = null; tc.kid = null; tc.loaded = false; } render(); }));
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
@@ -714,6 +931,7 @@ const DEMO = {
 };
 
 render();
+initAuth();
 </script>
 </body>
 </html>
