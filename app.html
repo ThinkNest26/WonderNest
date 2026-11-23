@@ -1447,6 +1447,63 @@ function libAddToUnit(id){
   toast(`Added to "${(u.centralIdea||"").slice(0,40)}…" ✓`);
 }
 
+/* ---------- the wonder jar (shared by teacher and child pages) ---------- */
+const JAR_COLOURS = ["#fff1c9","#ffe3da","#e3f1ff","#e6f7ec","#f1edff","#ffeef6","#fff6d6","#e0f7f7"];
+function jarHTML(items, onSlip, opts){
+  opts = opts || {};
+  const shown = items.slice(0, 24);
+  const slips = shown.map((p, i) => {
+    const row = Math.floor(i / 3), col = i % 3;
+    const jx = ((i * 53) % 17) - 8, jy = ((i * 29) % 11) - 5, rot = ((i * 37) % 34) - 17;
+    const left = 14 + col * 64 + jx + (row % 2 ? 14 : 0), bottom = 10 + row * 26 + jy;
+    return `<button class="wslip ${opts.newId === p.id ? "drop" : ""}" title="${esc(p.title)}" onclick="${onSlip}('${p.id}')"
+      style="left:${left}px;bottom:${bottom}px;--r:${rot}deg;background:${JAR_COLOURS[i % JAR_COLOURS.length]};animation-delay:${(i % 6) * .35}s">${esc(p.emoji || "💭")}</button>`;
+  }).join("");
+  return `<div class="jarwrap"><div class="jar ${opts.shaking ? "shaking" : ""}" id="jar">
+      <div class="lid"></div><div class="lidtop"></div><div class="neck"></div>
+      <div class="glass">${slips}<div class="shine"></div>
+        ${items.length ? "" : `<div class="jarempty">Empty…<br>add a wonder!</div>`}</div>
+      <div class="jarlabel">${esc(opts.label || "Wonder jar")}${items.length ? ` · ${items.length}` : ""}</div>
+    </div></div>`;
+}
+function slipCard(p, buttons){
+  return `<div class="slipbg" onclick="if(event.target===this) closeSlip()"><div class="slipcard">
+    <div class="slipemoji">${esc(p.emoji || "💭")}</div>
+    <div class="slipkind">${p.kind === "maker" ? "🛠️ Maker challenge" : p.kind === "wonder" ? "💭 A wonder" : "✨ Provocation"}</div>
+    <h3>${esc(p.title)}</h3>${p.body ? `<p>${esc(p.body)}</p>` : ""}
+    <div class="slipbtns">${buttons}</div></div></div>`;
+}
+const JAR_CSS = `
+  .jarwrap{display:flex;justify-content:center;padding:6px 0 10px}
+  .jar{position:relative;width:240px;height:300px}
+  .jar .lid{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:150px;height:30px;border-radius:10px;background:linear-gradient(#d29a5c,#a8682f);box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 3px 6px rgba(0,0,0,.12);z-index:3}
+  .jar .lidtop{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:12px;border-radius:8px;background:#e0ad72;z-index:4}
+  .jar .neck{position:absolute;top:34px;left:50%;transform:translateX(-50%);width:164px;height:20px;border:4px solid rgba(110,150,195,.55);border-bottom:0;border-radius:8px 8px 0 0;background:rgba(220,236,250,.45);z-index:2}
+  .jar .glass{position:absolute;top:50px;left:6px;right:6px;bottom:0;border:4px solid rgba(110,150,195,.55);border-radius:46px 46px 54px 54px;background:linear-gradient(115deg,rgba(255,255,255,.75),rgba(214,234,252,.45) 45%,rgba(194,222,248,.6));overflow:hidden;box-shadow:inset 0 -10px 24px rgba(110,150,195,.18),0 14px 30px rgba(20,50,92,.12)}
+  .jar .shine{position:absolute;top:18px;left:18px;width:16px;height:150px;border-radius:12px;background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,0));pointer-events:none}
+  .jarlabel{position:absolute;left:50%;top:132px;transform:translateX(-50%) rotate(-3deg);background:#fffaf0;border:2px solid #e8c98f;border-radius:10px;padding:5px 12px;font-weight:900;font-size:13px;color:#8a5200;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.08);z-index:2;pointer-events:none}
+  .jarempty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#7c93b3;font-weight:800;font-size:14px;padding-top:70px}
+  .wslip{position:absolute;width:58px;height:38px;border-radius:7px;font-size:19px;display:grid;place-items:center;border:1.5px solid rgba(0,0,0,.08);box-shadow:0 3px 5px rgba(0,0,0,.12);transform:rotate(var(--r));cursor:pointer;animation:slipfloat 4s ease-in-out infinite;z-index:1}
+  .wslip:after{content:"";position:absolute;right:0;top:0;width:12px;height:12px;background:linear-gradient(225deg,rgba(0,0,0,.12) 50%,transparent 50%);border-radius:0 7px 0 0}
+  .wslip:hover{transform:rotate(0) scale(1.15);z-index:5}
+  .wslip.drop{animation:slipdrop 1s cubic-bezier(.3,1.4,.6,1) both}
+  @keyframes slipfloat{50%{transform:rotate(var(--r)) translateY(-3px)}}
+  @keyframes slipdrop{0%{transform:translateY(-260px) rotate(40deg);opacity:0}60%{opacity:1}100%{transform:rotate(var(--r))}}
+  .jar.shaking{animation:jarshake .9s ease-in-out}
+  .jar.shaking .wslip{animation:slipjiggle .3s ease-in-out 3}
+  @keyframes jarshake{0%,100%{transform:rotate(0)}15%{transform:rotate(-9deg)}30%{transform:rotate(8deg)}45%{transform:rotate(-7deg)}60%{transform:rotate(6deg)}75%{transform:rotate(-3deg)}}
+  @keyframes slipjiggle{50%{transform:rotate(calc(var(--r) * -1)) translateY(-10px)}}
+  .slipbg{position:fixed;inset:0;background:rgba(20,50,92,.35);display:grid;place-items:center;z-index:50;padding:16px}
+  .slipcard{width:min(400px,92vw);background:#fffdf3;border-radius:10px;padding:26px 22px 20px;text-align:center;box-shadow:0 24px 50px rgba(0,0,0,.25);position:relative;animation:unfold .6s cubic-bezier(.2,1.3,.5,1) both;background-image:repeating-linear-gradient(transparent,transparent 29px,#eadfc4 30px)}
+  .slipcard:before{content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%) rotate(-2deg);width:90px;height:22px;background:rgba(255,200,61,.55);border-radius:3px}
+  @keyframes unfold{0%{transform:translateY(120px) scale(.2) rotate(-25deg);opacity:0}100%{transform:none;opacity:1}}
+  .slipemoji{font-size:54px;line-height:1}
+  .slipkind{display:inline-block;margin:8px 0;background:#f1edff;color:#5b3fd1;font-weight:800;font-size:12px;padding:4px 10px;border-radius:999px}
+  .slipcard h3{font-size:22px;color:#14325c;margin:4px 0 8px;line-height:1.3}
+  .slipcard p{font-size:15px;line-height:1.55;color:#3d4660}
+  .slipbtns{display:flex;flex-direction:column;gap:8px;margin-top:16px}`;
+
+(() => { const st = document.createElement('style'); st.textContent = JAR_CSS; document.head.appendChild(st); })();
 /* ---------- open inquiry (teachers) ---------- */
 const OI_STOPS = ["Not started","💭 Choosing","🧭 Planning","🔍 Exploring","🎨 Creating","🌟 Sharing","🏁 Finished"];
 const OI_STICKERS = ["🌟 Great question!","👏 Super research!","💡 Creative idea!","🔍 Try asking an expert","📚 Find another source","🧪 Test your idea","🤝 Work with a buddy","🎨 Beautiful work!"];
@@ -1513,9 +1570,12 @@ function oiView(){
   }
   if(oi.tab === "jar"){
     const mine = oi.provs;
-    body = `<div class="grid2"><div class="card"><div class="label">In your class wonder jar (${mine.length})</div>
+    body = `<div class="grid2"><div class="card"><div class="label">Your class wonder jar</div>
+        ${jarHTML(mine.filter(p => p.active !== false), "oiSlip", { newId: oi.newProv, label: "Wonder jar" })}
+        <p class="hint" style="text-align:center;margin-bottom:12px">Children shake the jar in their Wonder Nest and a slip pops out. Click a slip to see it.</p>
+        <details ${mine.length && mine.length <= 3 ? "open" : ""}><summary class="label" style="cursor:pointer">Manage the slips (${mine.length})</summary>
         ${mine.map(p=>`<div class="unit-row"><div><h4>${esc(p.emoji)} ${esc(p.title)}</h4><p>${p.kind==="maker"?"🛠️ Maker challenge":p.kind==="wonder"?"💭 Wonder":"✨ Provocation"}${p.body?" · "+esc(p.body.slice(0,90)):""}${p.active?"":" · <b>hidden</b>"}</p></div>
-          <div style="display:flex;gap:12px;flex-shrink:0"><button class="link" onclick="oiToggleProv('${p.id}',${!p.active})">${p.active?"Hide":"Show"}</button><button class="link danger" onclick="oiDelProv('${p.id}')">Delete</button></div></div>`).join("") || `<div class="hint">Empty. Add ideas from the bank, or write your own.</div>`}
+          <div style="display:flex;gap:12px;flex-shrink:0"><button class="link" onclick="oiToggleProv('${p.id}',${!p.active})">${p.active?"Hide":"Show"}</button><button class="link danger" onclick="oiDelProv('${p.id}')">Delete</button></div></div>`).join("") || `<div class="hint">Empty. Add ideas from the bank, or write your own.</div>`}</details>
         <div class="label" style="margin-top:16px">Add your own</div>
         <div class="fields" style="grid-template-columns:110px 1fr;margin:0 0 8px"><div><label>Type</label><select id="pk"><option value="provocation">Provocation</option><option value="maker">Maker challenge</option><option value="wonder">Wonder</option></select></div><div><label>Title</label><input type="text" id="pt" placeholder="For example: Why do leaves change colour?"></div></div>
         <label class="hint">Details (optional)</label><textarea id="pb" style="min-height:60px;margin-top:4px"></textarea>
@@ -1540,7 +1600,8 @@ function oiView(){
       ${qs.map(q=>{const k = oiKid(q.student_id); const ex = (q.data.expertIds||[]).map(id => oi.experts.find(x=>x.id===id)).filter(Boolean); return `<div class="entry"><h4>${esc(k.picture||"")} ${esc(k.first_name||"")} asks ${ex.map(x=>`${esc(x.emoji)} ${esc(x.name)}`).join(", ") || "an expert"}</h4><p>"${esc(q.data.expertQ)}"</p><small>Wonder: ${esc(q.data.wonder||"")}</small></div>`;}).join("") || `<div class="hint">No questions yet.</div>`}
       ${qs.length ? `<div class="actions"><span></span><button class="btn small ghost" onclick="oiCopyQs()">📋 Copy all questions</button></div>` : ""}</div>`;
   }
-  return top + pick + tabs + body + oiModal();
+  const sl = oi.slip && oi.provs.find(p => p.id === oi.slip);
+  return top + pick + tabs + body + oiModal() + (sl ? slipCard(sl, `<button class="btn ghost" onclick="oiToggleProv('${sl.id}',false);oi.slip=null">🙈 Hide from children</button><button class="btn ghost" style="color:#c2410c;border-color:#c2410c" onclick="oi.slip=null;oiDelProv('${sl.id}')">🗑️ Delete slip</button><button class="btn" onclick="oi.slip=null;render()">Put it back</button>`) : "");
 }
 function oiModal(){
   if(!oi.open) return ""; const q = oi.inqs.find(x => x.id === oi.open); if(!q) return "";
@@ -1577,7 +1638,9 @@ async function oiAtl(){
   const { error: e } = await db.from("atl_records").insert({ student_id: q.student_id, class_id: q.class_id, skill: $("#oiSk").value, level: lv, level_label: L[lv-1], source: "teacher", note: "Open inquiry: " + (q.data.wonder||"").slice(0, 200), unit_label: (oi.cls.current_unit && oi.cls.current_unit.centralIdea) || "" });
   if(e){ error = tcErr(e); return render(); } toast("ATL evidence saved ✓");
 }
-async function oiAddProvRow(row){ const { error: e } = await db.from("class_provocations").insert(Object.assign({ class_id: oi.cls.id }, row)); if(e){ error = tcErr(e); return render(); } await oiOpen(oi.cls.id); oi.tab = "jar"; render(); }
+async function oiAddProvRow(row){ const { data, error: e } = await db.from("class_provocations").insert(Object.assign({ class_id: oi.cls.id, active: true }, row)).select().single(); if(e){ error = tcErr(e); return render(); } await oiOpen(oi.cls.id); oi.tab = "jar"; oi.newProv = data && data.id; render(); setTimeout(() => { oi.newProv = null; }, 1200); toast("Dropped into the jar 🫙"); }
+function oiSlip(id){ oi.slip = id; render(); }
+function closeSlip(){ oi.slip = null; render(); }
 function oiAddBank(title){ const b = OI_BANK.find(x => x.title === title); oiAddProvRow({ kind: b.kind, title: b.title, body: b.body, emoji: b.emoji }); }
 function oiAddProv(){ const t = $("#pt").value.trim(); if(!t){ error = "Please write a title."; return render(); } const k = $("#pk").value; oiAddProvRow({ kind: k, title: t.slice(0,120), body: $("#pb").value.trim().slice(0,600), emoji: k==="maker"?"🛠️":k==="wonder"?"💭":"✨" }); }
 async function oiToggleProv(id, on){ const { error: e } = await db.from("class_provocations").update({ active: on }).eq("id", id); if(e){ error = tcErr(e); return render(); } oi.provs.find(p => p.id === id).active = on; render(); }
