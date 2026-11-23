@@ -207,6 +207,9 @@
   .oicard span{color:var(--muted);line-height:1.35;display:block}
   .oicard em{display:block;font-style:normal;font-size:11px;font-weight:800;color:var(--leaf);margin-top:4px}
   .oicard.idle{opacity:.6}
+  .reader{font-family:Georgia,"Times New Roman",serif;font-size:19px;line-height:1.75;color:#1d2433}
+  .reader p{margin-bottom:14px}
+  .reader[dir=rtl]{font-family:"Geeza Pro",Arial,sans-serif;text-align:right}
   /* units list */
   .unit-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
   .unit-row:last-child{border:0}
@@ -247,7 +250,7 @@
     <button class="nav on" data-view="builder">✨ Unit builder</button>
     <button class="nav" data-view="library">🧠 Routines & organisers</button>
     <button class="nav" data-view="settings">⚙️ School settings</button>
-    <div class="nav soon">📚 Story library <span class="pill">Soon</span></div>
+    <button class="nav" data-view="stories">📚 Story library</button>
     <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
     <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
     <button class="nav" data-view="atl">📈 ATL growth</button>
@@ -407,6 +410,7 @@ function render(){
   else if(view === "atl") m.innerHTML = atlView();
   else if(view === "library") m.innerHTML = libView();
   else if(view === "inquiry") m.innerHTML = oiView();
+  else if(view === "stories") m.innerHTML = storiesView();
   else m.innerHTML = builderView();
   window.scrollTo(0,0);
   if(view === "builder" && unit.step === 5) checkBooks();
@@ -1656,6 +1660,192 @@ function oiCopyQs(){
   navigator.clipboard.writeText(txt).then(() => toast("Copied ✓"));
 }
 
+/* ---------- story library (teachers) ---------- */
+const sl = { tab: "library", theme: "", grade: "", q: "", mine: null, loading: false, read: null, draft: null, classes: null, shelfCls: null, shelf: null, mates: [] };
+const LANGS = ["", "Arabic", "French", "Spanish", "Urdu", "Hindi", "Chinese", "Russian", "German", "Turkish"];
+async function slLoadMine(){
+  sl.loading = true;
+  const { data, error: e } = await db.from("stories").select("*").eq("owner", tc.user.id).order("created_at", { ascending: false });
+  sl.loading = false; if(e) error = tcErr(e) + " (has the story library database update been run?)";
+  sl.mine = data || []; render();
+}
+function slAllStories(){
+  const fromUnits = savedUnits().filter(u => u.story && u.story.text).map(u => ({ key: "u:" + u.id, source: "unit", unit: u, title: u.story.title, text: u.story.text, textSecond: u.story.textSecond || "", theme: u.theme, grade: u.grade || "", questions: [], spark: u.spark || "", vocabulary: [] }));
+  const mine = (sl.mine || []).map(s => Object.assign({ key: "s:" + s.id, source: "saved", id: s.id }, s.data, { title: s.title || s.data.title }));
+  return mine.concat(fromUnits.filter(f => !mine.some(m => m.fromUnit === f.unit.id)));
+}
+function slMatch(x){ return (!sl.theme || x.theme === sl.theme) && (!sl.grade || x.grade === sl.grade) && (!sl.q || norm((x.title||"") + " " + (x.text||"") + " " + (x.author||"") + " " + (x.why||"")).includes(norm(sl.q))); }
+function storiesView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>📚 Story library</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(sl.mine === null){ if(!sl.loading) slLoadMine(); return top + `<div class="card">Loading…</div>`; }
+  const tabs = `<div class="tabs" style="max-width:none">${[["library","📖 Books & stories"],["maker","✨ Story maker"],["shelf","🏫 Class bookshelf"]].map(([k,l])=>`<button class="${sl.tab===k?"on":""}" onclick="sl.tab='${k}';error='';render()">${l}</button>`).join("")}</div>`;
+  let body = "";
+  if(sl.tab === "library"){
+    const filters = `<div class="card"><div class="fields" style="grid-template-columns:1.3fr 1fr 1fr;margin:0">
+      <div><label>Search</label><input type="text" id="slq" value="${esc(sl.q)}" placeholder="Title, author or topic" oninput="sl.q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{render();const e=$('#slq');e.focus();e.setSelectionRange(e.value.length,e.value.length)},250)"></div>
+      <div><label>Theme</label><select onchange="sl.theme=this.value;render()"><option value="">All themes</option>${THEMES.map(t=>`<option value="${t.id}" ${sl.theme===t.id?"selected":""}>${t.ic} ${t.name}</option>`).join("")}</select></div>
+      <div><label>Grade</label><select onchange="sl.grade=this.value;render()"><option value="">All grades</option>${GRADES.map(([g])=>`<option ${sl.grade===g?"selected":""}>${g}</option>`).join("")}</select></div></div></div>`;
+    const seen = new Set(), books = [];
+    savedUnits().forEach(u => (u.books || []).forEach(b => { const k = norm(b.title); if(!seen.has(k)){ seen.add(k); books.push(Object.assign({}, b, { theme: u.theme, grade: u.grade || "", unitName: u.centralIdea })); } }));
+    const bk = books.filter(slMatch), st = slAllStories().filter(slMatch);
+    body = filters + `<div class="grid2"><div class="card"><div class="label">✨ Original stories (${st.length})</div>
+        ${st.map(s=>`<div class="book"><div class="cover" style="background:linear-gradient(135deg,#f1edff,#ffe9e2)">✨</div><div style="flex:1"><h4>${esc(s.title)}</h4>
+          <p>${esc(themeOf(s.theme)?.name || "")}${s.grade ? " · " + esc(s.grade) : ""}${s.textSecond ? " · 2 languages" : ""} · ${s.source === "unit" ? "from a unit" : "my story"}</p>
+          <div class="blinks"><button class="blink read" onclick="slOpen('${s.key}')">📖 Read</button><button class="blink" onclick="slPrint('${s.key}')">🖨️ Print</button><button class="blink" onclick="slShareStart('${s.key}')">🏫 Share with a class</button>${s.source==="saved"?`<button class="blink" style="color:#c2410c" onclick="slDelete('${s.id}')">Delete</button>`:""}</div></div></div>`).join("") || `<div class="hint">No stories yet. Make one in ✨ Story maker, or build a unit.</div>`}</div>
+      <div class="card"><div class="label">📚 Books from your units (${bk.length})</div>
+        ${bk.map(b=>bookHTML(Object.assign({}, b, { why: (b.why||"") + (b.unitName ? " · Unit: " + b.unitName.slice(0,60) : "") }))).join("") || `<div class="hint">Books suggested in your units appear here.</div>`}
+        ${bk.length ? `<div class="hint" style="margin-top:8px">📖 "Read online free" appears when Open Library has a free copy to borrow.</div>` : ""}</div></div>`;
+    setTimeout(slCheckBooks, 50);
+  }
+  if(sl.tab === "maker"){
+    const units = savedUnits(), d = sl.draft;
+    body = `<div class="grid2"><div class="card"><div class="label">Make a new story</div>
+      <div class="fields" style="grid-template-columns:1fr;margin:0">
+        <div><label>For a unit (optional)</label><select id="smU" onchange="const u=savedUnits().find(x=>x.id===this.value); if(u){ $('#smT').value=u.theme; $('#smG').value=u.grade||''; }"><option value="">No unit: choose theme and grade</option>${units.map(u=>`<option value="${u.id}">${esc((u.centralIdea||"Untitled").slice(0,80))} (${esc(u.grade||"")})</option>`).join("")}</select></div></div>
+      <div class="fields" style="grid-template-columns:1fr 1fr;margin-top:10px">
+        <div><label>Theme</label><select id="smT">${THEMES.map(t=>`<option value="${t.id}">${t.ic} ${t.name}</option>`).join("")}</select></div>
+        <div><label>Grade</label><select id="smG">${GRADES.map(([g,a])=>`<option value="${g}">${g} (ages ${a})</option>`).join("")}</select></div>
+        <div><label>Kind of story</label><select id="smK">${["Story","Adventure","True-to-life story","Fable","Mystery","Funny story","Rhyming story"].map(k=>`<option>${k}</option>`).join("")}</select></div>
+        <div><label>Length</label><select id="smL"><option value="150">Short (about 150 words)</option><option value="300" selected>Medium (about 300 words)</option><option value="500">Long (about 500 words)</option></select></div>
+        <div><label>Second language (optional)</label><select id="smS">${LANGS.map(l=>`<option value="${l}">${l || "English only"}</option>`).join("")}</select></div></div>
+      <div class="fields" style="grid-template-columns:1fr;margin-top:10px"><div><label>Your idea (optional)</label><textarea id="smI" style="min-height:80px" placeholder="For example: a new girl who speaks a different language joins the class and they find a way to play together"></textarea></div></div>
+      <div class="actions"><span class="hint">Always read a story before sharing it with children.</span><button class="btn" onclick="slMake()">✨ Write the story</button></div></div>
+      <div class="card">${d ? `<div class="label">Your new story</div><h3 style="color:var(--navy);font-size:20px;margin-bottom:8px">${esc(d.title)}</h3>
+        <p style="white-space:pre-wrap;line-height:1.65;font-size:14.5px;max-height:340px;overflow:auto">${esc(d.text)}</p>
+        <div class="actions"><button class="link" onclick="sl.read=sl.draft;render()">📖 Open in reader</button><div style="display:flex;gap:8px"><button class="btn small ghost" onclick="slMake()">↻ Write another</button><button class="btn small" onclick="slSaveDraft()">💾 Save to my stories</button></div></div>`
+        : `<div class="empty">✨<br><br>Your story will appear here.<br>You can read it, edit the idea and try again, then save it.</div>`}</div></div>`;
+  }
+  if(sl.tab === "shelf"){
+    if(sl.classes === null){ db.from("classes").select("*").order("created_at").then(({ data }) => { sl.classes = data || []; if(sl.classes.length === 1) slShelf(sl.classes[0].id); else render(); }); return top + tabs + `<div class="card">Loading…</div>`; }
+    const pick = `<div class="card"><select onchange="slShelf(this.value)"><option value="">Choose a class…</option>${sl.classes.map(c=>`<option value="${c.id}" ${sl.shelfCls===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
+    if(!sl.shelfCls || !sl.shelf) body = pick;
+    else {
+      const name = id => (sl.mates.find(m => m.id === id) || {}).first_name || "";
+      const pend = sl.shelf.kids.filter(e => e.publish === "pending"), appr = sl.shelf.kids.filter(e => e.publish === "approved");
+      body = pick + `<div class="grid2"><div>
+        <div class="card"><div class="label">⏳ Children asking to publish (${pend.length})</div>
+          ${pend.map(e=>`<div class="entry"><h4>${esc(name(e.student_id))}: ${esc(e.title)}</h4><p style="max-height:160px;overflow:auto">${esc(e.content.text||"")}</p>
+            <div class="actions" style="margin-top:8px"><button class="link danger" onclick="slPublish('${e.id}','none')">Not this time</button><button class="btn small" onclick="slPublish('${e.id}','approved')">✅ Publish on bookshelf</button></div></div>`).join("") || `<div class="hint">No stories waiting.</div>`}</div>
+        <div class="card"><div class="label">📗 Children's stories on the bookshelf (${appr.length})</div>
+          ${appr.map(e=>`<div class="unit-row"><div><h4>${esc(e.title)}</h4><p>by ${esc(name(e.student_id))}</p></div><button class="link danger" onclick="slPublish('${e.id}','none')">Take off shelf</button></div>`).join("") || `<div class="hint">None yet.</div>`}</div></div>
+        <div class="card"><div class="label">📘 Teacher stories on the bookshelf (${sl.shelf.teacher.length})</div>
+          ${sl.shelf.teacher.map(s=>`<div class="unit-row"><div><h4>${esc(s.title)}</h4><p>${s.data.textSecond ? "2 languages" : ""}</p></div><button class="link danger" onclick="slUnshare('${s.id}')">Remove</button></div>`).join("") || `<div class="hint">Share stories from 📖 Books & stories with 🏫 Share with a class.</div>`}</div></div>`;
+    }
+  }
+  return top + tabs + body + slReader() + slShareModal();
+}
+async function slCheckBooks(){
+  const todo = []; savedUnits().forEach(u => (u.books || []).forEach(b => { if(!b.olChecked) todo.push([u, b]); }));
+  if(!todo.length || sl.checking) return; sl.checking = true;
+  await Promise.all(todo.slice(0, 12).map(async ([u, b]) => {
+    try{ const r = await fetch("https://openlibrary.org/search.json?limit=1&fields=key,cover_i,ebook_access&title=" + encodeURIComponent(b.title||"") + "&author=" + encodeURIComponent(String(b.author||"").split(/[(,]/)[0].trim()));
+      const d = await r.json(), doc = (d.docs||[])[0];
+      b.ol = doc ? { found: true, url: "https://openlibrary.org" + doc.key, cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : "", readable: ["borrowable","public"].includes(doc.ebook_access) } : { found: false };
+    }catch(e){ b.ol = null; } b.olChecked = true; storeUnit(u);
+  }));
+  sl.checking = false; if(view === "stories" && sl.tab === "library") render();
+}
+const slFind = key => slAllStories().find(s => s.key === key);
+function slOpen(key){ sl.read = slFind(key); render(); }
+const isRTL = t => /[؀-ۿ]/.test(t || "");
+function slSpeak(text){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = isRTL(text) ? "ar-AE" : "en-GB"; u.rate = .9; speechSynthesis.speak(u); }catch(e){ toast("Read aloud isn't available in this browser"); } }
+function slReader(){
+  const s = sl.read; if(!s) return "";
+  return `<div class="modal-bg" onclick="if(event.target===this){speechSynthesis.cancel();sl.read=null;render()}"><div class="modal" style="width:min(760px,96vw)">
+    <div class="actions" style="margin-top:0"><div class="label" style="margin:0">${esc(themeOf(s.theme)?.name || "Story")}${s.grade ? " · " + esc(s.grade) : ""}</div>
+      <div style="display:flex;gap:8px"><button class="btn small ghost" onclick="slSpeak(${esc(JSON.stringify(s.title + ". " + s.text))})">🔊 Read aloud</button><button class="btn small ghost" onclick="speechSynthesis.cancel()">⏹</button><button class="btn small" onclick="speechSynthesis.cancel();sl.read=null;render()">Close</button></div></div>
+    <h2 style="color:var(--navy);font-size:28px;margin:10px 0 14px">${esc(s.title)}</h2>
+    <div class="reader">${esc(s.text).split(/\n\s*\n/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("")}</div>
+    ${s.textSecond ? `<div class="reader" dir="${isRTL(s.textSecond)?"rtl":"ltr"}" style="border-top:2px dashed #e6dcff;margin-top:16px;padding-top:12px"><div class="actions" style="margin:0 0 6px"><span class="label" style="margin:0">Second language</span><button class="btn small ghost" onclick="slSpeak(${esc(JSON.stringify(s.textSecond))})">🔊</button></div>${esc(s.textSecond).split(/\n\s*\n/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("")}</div>` : ""}
+    ${(s.vocabulary||[]).length ? `<div class="label" style="margin-top:16px">🔤 Key words</div><div class="chips">${s.vocabulary.map(v=>`<span class="chip" title="${esc(v.meaning)}"><b>${esc(v.word)}</b>: ${esc(v.meaning)}</span>`).join("")}</div>` : ""}
+    ${(s.questions||[]).length ? `<div class="label" style="margin-top:12px">❓ Questions to talk about</div><ol style="padding-left:20px;line-height:1.7">${s.questions.map(q=>`<li>${esc(q)}</li>`).join("")}</ol>` : ""}
+    ${s.spark ? `<div class="spark">✍️ Story spark: ${esc(s.spark)}</div>` : ""}</div></div>`;
+}
+function slPrint(key){
+  const s = slFind(key), w = window.open("", "_blank"); if(!w) return toast("Please allow pop-ups to print");
+  const paras = t => esc(t).split(/\n\s*\n/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("");
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(s.title)}</title><style>body{font-family:Georgia,serif;max-width:720px;margin:30px auto;color:#1d2433;font-size:18px;line-height:1.7} h1{font-family:Arial;color:#14325c} .b{font-family:Arial;font-size:12px;color:#2f6fd6;font-weight:bold;letter-spacing:1px} .ar{direction:rtl;text-align:right;border-top:2px dashed #ccc;margin-top:24px;padding-top:12px} li,.sp{font-family:Arial;font-size:15px}</style></head><body>
+    <div class="b">WONDERNEST STORY</div><h1>${esc(s.title)}</h1>${paras(s.text)}${s.textSecond ? `<div class="${isRTL(s.textSecond)?"ar":""}">${paras(s.textSecond)}</div>` : ""}
+    ${(s.questions||[]).length ? `<h3 style="font-family:Arial">Let's talk</h3><ol>${s.questions.map(q=>`<li>${esc(q)}</li>`).join("")}</ol>` : ""}${s.spark ? `<p class="sp"><b>Story spark:</b> ${esc(s.spark)}</p>` : ""}
+    <script>setTimeout(()=>print(),400)<\/script></body></html>`);
+  w.document.close();
+}
+async function slMake(){
+  const uId = $("#smU") ? $("#smU").value : "", u = savedUnits().find(x => x.id === uId);
+  const base = u || { theme: $("#smT").value, grade: $("#smG").value, description: "", centralIdea: "", lines: [], keyConcepts: [], atl: [], duration: "", languages: "" };
+  const second = $("#smS").value;
+  const req = { theme: base.theme, grade: base.grade, ageBand: "", centralIdea: base.centralIdea || "" };
+  error = ""; loading(true, "Writing your story…");
+  try{
+    const d = await ai("story", Object.assign({}, base, { theme: base.theme, grade: base.grade }), { idea: $("#smI").value.trim(), storyKind: $("#smK").value, words: Number($("#smL").value), secondLanguage: second, languages: second ? "English, " + second : "English" });
+    sl.draft = { title: d.title || "A new story", text: d.text || "", textSecond: d.textSecond || "", questions: d.questions || [], spark: d.spark || "", vocabulary: d.vocabulary || [], theme: req.theme, grade: req.grade, fromUnitId: u ? u.id : "", unitName: u ? u.centralIdea : "" };
+    sl.form = null;
+  }catch(e){ error = e.message || "Something went wrong. Please try again."; }
+  finally{ loading(false); render(); }
+}
+async function slSaveDraft(){
+  const d = sl.draft; if(!d) return;
+  const { error: e } = await db.from("stories").insert({ data: d, title: d.title });
+  if(e){ error = tcErr(e); return render(); }
+  sl.draft = null; sl.mine = null; sl.tab = "library"; toast("Saved to your stories ✓"); render();
+}
+async function slDelete(id){ if(!confirm("Delete this story? It will also leave any class bookshelf.")) return; const { error: e } = await db.from("stories").delete().eq("id", id); if(e){ error = tcErr(e); return render(); } sl.mine = sl.mine.filter(s => s.id !== id); render(); }
+// sharing
+const slShare = { key: null, classes: [] };
+async function slShareStart(key){
+  const { data, error: e } = await db.from("classes").select("id, name, grade").order("created_at");
+  if(e){ error = tcErr(e); return render(); } slShare.key = key; slShare.classes = data || []; render();
+}
+function slShareModal(){
+  if(!slShare.key) return ""; const s = slFind(slShare.key);
+  return `<div class="modal-bg" onclick="if(event.target===this){slShare.key=null;render()}"><div class="modal">
+    <div class="label">Put on a class bookshelf</div><h3 style="color:var(--navy);margin-bottom:10px">${esc(s ? s.title : "")}</h3>
+    ${slShare.classes.map(c=>`<div class="unit-row"><div><h4>${esc(c.name)}</h4><p>${esc(c.grade)}</p></div><button class="btn small" onclick="slShareTo('${c.id}')">Share</button></div>`).join("") || `<div class="hint">Create a class first.</div>`}
+    <p class="hint" style="margin-top:8px">Children in that class will see it on their 📚 Class bookshelf, with read-aloud.</p>
+    <div class="actions"><span></span><button class="link" onclick="slShare.key=null;render()">Close</button></div></div></div>`;
+}
+async function slShareTo(classId){
+  const s = slFind(slShare.key); let id = s.id;
+  if(s.source === "unit"){
+    const existing = (sl.mine || []).find(m => m.data.fromUnit === s.unit.id);
+    if(existing) id = existing.id;
+    else {
+      const data = { title: s.title, text: s.text, textSecond: s.textSecond, theme: s.theme, grade: s.grade, spark: s.spark, questions: [], vocabulary: [], fromUnit: s.unit.id };
+      const r = await db.from("stories").insert({ data, title: s.title }).select().single();
+      if(r.error){ error = tcErr(r.error); slShare.key = null; return render(); }
+      id = r.data.id; sl.mine = [r.data].concat(sl.mine || []);
+    }
+  }
+  const { error: e } = await db.from("class_stories").insert({ class_id: classId, story_id: id });
+  slShare.key = null;
+  if(e && !String(e.message||"").includes("duplicate")){ error = tcErr(e); return render(); }
+  toast("On the class bookshelf ✓"); render();
+}
+async function slShelf(id){
+  if(!id){ sl.shelfCls = null; sl.shelf = null; return render(); }
+  sl.shelfCls = id;
+  const [cs, kids, st] = await Promise.all([
+    db.from("class_stories").select("story_id").eq("class_id", id),
+    db.from("entries").select("*").eq("class_id", id).eq("kind", "story").order("created_at", { ascending: false }),
+    db.from("students").select("id, first_name").eq("class_id", id)
+  ]);
+  const ids = (cs.data || []).map(x => x.story_id);
+  let teacher = [];
+  if(ids.length){ const r = await db.from("stories").select("*").in("id", ids); teacher = r.data || []; }
+  sl.mates = st.data || []; sl.shelf = { teacher, kids: (kids.data || []).filter(e => e.publish && e.publish !== "none") };
+  if(cs.error || kids.error) error = tcErr(cs.error || kids.error);
+  render();
+}
+async function slPublish(entryId, state){
+  const { error: e } = await db.from("entries").update({ publish: state }).eq("id", entryId);
+  if(e){ error = tcErr(e); return render(); } toast(state === "approved" ? "Published on the bookshelf ✓" : "Updated ✓"); slShelf(sl.shelfCls);
+}
+async function slUnshare(storyId){
+  const { error: e } = await db.from("class_stories").delete().eq("class_id", sl.shelfCls).eq("story_id", storyId);
+  if(e){ error = tcErr(e); return render(); } slShelf(sl.shelfCls);
+}
+
 /* ---------- actions ---------- */
 function goStep(s){ unit.step = s; error = ""; saveCurrent(); render(); }
 function pickGrade(g){ unit.grade = g; unit.ageBand = (GRADES.find(x=>x[0]===g)||["",""])[1]; saveCurrent(); }
@@ -1739,10 +1929,11 @@ function downloadWord(){
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
-document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; tc.msg = ""; if(view === "summative"){ sumId = null; sumDraft = null; } if(view === "classes"){ tc.cls = null; tc.kid = null; tc.loaded = false; } if(view === "inquiry"){ oi.classes = null; oi.cls = null; oi.open = null; oi.tab = "board"; } if(view === "atl"){ atlS.classes = null; atlS.cls = null; atlS.kid = null; atlS.modal = null; } render(); }));
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { view = n.dataset.view; error = ""; tc.msg = ""; if(view === "summative"){ sumId = null; sumDraft = null; } if(view === "classes"){ tc.cls = null; tc.kid = null; tc.loaded = false; } if(view === "stories"){ sl.mine = null; sl.classes = null; sl.read = null; slShare.key = null; } if(view === "inquiry"){ oi.classes = null; oi.cls = null; oi.open = null; oi.tab = "board"; } if(view === "atl"){ atlS.classes = null; atlS.cls = null; atlS.kid = null; atlS.modal = null; } render(); }));
 
 /* ---------- demo data (used only while WORKER_URL is empty) ---------- */
 const DEMO = {
+  story: {title:"The Two Lunch Boxes", text:"Mariam had a red lunch box. Leo had a blue one.\n\nAt lunch, Mariam opened hers. Inside were warm flatbreads. Leo opened his. Inside were cheese sandwiches.\n\n\"Want to swap one?\" asked Leo.\n\nMariam smiled. They swapped, and both said, \"Yum!\"\n\nThe next day, the whole table brought something to share.", textSecond:"", questions:["What do you notice on the cover?","How did Mariam feel when Leo asked to swap?","What do you like to share with friends?","How can sharing help us belong?"], spark:"Draw your favourite food and write who you would share it with.", vocabulary:[{word:"swap",meaning:"give one thing and get another"},{word:"share",meaning:"let others have some too"}]},
   template_examples: {examples:["Frogs need a pond","Both need water","Birds need trees","Plants","Shade","Water"]},
   atl_toolkit: {kidStatement:"I can listen and share my ideas", lookFors:["Looks at the speaker and waits for a turn","Repeats or builds on a friend's idea","Asks a question to find out more","Shares an idea in a full sentence"],
     practices:[{title:"Talk partners",how:"Each day, partners take turns to share and say back one thing they heard."},{title:"Thinking time",how:"Count to five silently before anyone answers a question."},{title:"Building on",how:"Use the starter 'I agree with… and I want to add…'."}],

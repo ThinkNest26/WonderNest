@@ -99,6 +99,14 @@
   .tcount{min-width:30px;text-align:center;font-size:20px;color:var(--navy)}
   .stampfly{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font-size:110px;z-index:20;animation:fly 1.6s ease forwards;pointer-events:none}
   @keyframes fly{0%{transform:translate(-50%,-50%) scale(.2) rotate(-20deg);opacity:0}30%{transform:translate(-50%,-50%) scale(1.2) rotate(8deg);opacity:1}70%{transform:translate(-50%,-50%) scale(1) rotate(0)}100%{transform:translate(-50%,-140%) scale(.4);opacity:0}}
+  .shelfrow{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 14px;border-bottom:10px solid #c8945a;border-radius:0 0 6px 6px;box-shadow:0 6px 0 #a87442}
+  .bookspine{flex:0 0 112px;height:160px;border-radius:8px 14px 14px 8px;background:var(--b);color:#fff;font-weight:900;font-size:13.5px;line-height:1.25;padding:10px 8px;text-align:left;display:flex;flex-direction:column;gap:6px;box-shadow:inset 6px 0 0 rgba(0,0,0,.15),0 4px 8px rgba(0,0,0,.15);transition:.2s}
+  .bookspine:hover{transform:translateY(-6px) rotate(-2deg)}
+  .bookspine span{font-size:26px}
+  .bookspine small{font-weight:700;opacity:.85;font-size:11.5px;margin-top:auto}
+  .kreader{font-size:19px;line-height:1.75;color:var(--ink)}
+  .kreader p{margin-bottom:14px}
+  .kreader[dir=rtl]{text-align:right}
 </style>
 </head>
 <body>
@@ -234,6 +242,7 @@ function draw(){
       <button class="tile" style="background:var(--lilac)" onclick="go('stories')"><span>📖</span>My stories</button>
       <button class="tile" style="background:var(--coral)" onclick="go('grown')"><span>🌱</span>How I've grown</button>
       <button class="tile" style="background:var(--leaf)" onclick="go('wonders')"><span>💭</span>All my wonders</button>
+      <button class="tile" onclick="goShelf()" style="background:linear-gradient(135deg,#8a6cf0,#ff7a59);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>📚</span><span style="font-size:17px">Class bookshelf</span></button>
       <button class="tile" onclick="goAdventures()" style="background:linear-gradient(135deg,#2f9e6b,#2f6fd6);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>🗺️</span><span style="font-size:17px">My inquiry adventures</span></button>
       ${quests.length ? `<button class="tile" onclick="go('quests')" style="background:linear-gradient(135deg,#f59e0b,#ff7a59);grid-column:1/-1;min-height:84px;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start"><span>🧩</span><span style="font-size:17px">Skill quests · ${quests.length} to try!</span></button>` : ""}
     </div></div>`;
@@ -359,6 +368,22 @@ function draw(){
       ${langSwitch()}
       <button class="btn wide leaf" onclick="finishReflect()">Collect my last stamp 🏆</button></div>`; }
 
+  if(screen === "shelf") return app.innerHTML = head("Class bookshelf 📚", "Stories to read and enjoy", "linear-gradient(135deg,#8a6cf0,#ff7a59)") + `<div class="body">
+    ${shelf.teacher.length ? `<div class="card"><h2>📘 From my teacher</h2><div class="shelfrow">${shelf.teacher.map((t,i)=>`<button class="bookspine" style="--b:${["#2f6fd6","#8a6cf0","#2f9e6b","#ff7a59","#f59e0b"][i%5]}" onclick="readBook('t',${i})"><span>📖</span>${esc(t.title)}</button>`).join("")}</div></div>` : ""}
+    ${shelf.kids.length ? `<div class="card"><h2>📗 By my classmates</h2><div class="shelfrow">${shelf.kids.map((e,i)=>`<button class="bookspine" style="--b:${["#ff7a59","#2f9e6b","#f59e0b","#2f6fd6","#8a6cf0"][i%5]}" onclick="readBook('k',${i})"><span>✏️</span>${esc(e.title||"A story")}<small>by ${esc(e.student_id===me.student_id?"me":mateName(e.student_id))}</small></button>`).join("")}</div></div>` : ""}
+    ${!shelf.teacher.length && !shelf.kids.length ? `<div class="card center"><div style="font-size:48px">📚</div><p style="font-weight:700">The bookshelf is empty for now. Write a story and ask to put it here!</p></div>` : ""}
+    <button class="btn wide" style="background:var(--lilac)" onclick="go('stories')">✏️ Write my own story</button></div>`;
+
+  if(screen === "book"){ const b = bookOpen; if(!b) return go("shelf");
+    const paras = t => esc(t).split(/\n\s*\n/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("");
+    return app.innerHTML = head(esc(b.title), b.by ? "by " + esc(b.by) : "Story", "linear-gradient(135deg,#8a6cf0,#ff7a59)") + `<div class="body">
+      <div class="card"><div class="tiles" style="margin-bottom:12px"><button class="btn" onclick="speakLong(${esc(JSON.stringify(b.title + ". " + b.text))})">🔊 Read to me</button><button class="btn ghost" onclick="speechSynthesis.cancel()">⏹ Stop</button></div>
+        <div class="kreader">${paras(b.text)}</div>
+        ${b.textSecond ? `<div class="kreader" dir="${/[\u0600-\u06FF]/.test(b.textSecond)?"rtl":"ltr"}" style="border-top:2px dashed #e6dcff;padding-top:12px;margin-top:12px"><button class="speak" style="margin-bottom:8px" onclick="speakLong(${esc(JSON.stringify(b.textSecond))})">🔊</button>${paras(b.textSecond)}</div>` : ""}</div>
+      ${(b.questions||[]).length ? `<div class="card"><h2>❓ Let's think</h2>${b.questions.map(q=>`<div class="item"><p>${esc(q)}</p></div>`).join("")}</div>` : ""}
+      ${b.spark ? `<div class="card" style="background:#ffe9e2"><h2>✍️ Your turn!</h2><p style="font-size:16px;font-weight:700">${esc(b.spark)}</p><button class="btn wide" style="margin-top:10px;background:var(--lilac)" onclick="go('stories')">Write my story</button></div>` : ""}
+      <button class="btn ghost wide" onclick="speechSynthesis.cancel();go('shelf')">‹ Back to the bookshelf</button></div>`; }
+
   if(screen === "quests") return app.innerHTML = head("Skill quests 🧩", "Practise your learning skills", "linear-gradient(135deg,#f59e0b,#ff7a59)") + `<div class="body">
     ${quests.map((t,i)=>{ const done = entries.filter(e=>e.kind==="atl" && e.content.skill===t.skill && e.content.type==="quiz"); const best = done.reduce((m,e)=>Math.max(m,e.content.score),0);
       return `<div class="card"><h2>${esc(t.data.kidStatement || t.skill)}<button class="speak" onclick="speak(${esc(JSON.stringify(t.data.kidStatement||""))})">🔊</button></h2>
@@ -411,7 +436,8 @@ function draw(){
       <div class="mic-row" style="align-items:flex-start">${micBtn("s_text")}<textarea id="s_text" placeholder="Once upon a time…" style="min-height:160px"></textarea></div>
       ${langSwitch()}
       <button class="btn wide" style="margin-top:12px;background:var(--lilac)" onclick="saveStory()">Save my story</button></div>
-    ${stories.map(s=>`<div class="card"><h2>${esc(s.title || "My story")}<button class="speak" onclick="speak(${esc(JSON.stringify((s.title||"")+". "+(s.content.text||"")))})">🔊</button></h2><p style="font-size:16px;line-height:1.6;white-space:pre-wrap">${esc(s.content.text)}</p><small style="color:var(--muted)">${new Date(s.created_at).toLocaleDateString()}</small></div>`).join("")}
+    ${stories.map(s=>`<div class="card"><h2>${esc(s.title || "My story")}<button class="speak" onclick="speak(${esc(JSON.stringify((s.title||"")+". "+(s.content.text||"")))})">🔊</button></h2><p style="font-size:16px;line-height:1.6;white-space:pre-wrap">${esc(s.content.text)}</p><small style="color:var(--muted)">${new Date(s.created_at).toLocaleDateString()}</small>
+      <div style="margin-top:10px">${s.publish === "approved" ? `<span class="kindtag" style="background:#e6f7ec;color:#1f7a4d">📗 On the class bookshelf!</span>` : s.publish === "pending" ? `<span class="kindtag" style="background:#fff1c9;color:#8a5200">⏳ Waiting for my teacher</span>` : `<button class="btn ghost" style="font-size:15px;padding:10px 14px" onclick="askPublish('${s.id}')">📤 Put it on the class bookshelf</button>`}</div></div>`).join("")}
   </div>`;
 
   if(screen === "grown") return app.innerHTML = head("How I've grown 🌱", "My portfolio", "var(--leaf)") + `<div class="body">
@@ -620,6 +646,30 @@ async function sendStars(id){
   const { error } = await db.from("inquiry_notes").insert({ inquiry_id: id, class_id: q.class_id, author_type: "student", author_student: me.student_id, kind: "stars_wish", content: { star1: s1, star2: s2, wish: w } });
   if(error) return toast("Oh no, it didn't send. Try again.");
   toast("💌 Sent to your friend!"); go("gallery");
+}
+
+/* ---------- class bookshelf ---------- */
+let shelf = { teacher: [], kids: [] }, bookOpen = null;
+async function goShelf(){
+  const [cs, ks, m] = await Promise.all([
+    db.from("class_stories").select("story_id").eq("class_id", me.class_id),
+    db.from("entries").select("*").eq("class_id", me.class_id).eq("kind", "story").eq("publish", "approved").order("created_at", { ascending: false }),
+    db.rpc("my_classmates")
+  ]);
+  const ids = (cs.data || []).map(x => x.story_id); let teacher = [];
+  if(ids.length){ const r = await db.from("stories").select("*").in("id", ids); teacher = r.data || []; }
+  mates = m.data || []; shelf = { teacher, kids: ks.data || [] }; go("shelf");
+}
+function readBook(kind, i){
+  if(kind === "t"){ const t = shelf.teacher[i]; bookOpen = Object.assign({}, t.data, { title: t.title || t.data.title }); }
+  else { const e = shelf.kids[i]; bookOpen = { title: e.title || "A story", text: e.content.text || "", by: e.student_id === me.student_id ? "me" : mateName(e.student_id) }; }
+  go("book");
+}
+function speakLong(text){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = /[\u0600-\u06FF]/.test(text) ? "ar-AE" : lang; u.rate = .88; speechSynthesis.speak(u); }catch(e){} }
+async function askPublish(id){
+  const { error } = await db.from("entries").update({ publish: "pending" }).eq("id", id);
+  if(error) return toast("Oh no, it didn't send. Try again.");
+  await loadEntries(); toast("📤 Sent to your teacher!"); draw();
 }
 
 /* ---------- skill quests ---------- */
