@@ -2808,8 +2808,9 @@ function conceptQCard(){
   const cq = unit.conceptQuestions || [];
   return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">❓ Conceptual questions for each line</div><p class="hint">Teacher questions that move children from facts to the big idea.</p></div><button class="btn small ghost" onclick="cqMake()">✨ Write questions</button></div>
     ${cq.map((l,i)=>`<div class="cqline"><b>Line ${i+1} · ${esc(l.concept||"")}</b>${["factual","conceptual","debatable"].map(k=>(l[k]||[]).length?`<p><span class="tag">${k}</span> ${(l[k]||[]).map(esc).join(" · ")}</p>`:"").join("")}</div>`).join("")}
-    <div class="label" style="margin-top:10px">Add related concepts from a subject</div><div class="chips">${Object.keys(RELATED).map(s=>`<button class="chip ${cnS.relSub===s?"on":""}" onclick="cnS.relSub=cnS.relSub==='${s}'?null:'${s}';render()">${s}</button>`).join("")}</div>
-    ${cnS.relSub ? `<div class="chips">${RELATED[cnS.relSub].map(r=>`<button class="chip ${unit.relatedConcepts.includes(r)?"on":""}" onclick="toggle(unit.relatedConcepts,'${r}');saveCurrent();render()">${esc(r)}</button>`).join("")}</div>` : ""}</div>`;
+    <div class="label" style="margin-top:10px">Add related concepts from your subjects (choose as many as you like)</div><div class="chips">${Object.keys(RELATED).map(s=>`<button class="chip ${(cnS.relSubs||[]).includes(s)?"on":""}" onclick="cnS.relSubs=cnS.relSubs||[];toggle(cnS.relSubs,'${s}');render()">${s}</button>`).join("")}</div>
+    ${(cnS.relSubs||[]).map(sub=>`<p class="hint" style="margin:6px 0 4px;font-weight:800">${sub}</p><div class="chips">${RELATED[sub].map(r=>`<button class="chip ${unit.relatedConcepts.includes(r)?"on":""}" onclick="toggle(unit.relatedConcepts,'${r}');saveCurrent();render()">${esc(r)}</button>`).join("")}</div>`).join("")}
+    <p class="hint">Plan each subject's focus and the integrated activities in step 6, Subjects together.</p></div>`;
 }
 async function cqMake(){
   if(!unit.lines.length) return toast("Add lines of inquiry first");
