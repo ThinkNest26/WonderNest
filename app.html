@@ -3618,19 +3618,23 @@ async function hbLoad(){
   if(hbS.cls) await hbOpen(hbS.cls.id, true); else render();
 }
 async function hbOpen(id, quiet){
-  hbS.cls = hbS.classes.find(c => c.id === id); hbS.unit = null; hbS.ent = null; hbS.week = null;
+  hbS.cls = hbS.classes.find(c => c.id === id); hbS.unit = null; hbS.ent = null; hbS.week = null; render();
+  try{ await hbOpen2(id); }catch(e){ error = "Could not load this class: " + (e.message || e); }
+  render();
+}
+async function hbOpen2(id){
   const cu = hbS.cls.current_unit;
   if(cu && cu.unitId){
     if(isUuid(cu.unitId)){ const { data } = await db.from("units").select("id, data").eq("id", cu.unitId); const r = (data||[])[0]; if(r) hbS.unit = Object.assign({}, r.data, { id: r.id }); }
     if(!hbS.unit) hbS.unit = store.get("wn_units", []).find(u => u.id === cu.unitId) || null;
+    if(!hbS.unit) hbS.unit = { id: cu.unitId, _partial: true, theme: (THEMES.find(t => t.name === cu.themeName) || {}).id || "", grade: cu.grade || "", centralIdea: cu.centralIdea || "", lines: (cu.lines || []).map(t => ({ text: t })), keyConcepts: cu.keyConcepts || [], atl: cu.atl || [], weeks: [], subjects: [] };
     hbS.week = ((cu.now||{}).week || 1) - 1;
   }
   const since = new Date(Date.now() - 7*864e5).toISOString();
   const { data: e } = await db.from("entries").select("id, student_id, kind, content, publish, created_at").eq("class_id", id).gte("created_at", since).order("created_at", { ascending: false }).limit(300);
   const { data: k } = await db.from("students").select("id, first_name, picture").eq("class_id", id);
   hbS.ent = e || []; hbS.kids = k || [];
-  if(!atS.data) loadAttention(); else render();
-  if(!quiet) render();
+  if(!atS.data) loadAttention();
 }
 async function hbSetNow(patch){
   const cu = Object.assign({}, hbS.cls.current_unit), u = hbS.unit, W = (u && u.weeks) || [];
@@ -3641,7 +3645,7 @@ async function hbSetNow(patch){
   if(e){ error = tcErr(e); return render(); }
   hbS.cls.current_unit = cu; if(patch.week) hbS.week = patch.week - 1; toast(patch.phase ? "Children will see: " + patch.phase : "Week " + now.week + " is now this week ✓"); render();
 }
-async function hbOpenPlan(){ await openUnit(hbS.unit.id); unit.step = 7; wkS.week = hbS.week || 0; saveCurrent(); view = "builder"; render(); }
+async function hbOpenPlan(){ if(hbS.unit._partial) return goView("home"); await openUnit(hbS.unit.id); unit.step = 7; wkS.week = hbS.week || 0; saveCurrent(); view = "builder"; render(); }
 function weekView(){
   const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏠 This week</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
   if(!db || !tc.user) return top + `<div class="card">Please sign in to see your class's week.</div>`;
@@ -3652,13 +3656,14 @@ function weekView(){
   if(!cu || !cu.unitId) return top + pick + `<div class="card empty">📌<br><br><b>${esc(c.name)}</b> has no unit yet.<br>Plan a unit, then click <b>📌 Use with a class</b>, or choose one from the class page.<br><br><button class="btn" onclick="goView('home')">🏠 My units</button></div>`;
   const u = hbS.unit;
   if(!u) return top + pick + `<div class="card">Loading the unit…</div>`;
+  const partial = u._partial ? `<div class="wkwarn" style="margin-bottom:12px">📌 ${esc(c.name)} was linked to this unit before units were saved online, so its weekly plan can't be shown here. Open the unit in <button class="link" onclick="goView('home')">My units</button>, then click <b>📌 Use with a class</b> and choose ${esc(c.name)} again. This only needs doing once.</div>` : "";
   const W = u.weeks || [], hasWeeks = W.some(w => Object.values(w.cells||{}).some(v => v && v.trim()));
   const now = cu.now || {}, i = Math.max(0, Math.min(hbS.week || 0, Math.max(W.length - 1, 0))), w = W[i] || { cells: {}, tags: {}, subj: {} }, isNow = (now.week || 1) === i + 1;
   const keep = unit, ko = unitSumOpen; unit = u; unitSumOpen = false; let sum = ""; try{ sum = unitSummary().replace("ontoggle=\"unitSumOpen=this.open;store.set('wn_unitsum',this.open)\"", ""); } finally{ unit = keep; unitSumOpen = ko; }
   const att = atS.data ? atS.data.items.filter(x => x.cls === c.id && x.type !== "expert") : [];
   const E = hbS.ent || [], kid = id => (hbS.kids||[]).find(k => k.id === id) || {}, wonders = E.filter(e => e.kind === "wonder").slice(0, 6);
   const subs = (u.subjects||[]).map(s => s.subject), subTagU = s => { const k = subs.indexOf(s); const col = SUBCOL[(k<0?0:k) % SUBCOL.length]; return `<span class="stag on" style="background:${col};border-color:${col}">${esc(s)}</span>`; };
-  return top + pick + sum +
+  return top + pick + partial + sum +
   `<div class="card hbweek"><div class="actions" style="margin-top:0;align-items:center">
       <div style="display:flex;align-items:center;gap:8px"><button class="btn small ghost" ${i?"":"disabled"} onclick="hbS.week=${i-1};render()">◀</button><h2 style="color:var(--navy);margin:0">Week ${i+1}${W.length?` of ${W.length}`:""}</h2><button class="btn small ghost" ${i<W.length-1?"":"disabled"} onclick="hbS.week=${i+1};render()">▶</button>
       ${isNow ? `<span class="pill" style="background:#e8f7ef;color:#1d7a4e">📍 This week</span>` : `<button class="link" onclick="hbSetNow({week:${i+1}})">Make this the current week</button>`}</div>
