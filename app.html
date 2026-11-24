@@ -319,6 +319,7 @@
 
   .wktabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.wktabs button{background:var(--bg);border-radius:10px;padding:8px 14px;font-weight:800;color:var(--muted)}.wktabs button.on{background:var(--navy);color:#fff}
   .cyclegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.cyc{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.cych{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}.cych b{color:var(--navy);font-size:14px}.cych select{width:auto;max-width:130px;padding:4px 6px;font-size:12px}.cyc textarea{min-height:90px}
+    .oitabs button{white-space:nowrap}
     .savenote{font-size:13px;color:var(--muted);margin:-4px 0 14px}.savenote #saveState{font-weight:800;color:#2e7d4f;margin-right:6px}.savenote #saveState:not(.on){color:var(--muted)}
     .unitsum summary .us-peek{font-weight:600;color:var(--muted);font-size:13.5px;margin-left:8px}.unitsum summary .us-tap{float:right;font-size:12.5px;font-weight:700;color:var(--blue)}
     .wkstart{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#eef4ff;border-radius:14px;padding:14px 16px;margin-top:10px}.wkstart p{font-size:13px;color:var(--muted);margin-top:2px}
@@ -864,7 +865,7 @@ function summativeView(){
   if(!sumId || !sumUnit()){
     return `<div class="top"><div><div class="crumb">WonderNest</div><h1>Summative tasks</h1></div></div>
     <div class="card"><div class="label">Choose a saved unit</div>
-    ${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}${u.summative ? " · <b style='color:var(--leaf)'>task ready</b>" : ""}</p></div>
+    ${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}${u.summative ? " · <b style='color:var(--leaf)'>task ready</b>" : " · <span style='color:var(--muted);font-style:italic'>no task yet</span>"}</p></div>
       <button class="btn small ${u.summative?"ghost":""}" onclick="openSum('${u.id}')">${u.summative ? "Open task" : "✨ Create task"}</button></div>`).join("")
     : `<div class="empty">🎯<br><br>No saved units yet.<br>Build a unit in the <b>Unit builder</b> (it saves as you go), then come back here.</div>`}
     </div>`;
@@ -1016,13 +1017,13 @@ function classesView(){
     <p class="hint" style="margin-top:14px">Teacher accounts are for adults only. Children sign in on their own page with a class code and a picture password.</p></div>`;
   if(!tc.cls){
     if(!tc.loaded){ tc.loaded = true; tLoadClasses(); }
-    return top("My classes") + `<div class="card">
-      ${tc.classes.length ? tc.classes.map(c=>`<div class="unit-row"><div><h4>${esc(c.name)}</h4><p>${esc(c.grade)} · class code <b>${esc(c.code)}</b>${c.current_unit ? " · " + esc(c.current_unit.centralIdea) : ""}</p></div><button class="btn small" onclick="tOpenClass('${c.id}')">Open</button></div>`).join("") : `<div class="empty">🌱<br><br>No classes yet. Create your first class below.</div>`}
+    return top("🌱 Classes & portfolios") + `<div class="card">
+      ${tc.classes.length ? tc.classes.map(c=>`<div class="unit-row"><div><h4>${esc(c.name)}</h4><p>${esc(c.grade)} · class code <b>${esc(c.code)}</b> · ${c.current_unit && c.current_unit.centralIdea ? esc(c.current_unit.centralIdea) : `<span style="color:var(--muted);font-style:italic">no unit yet</span>`}</p></div><button class="btn small" onclick="tOpenClass('${c.id}')">Open</button></div>`).join("") : `<div class="empty">🌱<br><br>No classes yet. Create your first class below.</div>`}
     </div>
     <div class="grid2">
       <div class="card"><div class="label">Create a class</div>
         <div class="fields" style="grid-template-columns:1fr 1fr;margin:0"><div><label>Class name</label><input type="text" id="cn" placeholder="Grade 3B"></div>
-        <div><label>Grade</label><select id="cg">${GRADES.map(([g,a])=>`<option>${g}</option>`).join("")}</select></div></div>
+        <div><label>Grade</label><select id="cg"><option value="" selected disabled>Choose…</option>${GRADES.map(([g,a])=>`<option>${g}</option>`).join("")}</select></div></div>
         <div class="actions"><span></span><button class="btn" onclick="tCreateClass()">＋ Create class</button></div></div>
       <div class="card"><div class="label">Join a colleague's class</div>
         <div class="fields" style="grid-template-columns:1fr;margin:0"><div><label>Teacher code (10 characters, from the class page)</label><input type="text" id="tcode"></div></div>
@@ -1038,14 +1039,14 @@ function classesView(){
       <div class="grid2"><div>${kinds.slice(0,2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div><div>${kinds.slice(2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div></div>`;
   }
   const units = savedUnits();
-  return top(esc(c.name)) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.cls=null;tc.loaded=false;tc.msg='';render()">‹ All classes</button> · ${esc(c.grade)}</div>
+  return top(esc(c.name)) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.cls=null;tc.loaded=false;tc.msg='';tc.showTcode=false;render()">‹ All classes</button> · ${esc(c.grade)}</div>
     <div class="card"><div class="codebox">
       <div><span class="label">Children's class code</span><b>${esc(c.code)}</b><a href="${kidsLink}" target="_blank" rel="noopener">${kidsLink}</a></div>
-      <div><span class="label">Teacher code (for co-teachers only)</span><b style="font-size:20px">${esc(c.teacher_code)}</b><span class="hint">Share only with colleagues. It gives access to children's work.</span></div>
+      <div><span class="label">Teacher code (for co-teachers only)</span>${tc.showTcode ? `<b style="font-size:20px">${esc(c.teacher_code)}</b>` : `<button class="btn small ghost" style="margin:6px 0" onclick="tc.showTcode=true;render()">🔒 Show teacher code</button>`}<span class="hint">Never give this to children. Share it only with a colleague who teaches this class: it gives access to children's work.</span></div>
     </div></div>
     <div class="card"><div class="label">Current unit (children see this on their home page)</div>
       ${c.current_unit ? `<div style="font-weight:800;color:var(--navy);margin-bottom:10px">${esc(c.current_unit.themeIcon||"")} ${esc(c.current_unit.centralIdea)}</div>` : `<div class="hint" style="margin-bottom:10px">No unit chosen yet.</div>`}
-      ${units.length ? `<div class="edit-row"><select id="cu">${units.map(u=>`<option value="${u.id}" ${c.current_unit && c.current_unit.unitId===u.id?"selected":""}>${esc(u.centralIdea || "Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select><button class="btn small" onclick="tSetUnit()">Use this unit</button></div>
+      ${units.length ? `<div class="edit-row"><select id="cu"><option value="" ${c.current_unit && units.some(u=>u.id===c.current_unit.unitId) ? "" : "selected"} disabled>${c.current_unit ? "Change to another unit…" : "Choose a unit…"}</option>${units.map(u=>`<option value="${u.id}" ${c.current_unit && c.current_unit.unitId===u.id?"selected":""}>${esc(u.centralIdea || "Untitled unit")} (${esc(u.grade||"")})</option>`).join("")}</select><button class="btn small" onclick="tSetUnit()">${c.current_unit ? "Change unit" : "Use this unit"}</button></div>
         <div class="hint" style="margin-top:8px">Or <button class="link" onclick="startNew()">build a new unit</button>, then click 📌 Use with a class at the end.</div>` : `<div class="hint">No saved units yet. <button class="link" onclick="startNew()">Build a unit</button>, then click <b>📌 Use with a class</b> at the end.</div>`}
     </div>
     <div class="card"><div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">Children (${tc.students.length})</div>
@@ -1098,6 +1099,7 @@ async function tNewPass(){ const p = $("#np").value; if(p.length < 8){ error = "
 async function tSignOut(){ await db.auth.signOut(); Object.assign(tc, {classes:[], cls:null, students:[], entries:[], kid:null, loaded:false, msg:""}); render(); }
 async function tCreateClass(){
   const name = $("#cn").value.trim(); if(!name){ error = "Please give the class a name."; return render(); }
+  if(!$("#cg").value){ error = "Please choose the class's grade."; return render(); }
   const { error: e } = await db.from("classes").insert({ name, grade: $("#cg").value });
   if(e){ error = tcErr(e); return render(); } error = ""; tc.loaded = false; render();
 }
@@ -1107,7 +1109,7 @@ async function tJoin(){
   error = ""; tc.msg = `You joined ${data.name}.`; tc.loaded = false; render();
 }
 async function tSetUnit(){
-  const u = savedUnits().find(x => x.id === $("#cu").value); if(!u) return;
+  const u = savedUnits().find(x => x.id === $("#cu").value); if(!u) return toast("Choose a unit from the list first");
   const cu = makeCU(u);
   const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", tc.cls.id);
   if(e){ error = tcErr(e); return render(); } tc.cls.current_unit = cu; toast("Current unit set ✓"); render();
@@ -1821,7 +1823,7 @@ function oiView(){
   const pick = `<div class="card"><select onchange="oiOpen(this.value)"><option value="">Choose a class…</option>${oi.classes.map(c=>`<option value="${c.id}" ${oi.cls && oi.cls.id===c.id?"selected":""}>${esc(c.name)} · ${esc(c.grade)}</option>`).join("")}</select></div>`;
   if(!oi.cls) return top + pick;
   const qCount = oi.inqs.filter(q => q.data && q.data.expertQ && (q.data.expertIds||[]).length).length;
-  const tabs = `<div class="tabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar & mystery parcels"],["experts","🧑‍🔬 Experts wall"],["questions",`💌 Expert questions${qCount?` (${qCount})`:""}`],["museum","🏛️ Museum & radio"],["families","👪 Families"],["actions","🧱 Action wall"]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs oitabs" style="max-width:none">${[["board","🌸 Class garden"],["jar","🫙 Wonder jar"],["experts","🧑‍🔬 Experts"],["questions",`💌 Questions${qCount?` (${qCount})`:""}`],["museum","🏛️ Museum & radio"],["families","👪 Families"],["actions","🧱 Action wall"]].map(([k,l])=>`<button class="${oi.tab===k?"on":""}" onclick="oi.tab='${k}';render()">${l}</button>`).join("")}</div>`;
   let body = "";
   if(oi.tab === "museum") body = oiMuseumTab();
   if(oi.tab === "families") body = oiFamiliesTab();
@@ -1830,8 +1832,10 @@ function oiView(){
     const kids = oi.students.map(k => ({ k, qs: oi.inqs.filter(q => q.student_id === k.id) }));
     const counts = [0,1,2,3,4,5,6].map(st => oi.inqs.filter(q => q.stage === st).length);
     body = `<div class="card"><div class="actions" style="margin-top:0;margin-bottom:8px"><div class="hint">Each plant is a child's wonder. It grows with every step of their journey. Click a plant to see their work and give feedback.</div>
-        <label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px;white-space:nowrap;cursor:pointer"><input type="checkbox" ${oi.cls.kid_ai !== false ? "checked" : ""} onchange="oiKidAI(this.checked)" style="width:18px;height:18px"> 🐦 Children's AI helpers</label></div>
-      <div class="chips" style="margin-bottom:6px">${[1,2,3,4,5,6].map(st=>`<span class="chip">${OI_STOPS[st]}: <b>${counts[st]}</b></span>`).join("")}</div>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px;white-space:nowrap;cursor:pointer"><input type="checkbox" ${oi.cls.kid_ai !== false ? "checked" : ""} onchange="oiKidAI(this.checked)" style="width:18px;height:18px"> 🐦 Children's AI helpers ${oi.cls.kid_ai !== false ? "on" : "off"}</label></div>
+      <p class="hint" style="margin:-2px 0 10px;text-align:right">When on, children can tap 🐦 for help during their inquiry: making their question stronger, reading a hard text, planning an interview or getting unstuck. Untick to switch it off for this class.</p>
+      <div class="label" style="margin:4px 0 6px">How many inquiries are at each stop</div>
+      <div class="chips" style="margin-bottom:6px">${[1,2,3,4,5,6].map(st=>`<span class="chip" style="cursor:default">${OI_STOPS[st]}: <b>${counts[st]}</b></span>`).join("")}</div>
       <div class="tgarden"><div class="tsky">☀️</div><div class="tbed">${kids.map(({k, qs}) => qs.length ? qs.map(q => { const n = Math.min(5, ((q.data||{}).stamps||[]).length), fb = oi.notes.some(x => x.inquiry_id === q.id && x.author_type === "teacher");
           return `<button class="tplant" onclick="oi.open='${q.id}';oi.ai=null;render()" title="${esc(q.data.wonder||"")}"><span class="tpl">${OI_PLANTS[n]}</span><b>${esc(k.picture||"")} ${esc(k.first_name)}</b><small>${esc((q.data.wonder||"New seed").slice(0,46))}</small>${fb ? "" : `<em>● needs feedback</em>`}</button>`; }).join("")
           : `<div class="tplant idle"><span class="tpl" style="opacity:.35">🕳️</span><b>${esc(k.picture||"")} ${esc(k.first_name)}</b><small>Not planted yet</small></div>`).join("") || `<div class="hint" style="padding:20px">Add children to this class first.</div>`}</div><div class="tsoil"></div></div></div>`;
@@ -3644,6 +3648,11 @@ async function hbOpen2(id){
   if(cu && cu.unitId){
     if(isUuid(cu.unitId)){ const { data } = await db.from("units").select("id, data").eq("id", cu.unitId); const r = (data||[])[0]; if(r) hbS.unit = Object.assign({}, r.data, { id: r.id }); }
     if(!hbS.unit) hbS.unit = store.get("wn_units", []).find(u => u.id === cu.unitId) || null;
+    if(!hbS.unit && cu.centralIdea){   // an old link: find the same unit (same central idea) among the teacher's saved units and reconnect it
+      const same = store.get("wn_units", []).find(u => isUuid(u.id) && !u.shared && (u.centralIdea||"").trim() === cu.centralIdea.trim() && (!cu.grade || !u.grade || u.grade === cu.grade));
+      if(same){ const fixed = Object.assign(makeCU(same), { now: cu.now }); const { error: e2 } = await db.from("classes").update({ current_unit: fixed }).eq("id", id);
+        if(!e2){ hbS.cls.current_unit = fixed; hbS.unit = same; } }
+    }
     if(!hbS.unit) hbS.unit = { id: cu.unitId, _partial: true, theme: (THEMES.find(t => t.name === cu.themeName) || {}).id || "", grade: cu.grade || "", centralIdea: cu.centralIdea || "", lines: (cu.lines || []).map(t => ({ text: t })), keyConcepts: cu.keyConcepts || [], atl: cu.atl || [], weeks: [], subjects: [] };
     hbS.week = ((cu.now||{}).week || 1) - 1;
   }
@@ -3673,10 +3682,10 @@ function weekView(){
   if(!cu || !cu.unitId) return top + pick + `<div class="card empty">📌<br><br><b>${esc(c.name)}</b> has no unit yet.<br>Plan a unit, then click <b>📌 Use with a class</b>, or choose one from the class page.<br><br><button class="btn" onclick="goView('home')">🏠 My units</button></div>`;
   const u = hbS.unit;
   if(!u) return top + pick + `<div class="card">Loading the unit…</div>`;
-  const partial = u._partial ? `<div class="wkwarn" style="margin-bottom:12px">📌 ${esc(c.name)} was linked to this unit before units were saved online, so its weekly plan can't be shown here. Open the unit in <button class="link" onclick="goView('home')">My units</button>, then click <b>📌 Use with a class</b> and choose ${esc(c.name)} again. This only needs doing once.</div>` : "";
+  const partial = u._partial ? `<div class="wkwarn" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>📌 WonderNest can't find the full plan for ${esc(c.name)}'s unit. Choose the unit again to see its weeks here.</span><button class="btn small" onclick="goView('home')">Choose the unit</button></div>` : "";
   const W = u.weeks || [], hasWeeks = W.some(w => Object.values(w.cells||{}).some(v => v && v.trim()));
   const now = cu.now || {}, i = Math.max(0, Math.min(hbS.week || 0, Math.max(W.length - 1, 0))), w = W[i] || { cells: {}, tags: {}, subj: {} }, isNow = (now.week || 1) === i + 1;
-  const keep = unit, ko = unitSumOpen; unit = u; unitSumOpen = false; let sum = ""; try{ sum = unitSummary().replace("ontoggle=\"unitSumOpen=this.open;store.set('wn_unitsum2',this.open)\"", ""); } finally{ unit = keep; unitSumOpen = ko; }
+  const keep = unit, ko = unitSumOpen; unit = Object.assign({}, u, { step: 9 }); unitSumOpen = false; let sum = ""; try{ sum = unitSummary().replace("ontoggle=\"unitSumOpen=this.open;store.set('wn_unitsum2',this.open)\"", "").replace("📋 Your unit so far", "📋 This unit"); } finally{ unit = keep; unitSumOpen = ko; }
   const att = atS.data ? atS.data.items.filter(x => x.cls === c.id && x.type !== "expert") : [];
   const E = hbS.ent || [], kid = id => (hbS.kids||[]).find(k => k.id === id) || {}, wonders = E.filter(e => e.kind === "wonder").slice(0, 6);
   const subs = (u.subjects||[]).map(s => s.subject), subTagU = s => { const k = subs.indexOf(s); const col = SUBCOL[(k<0?0:k) % SUBCOL.length]; return `<span class="stag on" style="background:${col};border-color:${col}">${esc(s)}</span>`; };
@@ -3687,9 +3696,11 @@ function weekView(){
       <button class="btn small ghost" onclick="hbOpenPlan()">✏️ Edit the plan</button></div>
     ${w.line ? `<p style="margin-top:8px"><b>Line ${esc(String(w.line))}:</b> ${esc(((u.lines||[])[w.line-1]||{}).text||"")}${w.focus?` · <b>Focus:</b> ${esc(w.focus)}`:""}</p>` : ""}
     ${!hasWeeks ? `<div class="wkstart" style="margin-top:10px"><div><b>No weekly plan yet</b><p>Draft all weeks in one click in the unit builder (step 7). They will appear here, phase by phase.</p></div><button class="btn" onclick="hbOpenPlan()">✨ Plan the weeks</button></div>` : ""}
+    <div class="label" style="margin-top:14px">📍 Where is your class in the inquiry cycle? Tap the phase</div>
     <div class="hbjourney">${CYCLE.map(([ph,ic])=>`<button class="${isNow&&now.phase===ph?"on":""}" onclick="hbSetNow({week:${i+1},phase:'${ph}'})" title="Show children we are here">${ic}<span>${ph}</span></button>`).join("")}</div>
-    <p class="hint" style="text-align:center">Tap the phase your class is in: children see it on their home screen, and their work is labelled with it.</p>
-    <div class="hbphases">${CYCLE.map(([ph,ic])=>`<div class="hbph ${isNow&&now.phase===ph?"on":""}"><b>${ic} ${ph}</b><p>${esc((w.cells||{})[ph]||"Nothing planned yet").replace(/\n/g,"<br>")}</p>${((w.tags||{})[ph]||[]).length?`<div>${w.tags[ph].map(subTagU).join("")}</div>`:""}
+    <p class="hint" style="text-align:center">Children see the phase on their home screen, and their work is labelled with it.</p>
+    ${!hasWeeks ? `<div class="label" style="margin-top:14px">🧰 Shortcuts for each phase</div>` : ""}
+    <div class="hbphases">${CYCLE.map(([ph,ic])=>`<div class="hbph ${isNow&&now.phase===ph?"on":""}"><b>${ic} ${ph}</b>${hasWeeks ? `<p>${esc((w.cells||{})[ph]||"Nothing planned yet").replace(/\n/g,"<br>")}</p>` : ""}${((w.tags||{})[ph]||[]).length?`<div>${w.tags[ph].map(subTagU).join("")}</div>`:""}
       <div class="hbtools">${(PHASE_TOOLS[ph]||[]).map(t=>`<button onclick="goView('${t[2]}')">${t[0]} ${t[1]}</button>`).join("")}</div></div>`).join("")}</div>
     ${subs.length ? `<div class="label" style="margin-top:14px">📚 Subjects this week</div><div class="wksubgrid">${subs.map((s,k)=>`<div class="wksub" style="border-left-color:${SUBCOL[k%SUBCOL.length]}"><b style="color:${SUBCOL[k%SUBCOL.length]}">${esc(s)}</b><p>${esc((w.subj||{})[s]||"Not planned yet")}</p></div>`).join("")}</div>` : ""}
     ${W[i+1] && Object.values(W[i+1].cells||{}).some(v=>v&&v.trim()) ? `<details style="margin-top:12px"><summary><b>👀 Coming up: week ${i+2}</b>${W[i+1].focus?" · "+esc(W[i+1].focus):""}</summary><table class="tbl wkt" style="margin-top:8px">${CYCLE.map(([ph,ic])=>`<tr><td><b>${ic} ${ph}</b></td><td>${esc(W[i+1].cells[ph]||"")}</td></tr>`).join("")}</table></details>` : ""}</div>
