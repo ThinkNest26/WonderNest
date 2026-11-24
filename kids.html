@@ -324,6 +324,7 @@ const SDG_STORIES = [
   @keyframes fly{0%{opacity:0;transform:translate(-50%,20px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-120px) scale(1)}}
 
   .cfitem{border-radius:14px;background:#f4f6fb;margin-bottom:8px;border:3px solid transparent}.cfitem.on{border-color:#be123c;background:#fff0f3}.cfitem>button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:10px;background:none}.cfitem>button>span{font-size:22px}.cfitem small{font-weight:800;color:var(--muted)}.cfitem p{font-weight:700;font-size:14px}.cfitem img{width:54px;height:54px;object-fit:cover;border-radius:10px;margin-left:auto}.cfitem input{margin:0 10px 10px;width:calc(100% - 20px)}
+  .unitnow{background:linear-gradient(135deg,#eef4ff,#f4f0ff)}.unw{font-weight:800;color:var(--muted);font-size:13px}.unl{font-size:19px;font-weight:900;color:var(--navy);margin:4px 0 10px}.unpath{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.unpath div{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.45}.unpath div span{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:19px}.unpath div small{font-size:10px;font-weight:800;text-align:center;line-height:1.1}.unpath .done{opacity:.8}.unpath .done span{background:#d9f2e4}.unpath .on{opacity:1}.unpath .on span{background:var(--blue);box-shadow:0 0 0 4px #c9dafb;animation:pulse 1.6s infinite}.unp{margin-top:10px;font-weight:700;background:#fff;border-radius:12px;padding:10px}@keyframes pulse{50%{transform:scale(1.08)}}
   .confk{min-height:100vh;background:linear-gradient(180deg,#14325c,#2f6fd6);color:#fff;display:flex;flex-direction:column}.cfkhead{display:flex;justify-content:space-between;align-items:center;padding:14px}.cfkhead button{background:rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 14px;font-size:18px}
   .cfkbody{flex:1;padding:10px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}.cfkbody h1{font-family:"Fredoka",sans-serif;font-size:30px}.cfkbody img{max-width:100%;max-height:40vh;border-radius:18px}.cfkb{font-size:21px;line-height:1.5;font-weight:700}.cfkw{background:rgba(255,255,255,.15);border-radius:14px;padding:12px;font-weight:700}
   .cfknav{display:flex;gap:10px;padding:16px}.cfknav .btn{flex:1}.cfknav .btn.ghost{background:rgba(255,255,255,.2);color:#fff;border:0}
@@ -1508,6 +1509,26 @@ NEW_SCREENS.confshow = function(){
 const _homeConf = NEW_SCREENS.home;
 NEW_SCREENS.home = function(){ const a = tileW("🧱","Action wall","#0f766e","goActions()"); return _homeConf().replace(a, a + tileW("🎤","My conference","#be123c","goConf()")); };
 FEATHERS.conference = 3;
+
+
+/* =====================================================================
+   OUR UNIT THIS WEEK (children)
+   ===================================================================== */
+const KPHASES = [["Tuning in","🎵","We share what we already know and what we wonder."],["Finding out","🔍","We find out new things."],["Sorting out","🧩","We sort out what we found."],["Going further","🚀","We dig deeper into our questions."],["Making connections","🔗","We connect it to the big idea and to our lives."],["Taking action","🌱","We do something to help."]];
+function unitNowCard(){
+  const u = me.current_unit || {}, n = u.now; if(!u.centralIdea || !n) return "";
+  const k = KPHASES.findIndex(p => p[0] === n.phase), cur = KPHASES[k];
+  const say = `This week we are learning about: ${n.lineText || n.focus || u.centralIdea}. ${cur ? "Right now we are " + cur[0].toLowerCase() + ". " + cur[2] : ""}`;
+  return `<div class="card unitnow"><h2>🧭 Our unit this week <button class="speak" onclick='speak(${JSON.stringify(say)})'>🔊</button></h2>
+    ${n.weeks ? `<p class="unw">Week ${n.week} of ${n.weeks}</p>` : ""}
+    ${n.lineText || n.focus ? `<p class="unl">${esc(n.focus || n.lineText)}</p>` : ""}
+    <div class="unpath">${KPHASES.map(([p,ic],j)=>`<div class="${j===k?"on":j<k?"done":""}"><span>${j<k?"✓":ic}</span><small>${p}</small></div>`).join("")}</div>
+    ${cur ? `<p class="unp">${cur[1]} <b>${cur[0]}:</b> ${cur[2]}</p>` : ""}</div>`;
+}
+const _homeUnit = NEW_SCREENS.home;
+NEW_SCREENS.home = function(){ const h = _homeUnit(), c = unitNowCard(); return c ? h.replace('<h3 class="sect">💭 Wonder</h3>', c + '<h3 class="sect">💭 Wonder</h3>') : h; };
+const _addEntryUnit = addEntry;
+addEntry = async function(kind, title, content){ const n = (me.current_unit || {}).now; if(n && content && typeof content === "object" && !Array.isArray(content)){ content.wk = n.week; if(n.phase) content.ph = n.phase; } return _addEntryUnit(kind, title, content); };
 
 start();
 </script>

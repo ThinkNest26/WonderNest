@@ -324,6 +324,9 @@
   .stags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.stag{display:inline-block;border:1.5px solid;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:800;cursor:pointer;background:#fff;margin:2px 2px 0 0}.stag.on{color:#fff}
   .wksubs{margin-top:14px}.wksubgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}.wksub{border:1px solid var(--line);border-left:5px solid;border-radius:12px;padding:8px 10px;background:#fff}.wksub textarea{min-height:54px;margin-top:4px}
   .wkwarn{background:#fff8e6;border-radius:10px;padding:8px 12px;font-size:13px;margin-top:10px}.dot{display:inline-block;min-width:22px;border-radius:999px;color:#fff;font-weight:800;font-size:12px;padding:2px 6px}tr.subrow td{background:#fafbff}
+  .hbjourney{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:14px}.hbjourney button{background:var(--bg);border-radius:12px;padding:8px 4px;font-size:20px;display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid transparent}.hbjourney button span{font-size:11px;font-weight:800;color:var(--muted)}.hbjourney button.on{border-color:var(--blue);background:#eef4ff}.hbjourney button.on span{color:var(--blue)}
+  .hbphases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.hbph{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.hbph.on{border:2px solid var(--blue);box-shadow:0 4px 14px rgba(47,111,214,.15)}.hbph b{color:var(--navy)}.hbph p{font-size:13px;margin:6px 0}.hbtools{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}.hbtools button{background:#f4f6fb;border-radius:8px;padding:4px 8px;font-size:11.5px;font-weight:700;color:var(--navy)}.hbtools button:hover{background:#e3ebfa}
+  .navbox summary{cursor:pointer;list-style:none}.navbox summary::-webkit-details-marker{display:none}.navbox summary::after{content:' ▸'}.navbox[open] summary::after{content:' ▾'}
   table.wkt td{font-size:12px;min-width:120px}
   .confslide{background:#fff;border-radius:20px;padding:26px;width:min(760px,94vw);max-height:92vh;overflow:auto;text-align:center}.confslide h2{color:var(--navy);font-size:26px;margin:6px 0 10px}.confslide img{max-width:100%;max-height:44vh;border-radius:14px}.cfb{font-size:18px;line-height:1.55;margin-top:10px}.cfw{background:#fff8e6;border-radius:12px;padding:10px;margin-top:10px}
 </style>
@@ -648,6 +651,7 @@ function render(){
   else if(view === "basics") m.innerHTML = basicsView();
   else if(view === "poi") m.innerHTML = poiView();
   else if(view === "progress") m.innerHTML = progressView();
+  else if(view === "week") m.innerHTML = weekView();
   else if(view === "attention") m.innerHTML = attentionView();
   else if(view === "reviews") m.innerHTML = reviewsView();
   else if(view === "exh") m.innerHTML = exView();
@@ -3591,6 +3595,104 @@ const _pgChild = pgChild; pgChild = () => { const h = _pgChild(); return pgS.kid
 document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { const v = n.dataset.view; if(v === "attention"){ atS.data = null; render(); } if(v === "reviews"){ rvS.list = null; rvS.open = null; render(); } if(v === "builder" && isUuid(unit.id)){ delete rvS.byUnit[unit.id]; render(); } }));
 setTimeout(() => { if(tc.user) loadAttention(); }, 2500);
 stepWeeks = _usWrap(stepWeeks);
+
+
+/* =====================================================================
+   THIS WEEK: one place that connects plan, teaching and children
+   ===================================================================== */
+const hbS = { classes: null, cls: null, unit: null, week: null, ent: null, loading: false };
+const PHASE_TOOLS = {
+  "Tuning in": [["🧠","Send a thinking routine","library"],["🌍","Share a real-life SDG story","sdg"]],
+  "Finding out": [["📚","Story library","stories"],["🔍","Open inquiry","inquiry"]],
+  "Sorting out": [["🧩","Fact or big idea? sort game","concepts"],["📈","Note ATL skills","atl"]],
+  "Going further": [["🔍","Children's own inquiries","inquiry"],["🧑‍🔬","Questions for experts","inquiry"]],
+  "Making connections": [["💡","Concept questions","concepts"],["📊","Check understanding","progress"]],
+  "Taking action": [["🧱","Approve actions","attention"],["🎯","Summative task","summative"]] };
+function goView(v){ const b = document.querySelector(`.nav[data-view="${v}"]`); if(b) b.click(); else { view = v; render(); } }
+async function hbLoad(){
+  if(hbS.loading) return; hbS.loading = true;
+  const { data } = await db.from("classes").select("id, name, grade, code, current_unit").order("created_at");
+  hbS.classes = data || []; hbS.loading = false;
+  const keep = hbS.cls && hbS.classes.find(c => c.id === hbS.cls.id);
+  hbS.cls = keep || hbS.classes.find(c => c.current_unit) || hbS.classes[0] || null;
+  if(hbS.cls) await hbOpen(hbS.cls.id, true); else render();
+}
+async function hbOpen(id, quiet){
+  hbS.cls = hbS.classes.find(c => c.id === id); hbS.unit = null; hbS.ent = null; hbS.week = null;
+  const cu = hbS.cls.current_unit;
+  if(cu && cu.unitId){
+    if(isUuid(cu.unitId)){ const { data } = await db.from("units").select("id, data").eq("id", cu.unitId); const r = (data||[])[0]; if(r) hbS.unit = Object.assign({}, r.data, { id: r.id }); }
+    if(!hbS.unit) hbS.unit = store.get("wn_units", []).find(u => u.id === cu.unitId) || null;
+    hbS.week = ((cu.now||{}).week || 1) - 1;
+  }
+  const since = new Date(Date.now() - 7*864e5).toISOString();
+  const { data: e } = await db.from("entries").select("id, student_id, kind, content, publish, created_at").eq("class_id", id).gte("created_at", since).order("created_at", { ascending: false }).limit(300);
+  const { data: k } = await db.from("students").select("id, first_name, picture").eq("class_id", id);
+  hbS.ent = e || []; hbS.kids = k || [];
+  if(!atS.data) loadAttention(); else render();
+  if(!quiet) render();
+}
+async function hbSetNow(patch){
+  const cu = Object.assign({}, hbS.cls.current_unit), u = hbS.unit, W = (u && u.weeks) || [];
+  const now = Object.assign({ week: 1, phase: "" }, cu.now || {}, patch), w = W[now.week - 1] || {};
+  now.weeks = W.length; now.line = w.line || ""; now.lineText = w.line ? ((u.lines||[])[w.line-1]||{}).text || "" : ""; now.focus = w.focus || ""; now.since = patch.week ? new Date().toISOString() : (now.since || new Date().toISOString());
+  cu.now = now;
+  const { error: e } = await db.from("classes").update({ current_unit: cu }).eq("id", hbS.cls.id);
+  if(e){ error = tcErr(e); return render(); }
+  hbS.cls.current_unit = cu; if(patch.week) hbS.week = patch.week - 1; toast(patch.phase ? "Children will see: " + patch.phase : "Week " + now.week + " is now this week ✓"); render();
+}
+async function hbOpenPlan(){ await openUnit(hbS.unit.id); unit.step = 7; wkS.week = hbS.week || 0; saveCurrent(); view = "builder"; render(); }
+function weekView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏠 This week</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in to see your class's week.</div>`;
+  if(!hbS.classes){ hbLoad(); return top + `<div class="card">Loading…</div>`; }
+  if(!hbS.classes.length) return top + `<div class="card empty">🌱<br><br>Create your class first, then choose its unit.<br><br><button class="btn" onclick="goView('classes')">🌱 Classes & portfolios</button></div>`;
+  const pick = hbS.classes.length > 1 ? `<div class="chips" style="margin-bottom:12px">${hbS.classes.map(c=>`<button class="chip ${hbS.cls&&hbS.cls.id===c.id?"on":""}" onclick="hbOpen('${c.id}')">${esc(c.name)}</button>`).join("")}</div>` : "";
+  const c = hbS.cls, cu = c.current_unit;
+  if(!cu || !cu.unitId) return top + pick + `<div class="card empty">📌<br><br><b>${esc(c.name)}</b> has no unit yet.<br>Plan a unit, then click <b>📌 Use with a class</b>, or choose one from the class page.<br><br><button class="btn" onclick="goView('home')">🏠 My units</button></div>`;
+  const u = hbS.unit;
+  if(!u) return top + pick + `<div class="card">Loading the unit…</div>`;
+  const W = u.weeks || [], hasWeeks = W.some(w => Object.values(w.cells||{}).some(v => v && v.trim()));
+  const now = cu.now || {}, i = Math.max(0, Math.min(hbS.week || 0, Math.max(W.length - 1, 0))), w = W[i] || { cells: {}, tags: {}, subj: {} }, isNow = (now.week || 1) === i + 1;
+  const keep = unit, ko = unitSumOpen; unit = u; unitSumOpen = false; let sum = ""; try{ sum = unitSummary().replace("ontoggle=\"unitSumOpen=this.open;store.set('wn_unitsum',this.open)\"", ""); } finally{ unit = keep; unitSumOpen = ko; }
+  const att = atS.data ? atS.data.items.filter(x => x.cls === c.id && x.type !== "expert") : [];
+  const E = hbS.ent || [], kid = id => (hbS.kids||[]).find(k => k.id === id) || {}, wonders = E.filter(e => e.kind === "wonder").slice(0, 6);
+  const subs = (u.subjects||[]).map(s => s.subject), subTagU = s => { const k = subs.indexOf(s); const col = SUBCOL[(k<0?0:k) % SUBCOL.length]; return `<span class="stag on" style="background:${col};border-color:${col}">${esc(s)}</span>`; };
+  return top + pick + sum +
+  `<div class="card hbweek"><div class="actions" style="margin-top:0;align-items:center">
+      <div style="display:flex;align-items:center;gap:8px"><button class="btn small ghost" ${i?"":"disabled"} onclick="hbS.week=${i-1};render()">◀</button><h2 style="color:var(--navy);margin:0">Week ${i+1}${W.length?` of ${W.length}`:""}</h2><button class="btn small ghost" ${i<W.length-1?"":"disabled"} onclick="hbS.week=${i+1};render()">▶</button>
+      ${isNow ? `<span class="pill" style="background:#e8f7ef;color:#1d7a4e">📍 This week</span>` : `<button class="link" onclick="hbSetNow({week:${i+1}})">Make this the current week</button>`}</div>
+      <button class="btn small ghost" onclick="hbOpenPlan()">✏️ Edit the plan</button></div>
+    ${w.line ? `<p style="margin-top:8px"><b>Line ${esc(String(w.line))}:</b> ${esc(((u.lines||[])[w.line-1]||{}).text||"")}${w.focus?` · <b>Focus:</b> ${esc(w.focus)}`:""}</p>` : ""}
+    ${!hasWeeks ? `<div class="wkstart" style="margin-top:10px"><div><b>No weekly plan yet</b><p>Draft all weeks in one click in the unit builder (step 7). They will appear here, phase by phase.</p></div><button class="btn" onclick="hbOpenPlan()">✨ Plan the weeks</button></div>` : ""}
+    <div class="hbjourney">${CYCLE.map(([ph,ic])=>`<button class="${isNow&&now.phase===ph?"on":""}" onclick="hbSetNow({week:${i+1},phase:'${ph}'})" title="Show children we are here">${ic}<span>${ph}</span></button>`).join("")}</div>
+    <p class="hint" style="text-align:center">Tap the phase your class is in: children see it on their home screen, and their work is labelled with it.</p>
+    <div class="hbphases">${CYCLE.map(([ph,ic])=>`<div class="hbph ${isNow&&now.phase===ph?"on":""}"><b>${ic} ${ph}</b><p>${esc((w.cells||{})[ph]||"Nothing planned yet").replace(/\n/g,"<br>")}</p>${((w.tags||{})[ph]||[]).length?`<div>${w.tags[ph].map(subTagU).join("")}</div>`:""}
+      <div class="hbtools">${(PHASE_TOOLS[ph]||[]).map(t=>`<button onclick="goView('${t[2]}')">${t[0]} ${t[1]}</button>`).join("")}</div></div>`).join("")}</div>
+    ${subs.length ? `<div class="label" style="margin-top:14px">📚 Subjects this week</div><div class="wksubgrid">${subs.map((s,k)=>`<div class="wksub" style="border-left-color:${SUBCOL[k%SUBCOL.length]}"><b style="color:${SUBCOL[k%SUBCOL.length]}">${esc(s)}</b><p>${esc((w.subj||{})[s]||"Not planned yet")}</p></div>`).join("")}</div>` : ""}
+    ${W[i+1] && Object.values(W[i+1].cells||{}).some(v=>v&&v.trim()) ? `<details style="margin-top:12px"><summary><b>👀 Coming up: week ${i+2}</b>${W[i+1].focus?" · "+esc(W[i+1].focus):""}</summary><table class="tbl wkt" style="margin-top:8px">${CYCLE.map(([ph,ic])=>`<tr><td><b>${ic} ${ph}</b></td><td>${esc(W[i+1].cells[ph]||"")}</td></tr>`).join("")}</table></details>` : ""}</div>
+  <div class="grid2">
+    <div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🔔 Waiting for you in ${esc(c.name)}</div><button class="link" onclick="goView('attention')">Open</button></div>
+      ${att.length ? Object.entries(att.reduce((a,x)=>{a[x.type]=(a[x.type]||0)+1;return a},{})).map(([t,n])=>`<p>${AT_T[t][0]} <b>${n}</b> ${AT_T[t][1].toLowerCase()}</p>`).join("") : `<p class="hint">Nothing waiting 🎉</p>`}</div>
+    <div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🐦 Children's work in the last 7 days (${E.length})</div><button class="link" onclick="goView('classes')">Portfolios</button></div>
+      ${wonders.map(e=>`<p>${esc(kid(e.student_id).picture||"")} <b>${esc(kid(e.student_id).first_name||"")}</b>: ${esc(String(e.content.text||"").slice(0,90))}${e.content.ph?` <span class="hint">· ${esc(e.content.ph)}</span>`:""}</p>`).join("") || `<p class="hint">No new wonders yet this week.</p>`}
+      ${E.length ? `<p class="hint" style="margin-top:6px">${Object.entries(E.reduce((a,x)=>{a[x.kind]=(a[x.kind]||0)+1;return a},{})).map(([k,n])=>`${n} ${esc(KIND_NAMES[k]||k)}`).join(" · ")}</p>` : ""}</div></div>`;
+}
+
+/* ---------- simpler menu: This week first, tools tucked into a Toolbox ---------- */
+(function(){
+  const side = document.querySelector('.nav[data-view="home"]').parentNode, nb = v => side.querySelector(`.nav[data-view="${v}"]`);
+  const hub = document.createElement("button"); hub.className = "nav"; hub.dataset.view = "week"; hub.textContent = "🏠 This week";
+  const firstG = side.querySelector(".navg"); side.insertBefore(hub, firstG);
+  nb("home").textContent = "🗂️ My units";
+  const gs = [...side.querySelectorAll(".navg")]; const teachG = gs.find(g => /Teach/.test(g.textContent)); if(teachG) teachG.textContent = "My class";
+  const box = document.createElement("details"); box.className = "navbox"; box.innerHTML = `<summary class="navg">🧰 Toolbox</summary>`;
+  const schoolG = gs.find(g => /School/.test(g.textContent)); side.insertBefore(box, schoolG);
+  ["concepts","library","sdg","stories","basics"].forEach(v => { const b = nb(v); if(b) box.appendChild(b); });
+  hub.addEventListener("click", () => { view = "week"; error = ""; hbS.classes = null; render(); });
+  side.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { if(box.contains(n)) box.open = true; }));
+})();
+setTimeout(() => { if(tc.user && view === "builder" && !unit.centralIdea){ view = "week"; render(); } }, 1800);
 
 render();
 initAuth();
