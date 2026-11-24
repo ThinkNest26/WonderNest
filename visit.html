@@ -47,6 +47,33 @@
 <div id="app"><div class="wrap center" style="padding-top:80px"><img src="bird.png" style="width:80px"><p>Loading…</p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* Softer, more natural reading voice: prefer the best female voices on each device */
+(function(){
+  if(!window.speechSynthesis) return;
+  const EN = ["Samantha (Enhanced)","Samantha (Premium)","Serena (Premium)","Serena (Enhanced)","Kate (Enhanced)","Stephanie (Enhanced)","Martha (Enhanced)","Karen (Enhanced)","Moira (Enhanced)",
+    "Microsoft Sonia Online (Natural)","Microsoft Libby Online (Natural)","Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Google UK English Female","Samantha","Serena","Kate","Stephanie","Martha","Karen","Moira","Tessa","Microsoft Hazel","Microsoft Zira"];
+  const AR = ["Majed (Enhanced)","Laila","Mariam","Microsoft Salma Online (Natural)","Microsoft Fatima Online (Natural)","Microsoft Zariyah Online (Natural)","Microsoft Hoda","Google العربية"];
+  let voices = []; const load = () => { voices = speechSynthesis.getVoices() || []; };
+  load(); speechSynthesis.addEventListener && speechSynthesis.addEventListener("voiceschanged", load);
+  const pick = lang => {
+    const ar = String(lang || "").startsWith("ar"), list = ar ? AR : EN;
+    for(const n of list){ const v = voices.find(x => x.name === n) || voices.find(x => x.name.startsWith(n)); if(v) return v; }
+    const pref = voices.filter(x => x.lang && x.lang.toLowerCase().startsWith(ar ? "ar" : "en"));
+    return pref.find(x => /natural|enhanced|premium|female/i.test(x.name)) || pref.find(x => /en-GB/i.test(x.lang)) || pref[0] || null;
+  };
+  const orig = speechSynthesis.speak.bind(speechSynthesis);
+  try{
+    speechSynthesis.speak = function(u){
+      if(!voices.length) load();
+      if(!u.voice){ const v = pick(u.lang || "en-GB"); if(v){ u.voice = v; u.lang = v.lang; } }
+      if(!u.rate || u.rate >= .95) u.rate = .9;
+      u.pitch = 1.08; u.volume = .95;
+      orig(u);
+    };
+  }catch(e){}
+})();
+</script>
+<script>
 const SUPABASE_URL = "https://zmncqutjtgwxlvrdgwiq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_blNQT3mGUzNadaRARkRpew_dq-tmD4J";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, storageKey: "wondernest-visit" } });

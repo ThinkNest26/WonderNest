@@ -298,8 +298,38 @@
   table.poi td{min-width:160px}table.poi td.gap{background:#fff4ef}.poiu{background:var(--bg);border-radius:10px;padding:8px;margin-bottom:6px;font-size:12.5px}.poiu b{color:var(--navy)}
   .navg{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;opacity:.55;font-weight:800;margin:12px 0 2px 10px}
   .side{overflow-y:auto}
+
+  .tdsub{margin-top:10px}.tdcard{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#fff}.tdcard h4{color:var(--navy);font-size:15px}
+  .tdlearn{background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}.tdlearn p{margin:2px 0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Softer, more natural reading voice: prefer the best female voices on each device */
+(function(){
+  if(!window.speechSynthesis) return;
+  const EN = ["Samantha (Enhanced)","Samantha (Premium)","Serena (Premium)","Serena (Enhanced)","Kate (Enhanced)","Stephanie (Enhanced)","Martha (Enhanced)","Karen (Enhanced)","Moira (Enhanced)",
+    "Microsoft Sonia Online (Natural)","Microsoft Libby Online (Natural)","Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Google UK English Female","Samantha","Serena","Kate","Stephanie","Martha","Karen","Moira","Tessa","Microsoft Hazel","Microsoft Zira"];
+  const AR = ["Majed (Enhanced)","Laila","Mariam","Microsoft Salma Online (Natural)","Microsoft Fatima Online (Natural)","Microsoft Zariyah Online (Natural)","Microsoft Hoda","Google العربية"];
+  let voices = []; const load = () => { voices = speechSynthesis.getVoices() || []; };
+  load(); speechSynthesis.addEventListener && speechSynthesis.addEventListener("voiceschanged", load);
+  const pick = lang => {
+    const ar = String(lang || "").startsWith("ar"), list = ar ? AR : EN;
+    for(const n of list){ const v = voices.find(x => x.name === n) || voices.find(x => x.name.startsWith(n)); if(v) return v; }
+    const pref = voices.filter(x => x.lang && x.lang.toLowerCase().startsWith(ar ? "ar" : "en"));
+    return pref.find(x => /natural|enhanced|premium|female/i.test(x.name)) || pref.find(x => /en-GB/i.test(x.lang)) || pref[0] || null;
+  };
+  const orig = speechSynthesis.speak.bind(speechSynthesis);
+  try{
+    speechSynthesis.speak = function(u){
+      if(!voices.length) load();
+      if(!u.voice){ const v = pick(u.lang || "en-GB"); if(v){ u.voice = v; u.lang = v.lang; } }
+      if(!u.rate || u.rate >= .95) u.rate = .9;
+      u.pitch = 1.08; u.volume = .95;
+      orig(u);
+    };
+  }catch(e){}
+})();
+</script>
 <script>
 // WonderNest: true SDG stories. Each story was checked against the sources listed. Retold in WonderNest's own words for children.
 const SDG_STORIES = [
@@ -609,8 +639,8 @@ function header(title){
 }
 
 function builderView(){
-  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry","Plan, assess and reflect"];
-  const body = [step1, step2, step3, step4, step5, step6][unit.step-1]();
+  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry","Transdisciplinary learning: subjects together","Plan, assess and reflect"];
+  const body = [step1, step2, step3, step4, step5, stepSubjects, step6][unit.step-1]();
   return header(titles[unit.step-1]) + body;
 }
 
@@ -2138,6 +2168,7 @@ function downloadWord(){
   <h2>ATL skills</h2><ul>${unit.atl.map(a=>`<li>${esc(a)}${unit.atlWhy[a]?" — "+esc(unit.atlWhy[a]):""}</li>`).join("")}</ul>
   <h2>Learner profile</h2><p>${esc(unit.learnerProfile.join(", "))}</p>
   <h2>Sustainable Development Goals</h2><ul>${SDGS.filter(s=>unit.sdgs.includes(s[0])).map(([n,name])=>`<li>SDG ${n} ${name}${unit.sdgWhy[n]?" — "+esc(unit.sdgWhy[n]):""}</li>`).join("")}</ul>
+  ${tdWordHTML()}
   ${planWordHTML()}
   <h2>Books</h2><ul>${unit.books.map(b=>`<li><b>${esc(b.title)}</b>, ${esc(b.author)} — ${esc(b.why)}<br><a href="${(b.ol&&b.ol.url)||"https://openlibrary.org/search?q="+q(b)}">Open Library${b.ol&&b.ol.readable?" (read online free)":""}</a> · <a href="https://search.worldcat.org/search?q=${q(b)}">Find in a library</a></li>`).join("")}</ul>
   ${unit.story ? `<h2>Original story: ${esc(unit.story.title)}</h2><p>${esc(unit.story.text).replace(/\n/g,"<br>")}</p>${unit.story.textSecond?`<p dir="rtl">${esc(unit.story.textSecond).replace(/\n/g,"<br>")}</p>`:""}` : ""}
@@ -2844,7 +2875,7 @@ const _s1 = step1; step1 = () => whyBox("step1") + _s1();
 const _s2c = step2; step2 = () => whyBox("step2") + CI_EXAMPLES + _s2c();
 const _s3c = step3; step3 = () => whyBox("step3") + `<div class="actions" style="margin:0 0 12px"><span class="hint">Planning with your grade team? Add them so you can edit together, comment and see the history.</span><button class="btn small ghost" onclick="openTeam()">👥 Team</button></div>` + _s3c();
 const _s4 = step4; step4 = () => whyBox("step4") + _s4();
-const _s5 = step5; step5 = () => whyBox("step5") + _s5() + `<div class="actions"><span></span><button class="btn" onclick="goStep(6)">Next: plan & reflect →</button></div>`;
+const _s5 = step5; step5 = () => whyBox("step5") + _s5() + `<div class="actions"><span></span><button class="btn" onclick="goStep(6)">Next: subjects together →</button></div>`;
 const _cv = conceptsView; conceptsView = () => _cv().replace('<div class="tabs"', whyBox("concepts") + '<div class="tabs"');
 const _av = atlView; atlView = () => { const h = _av(); return h.replace(/(<\/h1><\/div><\/div>)/, "$1" + whyBox("atl")) + lpCard(); };
 const _sv = summativeView; summativeView = () => _sv().replace(/(<\/h1><\/div><\/div>)/, "$1" + whyBox("summative")) + sumVoicesCard();
@@ -2877,7 +2908,7 @@ function step6(){
       ${planTA("agency","How will children have voice, choice and ownership?","Children choose…")}
       ${planTA("im","International-mindedness: local and global perspectives","")}
       ${planTA("languages","Home and additional languages","Key words in Arabic and English, family stories…",56)}
-      ${planTA("subjects","Subject connections (subject: learning objectives)","Science: … Maths: …")}</div>
+      <p class="hint">Subject topics and transdisciplinary experiences are planned in step 6.</p></div>
     <div class="card exg"><div class="label">🪞 Team reflections</div>
       ${planTA("before","Before the unit: what do children already know? What might be challenging?","")}
       ${planTA("during","During the unit: what is working? What are we changing?","")}
@@ -3091,6 +3122,63 @@ const _render2 = render;
 render = function(){ _render2(); if(tm.open || tm.conflict){ $("#main").insertAdjacentHTML("beforeend", teamModal() + conflictModal()); } };
 document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { const v = n.dataset.view; if(v === "poi"){ poiS.units = null; render(); } if(v === "inquiry"){ actS.list = null; } if(v === "summative"){ sv.key = null; } }));
 DEMO.concept_sort = { items: [{ text: "Frogs live in ponds.", type: "fact" }, { text: "Living things need their habitats to survive.", type: "big" }, { text: "A pond has water plants.", type: "fact" }, { text: "When a habitat changes, the animals in it are affected.", type: "big" }] };
+
+
+/* =====================================================================
+   TRANSDISCIPLINARY PLANNING: subject topics → meaningful learning experiences
+   ===================================================================== */
+const SUBJECTS = ["English","Mathematics","Science","Arabic","Social Studies","Islamic Education","Art","Music","PE","Computing","Moral Education","Library"];
+WHY.subjects = ["What makes learning transdisciplinary?", "In the PYP, subjects come together through the central idea when the connection is real and helps children understand more deeply. Write what each subject is teaching this unit, then look for experiences where two or more subjects meet naturally. Some subject learning is better taught on its own, and that is fine: forced connections confuse children."];
+function tdObj(){ unit.subjects = unit.subjects || []; unit.tdExperiences = unit.tdExperiences || []; return unit; }
+function stepSubjects(){
+  tdObj(); const subs = unit.subjects, sug = unit.tdIdeas;
+  return whyBox("subjects") + `<div class="card exg"><div class="label">1. Which subjects are teaching this unit, and what are they teaching?</div>
+    <div class="chips">${SUBJECTS.map(s=>`<button class="chip ${subs.some(x=>x.subject===s)?"on":""}" onclick="tdToggle('${s}')">${s}</button>`).join("")}<button class="chip" onclick="const v=prompt('Subject name');if(v&&v.trim())tdToggle(v.trim())">＋ Other</button></div>
+    ${subs.map((x,i)=>`<div class="tdsub"><label>${esc(x.subject)}: topics or objectives this unit</label><textarea oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the topics or objectives (for example from Atlas)"}">${esc(x.topics||"")}</textarea></div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
+    <div class="actions"><span class="hint">WonderNest suggests experiences where subjects meet through your central idea, and tells you which topics are better taught on their own.</span><button class="btn" onclick="tdInspire()">✨ Inspire me</button></div></div>
+  ${sug ? `<div class="card"><div class="label">2. Ideas for meaningful experiences (keep the ones you like)</div>
+    ${(sug.experiences||[]).map((e,i)=>tdCard(e, `<button class="btn small ${unit.tdExperiences.some(k=>k.title===e.title)?"ghost":""}" onclick="tdKeep(${i})">${unit.tdExperiences.some(k=>k.title===e.title)?"✓ Kept":"＋ Keep"}</button>`)).join("")}
+    ${(sug.standalone||[]).length ? `<div class="label" style="margin-top:14px">Better taught on their own</div>${sug.standalone.map(s=>`<p class="hint">📘 <b>${esc(s.subject)}:</b> ${esc(s.topic)} (${esc(s.why)})</p>`).join("")}` : ""}
+    <div class="actions"><button class="link" onclick="tdInspire()">↻ More ideas</button><span></span></div></div>` : ""}
+  ${unit.tdExperiences.length ? `<div class="card"><div class="label">3. Our transdisciplinary experiences (${unit.tdExperiences.length})</div>${unit.tdExperiences.map((e,i)=>tdCard(e, `<button class="link" style="color:var(--coral)" onclick="unit.tdExperiences.splice(${i},1);saveCurrent();render()">Remove</button>`, i)).join("")}${tdMatrix()}</div>` : ""}
+  <div class="actions"><span></span><button class="btn" onclick="goStep(7)">Next: plan & reflect →</button></div>`;
+}
+function tdCard(e, btn, editIdx){
+  const ed = editIdx !== undefined;
+  return `<div class="tdcard"><div class="actions" style="margin-top:0;align-items:flex-start"><div><h4>${esc(e.title)}</h4><div>${(e.subjects||[]).map(s=>`<span class="tag">${esc(s)}</span>`).join(" ")} ${e.line?`<span class="tag" style="background:#f4f0ff;color:#6b4fd8">Line ${esc(String(e.line))}</span>`:""} ${e.concept?`<span class="tag" style="background:#fff4cf;color:#8a5a00">${esc(e.concept)}</span>`:""}</div></div>${btn}</div>
+    ${ed ? `<textarea style="min-height:60px;margin-top:6px" oninput="unit.tdExperiences[${editIdx}].how=this.value;saveCurrent()">${esc(e.how||"")}</textarea>` : `<p style="margin-top:6px">${esc(e.how||"")}</p>`}
+    ${Object.keys(e.subjectLearning||{}).length ? `<div class="tdlearn">${Object.entries(e.subjectLearning).map(([s,t])=>`<p><b>${esc(s)}:</b> ${esc(t)}</p>`).join("")}</div>` : ""}
+    ${e.bigIdea?`<p class="hint">💡 Builds the central idea: ${esc(e.bigIdea)}</p>`:""}${e.evidence?`<p class="hint">👀 Evidence of learning: ${esc(e.evidence)}</p>`:""}${e.atl?`<p class="hint">🧩 ATL: ${esc(e.atl)}</p>`:""}</div>`;
+}
+function tdMatrix(){
+  const subs = unit.subjects.map(s => s.subject), lines = unit.lines.map((l,i) => i+1);
+  if(!subs.length || !lines.length) return "";
+  const has = (s, l) => unit.tdExperiences.filter(e => (e.subjects||[]).includes(s) && Number(e.line) === l).length;
+  return `<div class="label" style="margin-top:14px">Coverage: subjects × lines of inquiry</div><div style="overflow-x:auto"><table class="tbl"><tr><th>Subject</th>${lines.map(l=>`<th>Line ${l}</th>`).join("")}</tr>${subs.map(s=>`<tr><td><b>${esc(s)}</b></td>${lines.map(l=>{const n=has(s,l);return `<td style="text-align:center;${n?"background:#e7f7ef":""}">${n?"●".repeat(Math.min(n,3)):""}</td>`;}).join("")}</tr>`).join("")}</table></div><p class="hint">Empty rows are fine: not every subject needs to connect to every line.</p>`;
+}
+function tdToggle(s){ tdObj(); const i = unit.subjects.findIndex(x => x.subject === s); if(i >= 0) unit.subjects.splice(i, 1); else unit.subjects.push({ subject: s, topics: "" }); saveCurrent(); render(); }
+function tdKeep(i){ const e = unit.tdIdeas.experiences[i]; if(!unit.tdExperiences.some(k => k.title === e.title)) unit.tdExperiences.push(JSON.parse(JSON.stringify(e))); saveCurrent(); toast("Kept ✓"); render(); }
+async function tdInspire(){
+  tdObj(); const subs = unit.subjects.filter(s => (s.topics||"").trim());
+  if(subs.length < 2) return toast("Add topics for at least two subjects");
+  if(!unit.centralIdea) return toast("Choose a central idea first");
+  loading(true, "Looking for meaningful connections…");
+  try{ unit.tdIdeas = await ai("transdisciplinary_ideas", unit, { subjects: subs.map(s => ({ subject: s.subject, topics: s.topics.slice(0, 600) })), linesFull: unit.lines.map((l,i) => `Line ${i+1} (${l.concept}): ${l.text}`) }); saveCurrent(); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+function tdWordHTML(){
+  const u = tdObj(); if(!u.subjects.length && !u.tdExperiences.length) return "";
+  return `<h2>Subject learning this unit</h2><table><tr><th>Subject</th><th>Topics and objectives</th></tr>${u.subjects.map(s=>`<tr><td><b>${esc(s.subject)}</b></td><td>${esc(s.topics||"").replace(/\n/g,"<br>")}</td></tr>`).join("")}</table>
+    ${u.tdExperiences.length ? `<h2>Transdisciplinary learning experiences</h2>${u.tdExperiences.map(e=>`<p><b>${esc(e.title)}</b> (${esc((e.subjects||[]).join(", "))}${e.line?"; line "+esc(String(e.line)):""}${e.concept?"; "+esc(e.concept):""})<br>${esc(e.how||"")}<br>${Object.entries(e.subjectLearning||{}).map(([s,t])=>`<i>${esc(s)}:</i> ${esc(t)}`).join("<br>")}${e.evidence?`<br><i>Evidence:</i> ${esc(e.evidence)}`:""}</p>`).join("")}` : ""}`;
+}
+DEMO.transdisciplinary_ideas = { experiences: [
+  { title: "Habitat survey of our school grounds", subjects: ["Science","Mathematics"], line: 1, concept: "Form", how: "Children work in teams to find and record the living things in three places around school, then make tally charts and bar charts to compare them.", subjectLearning: { Science: "What living things need and where they live", Mathematics: "Collecting data with tallies and reading bar charts" }, bigIdea: "Different habitats meet the needs of different living things.", evidence: "Charts and children's explanations of why animals live where they do", atl: "Research: collecting and recording data" },
+  { title: "Letters from a lost animal", subjects: ["English","Science"], line: 2, concept: "Causation", how: "Children write a letter in role as an animal whose habitat has changed, explaining what happened and what it needs.", subjectLearning: { English: "Letter writing and persuasive language", Science: "How changes to habitats affect living things" }, bigIdea: "Human actions can change habitats.", evidence: "Letters showing cause and effect", atl: "Communication: writing for an audience" },
+  { title: "Our habitat-friendly playground plan", subjects: ["Mathematics","Art","English"], line: 3, concept: "Responsibility", how: "Children design and measure a small habitat corner for the playground, draw a labelled plan and present it to the head of school.", subjectLearning: { Mathematics: "Measuring length in cm and m", Art: "Drawing and design", English: "Presenting to an audience" }, bigIdea: "Our choices can protect habitats.", evidence: "Plans and presentation", atl: "Social: working in a team" } ],
+  standalone: [{ subject: "Mathematics", topic: "Number bonds to 20", why: "practise this through daily maths; it does not connect naturally to habitats" }] };
+
+/* ---------- wire as step 6, Plan & reflect becomes step 7 ---------- */
+STEP_NAMES.splice(5, 0, "Subjects");
 
 render();
 initAuth();

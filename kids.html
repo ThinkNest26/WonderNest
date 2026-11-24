@@ -8,6 +8,33 @@
 <link rel="icon" href="bird.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* Softer, more natural reading voice: prefer the best female voices on each device */
+(function(){
+  if(!window.speechSynthesis) return;
+  const EN = ["Samantha (Enhanced)","Samantha (Premium)","Serena (Premium)","Serena (Enhanced)","Kate (Enhanced)","Stephanie (Enhanced)","Martha (Enhanced)","Karen (Enhanced)","Moira (Enhanced)",
+    "Microsoft Sonia Online (Natural)","Microsoft Libby Online (Natural)","Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Google UK English Female","Samantha","Serena","Kate","Stephanie","Martha","Karen","Moira","Tessa","Microsoft Hazel","Microsoft Zira"];
+  const AR = ["Majed (Enhanced)","Laila","Mariam","Microsoft Salma Online (Natural)","Microsoft Fatima Online (Natural)","Microsoft Zariyah Online (Natural)","Microsoft Hoda","Google العربية"];
+  let voices = []; const load = () => { voices = speechSynthesis.getVoices() || []; };
+  load(); speechSynthesis.addEventListener && speechSynthesis.addEventListener("voiceschanged", load);
+  const pick = lang => {
+    const ar = String(lang || "").startsWith("ar"), list = ar ? AR : EN;
+    for(const n of list){ const v = voices.find(x => x.name === n) || voices.find(x => x.name.startsWith(n)); if(v) return v; }
+    const pref = voices.filter(x => x.lang && x.lang.toLowerCase().startsWith(ar ? "ar" : "en"));
+    return pref.find(x => /natural|enhanced|premium|female/i.test(x.name)) || pref.find(x => /en-GB/i.test(x.lang)) || pref[0] || null;
+  };
+  const orig = speechSynthesis.speak.bind(speechSynthesis);
+  try{
+    speechSynthesis.speak = function(u){
+      if(!voices.length) load();
+      if(!u.voice){ const v = pick(u.lang || "en-GB"); if(v){ u.voice = v; u.lang = v.lang; } }
+      if(!u.rate || u.rate >= .95) u.rate = .9;
+      u.pitch = 1.08; u.volume = .95;
+      orig(u);
+    };
+  }catch(e){}
+})();
+</script>
+<script>
 // WonderNest: true SDG stories. Each story was checked against the sources listed. Retold in WonderNest's own words for children.
 const SDG_STORIES = [
 {id:"hannah-taylor", sdgs:[1,10], title:"Hannah and the Ladybug Jars", who:"Hannah Taylor", place:"Winnipeg, Canada", when:"2004", ages:"5+", emoji:"🐞",
@@ -284,6 +311,17 @@ const SDG_STORIES = [
   .sect{font-family:"Fredoka",sans-serif;color:var(--navy);font-size:19px;margin:16px 4px 8px}
   .depthrow{display:flex;gap:6px}.depthrow button{flex:1;background:#f4f6fb;border-radius:14px;padding:8px 4px;font-size:24px;display:flex;flex-direction:column;align-items:center;border:3px solid transparent}.depthrow button small{font-size:11px;font-weight:800;color:var(--muted)}.depthrow button.on{border-color:var(--leaf);background:#e7f7ef}
   .lpgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.lpb{background:#f4f6fb;border-radius:12px;padding:8px 2px;font-size:22px;display:flex;flex-direction:column;align-items:center;border:3px solid transparent}.lpb small{font-size:9.5px;font-weight:800;color:var(--muted)}.lpb.on{border-color:var(--sun);background:#fff4cf}
+
+  .birdcard{display:flex;gap:12px;align-items:center;width:100%;background:linear-gradient(135deg,#fff,#eef4ff)}
+  .mybird{display:flex;flex-direction:column;align-items:center}.birdwrap{position:relative;display:flex;justify-content:center;margin-bottom:-14px;z-index:1;animation:bob 2.4s ease-in-out infinite}
+  .birdwrap .hat{position:absolute;top:-6%;left:50%;transform:translateX(-30%)}
+  @keyframes bob{50%{transform:translateY(-5px)}}
+  .bk{font-size:12px;font-weight:800;color:var(--muted)}.bn{font-family:"Fredoka",sans-serif;font-size:20px;color:var(--navy)}.bf{font-weight:900;color:var(--coral)}
+  .bbar{height:10px;border-radius:8px;background:#e4e8f0;overflow:hidden;margin:6px 0}.bbar i{display:block;height:100%;background:linear-gradient(90deg,#ffc83d,#ff7a59)}
+  .pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.pk{background:#f4f6fb;border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;border:3px solid transparent}.pk img{width:44px}.pk small{font-size:10.5px;font-weight:800;color:var(--muted);text-align:center}.pk.on{border-color:var(--blue);background:#e8f1ff}
+  .earn{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed #eee;font-weight:800}.earn span{flex:1}.earn b{color:var(--coral)}.earn small{color:var(--muted)}
+  .featherfly{position:fixed;left:50%;top:40%;transform:translateX(-50%);font-size:34px;font-weight:900;color:#ff7a59;z-index:99;animation:fly 1.6s ease-out forwards;pointer-events:none}
+  @keyframes fly{0%{opacity:0;transform:translate(-50%,20px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-120px) scale(1)}}
 </style>
 </head>
 <body>
@@ -1374,6 +1412,56 @@ async function uploadMedia(dataUrlOrBlob, ext){
 }
 const _resizeImage = resizeImage;
 resizeImage = async function(file){ return uploadMedia(await _resizeImage(file)); };
+
+
+/* =====================================================================
+   MY BIRD AND ITS NEST: every piece of learning adds feathers
+   ===================================================================== */
+const FEATHERS = { wonder: 1, routine: 2, story: 3, reflection: 2, atl: 2, lp: 2, concept: 2, journal: 2, passion: 1, action: 3, criteria: 1, sum_self: 2, sum_peer: 2, exh_self: 2, exh_reflect: 3 };
+const NEST_LEVELS = [0, 5, 12, 22, 35, 50, 70, 95, 125, 160];
+const NEST_NAMES = ["A few twigs","A little nest","A cosy nest","A strong nest","A big nest","A super nest","A tree-top nest","A golden nest","A legendary nest","The ultimate nest"];
+const BIRD_COLOURS = [["Sky blue",0,0],["Leaf green",-80,1],["Sunset orange",160,2],["Purple",50,3],["Coral pink",110,4],["Teal",-30,5],["Golden",190,6]];
+const BIRD_HATS = [["None","",0],["Bow","🎀",3],["Cap","🧢",4],["Flower","🌼",5],["Graduation hat","🎓",7],["Crown","👑",9]];
+const birdKey = () => "wn_bird_" + (me && me.student_id);
+const birdPrefs = () => { try{ return JSON.parse(localStorage.getItem(birdKey())) || { colour: 0, hat: 0 }; }catch(e){ return { colour: 0, hat: 0 }; } };
+function feathers(){ return entries.reduce((n, e) => n + (FEATHERS[e.kind] || 0) + (e.kind === "action" && e.publish === "approved" ? 2 : 0), 0) + (typeof inqs !== "undefined" ? inqs.reduce((n, q) => n + 2 * ((q.data && q.data.stamps) || []).length, 0) : 0); }
+function nestLevel(f){ let l = 0; NEST_LEVELS.forEach((t, i) => { if(f >= t) l = i; }); return l; }
+function birdSVG(level, size){
+  const twigs = Math.min(4 + level * 3, 34), w = size, h = size * 0.45; let s = "";
+  for(let i = 0; i < twigs; i++){ const y = h * 0.25 + (i % 6) * (h * 0.11), x1 = w * 0.08 + ((i * 37) % 20), x2 = w * 0.92 - ((i * 23) % 20), c = ["#8b5a2b","#a0703a","#6b4423","#b98549"][i % 4]; s += `<path d="M${x1} ${y} Q ${w/2} ${y + h * 0.35 + (i % 3) * 4} ${x2} ${y}" stroke="${c}" stroke-width="${3 + (i % 3)}" fill="none" stroke-linecap="round"/>`; }
+  const eggs = level >= 2 ? `<ellipse cx="${w*0.42}" cy="${h*0.32}" rx="${w*0.05}" ry="${h*0.12}" fill="#e8f1ff"/><ellipse cx="${w*0.56}" cy="${h*0.3}" rx="${w*0.05}" ry="${h*0.12}" fill="#fff8ec"/>` : "";
+  const gold = level >= 7 ? `<path d="M${w*0.1} ${h*0.3} Q ${w/2} ${h*0.85} ${w*0.9} ${h*0.3}" stroke="#ffc83d" stroke-width="3" fill="none" stroke-dasharray="4 6"/>` : "";
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">${eggs}${s}${gold}</svg>`;
+}
+function birdHTML(size, showNest = true){
+  const p = birdPrefs(), f = feathers(), lv = nestLevel(f), col = BIRD_COLOURS[p.colour] || BIRD_COLOURS[0], hat = BIRD_HATS[p.hat] || BIRD_HATS[0];
+  return `<div class="mybird" style="width:${size}px"><div class="birdwrap"><img src="bird.png" alt="My bird" style="width:${size*0.62}px;filter:hue-rotate(${col[1]}deg) saturate(1.1)">${hat[1]?`<span class="hat" style="font-size:${size*0.16}px">${hat[1]}</span>`:""}</div>${showNest ? birdSVG(lv, size) : ""}</div>`;
+}
+function birdCard(){
+  const f = feathers(), lv = nestLevel(f), next = NEST_LEVELS[lv + 1], prev = NEST_LEVELS[lv], pct = next ? Math.round((f - prev) / (next - prev) * 100) : 100;
+  return `<button class="card birdcard" onclick="go('mybird')">${birdHTML(110)}<div style="flex:1;text-align:left"><p class="bk">My bird</p><p class="bn">${NEST_NAMES[lv]}</p><p class="bf">🪶 ${f} feathers</p>
+    <div class="bbar"><i style="width:${pct}%"></i></div><p class="bk">${next ? `${next - f} more to the next nest` : "Top nest reached!"}</p></div></button>`;
+}
+NEW_SCREENS.mybird = function(){
+  const p = birdPrefs(), f = feathers(), lv = nestLevel(f);
+  const counts = {}; entries.forEach(e => { if(FEATHERS[e.kind]) counts[e.kind] = (counts[e.kind] || 0) + 1; });
+  return khead("My bird 🐦", "Every bit of learning adds feathers", "linear-gradient(135deg,#2f6fd6,#8a6cf0)") + `<div class="body">
+    <div class="card center">${birdHTML(240)}<p style="font-family:Fredoka,sans-serif;font-size:24px;color:var(--navy);margin-top:6px">${NEST_NAMES[lv]}</p><p style="font-weight:900;color:var(--coral)">🪶 ${f} feathers · Nest level ${lv + 1}</p></div>
+    <div class="card"><h2>🎨 My bird's colour</h2><div class="pick">${BIRD_COLOURS.map((c,i)=>{ const open = lv >= c[2]; return `<button class="pk ${p.colour===i?"on":""}" ${open?`onclick="setBird('colour',${i})"`:"disabled"}><img src="bird.png" style="filter:hue-rotate(${c[1]}deg)${open?"":" grayscale(1) opacity(.4)"}"><small>${open?esc(c[0]):"🔒 Level "+(c[2]+1)}</small></button>`; }).join("")}</div></div>
+    <div class="card"><h2>🎩 Something to wear</h2><div class="pick">${BIRD_HATS.map((h,i)=>{ const open = lv >= h[2]; return `<button class="pk ${p.hat===i?"on":""}" ${open?`onclick="setBird('hat',${i})"`:"disabled"}><span style="font-size:30px">${h[1]||"🚫"}</span><small>${open?esc(h[0]):"🔒 Level "+(h[2]+1)}</small></button>`; }).join("")}</div></div>
+    <div class="card"><h2>🪶 How to earn feathers</h2>${[["wonder","💭 A wonder",1],["routine","🧠 A thinking routine",2],["story","📖 A story",3],["concept","💡 Big ideas thinking",2],["lp","🌟 Learner profile",2],["action","🧱 Taking action",3],["journal","📓 A journal entry",2]].map(([k,l,n])=>`<div class="earn"><span>${l}</span><b>+${n}</b><small>${counts[k]||0} done</small></div>`).join("")}<div class="earn"><span>🌱 Each step in my Wonder Garden</span><b>+2</b></div></div></div>`;
+};
+function setBird(k, v){ const p = birdPrefs(); p[k] = v; localStorage.setItem(birdKey(), JSON.stringify(p)); draw(); }
+/* show the card on the home screen, and celebrate new feathers */
+const _homeBird = NEW_SCREENS.home;
+NEW_SCREENS.home = function(){ return _homeBird().replace('<div class="body">', '<div class="body">' + birdCard()); };
+const _addEntryBird = addEntry;
+addEntry = async function(kind, title, content){
+  const before = feathers(), lvB = nestLevel(before), ok = await _addEntryBird(kind, title, content);
+  if(ok){ const after = feathers(), lvA = nestLevel(after); if(after > before) featherFly(after - before); if(lvA > lvB) setTimeout(() => { toast("🎉 Your nest grew! " + NEST_NAMES[lvA]); speak("Your nest grew!"); }, 900); }
+  return ok;
+};
+function featherFly(n){ const el = document.createElement("div"); el.className = "featherfly"; el.textContent = "🪶 +" + n; document.body.appendChild(el); setTimeout(() => el.remove(), 1600); }
 
 start();
 </script>
