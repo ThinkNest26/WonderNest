@@ -299,6 +299,12 @@
   .navg{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;opacity:.55;font-weight:800;margin:12px 0 2px 10px}
   .side{overflow-y:auto}
 
+  details.unitsum{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:14px;padding:12px 16px;margin-bottom:14px}
+  details.unitsum summary{font-weight:800;color:var(--navy);cursor:pointer}.us-body{margin-top:8px}
+  .us-row{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:7px 0;border-top:1px dashed var(--line);font-size:14px;align-items:start}
+  .us-k{font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);padding-top:2px}
+  .us-ci{color:var(--navy);font-size:15.5px}.us-line{margin:2px 0}.us-chip{display:inline-block;background:var(--bg);border-radius:999px;padding:3px 10px;margin:0 5px 5px 0;font-size:12.5px;font-weight:700}
+  .us-sdg{font-size:12.5px;font-weight:700;margin-right:10px}
   .tdsub{margin-top:10px}.tdcard{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#fff}.tdcard h4{color:var(--navy);font-size:15px}
   .tdlearn{background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}.tdlearn p{margin:2px 0}
   .tdsubh{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdsubh b{color:var(--navy);font-size:15px}.tdsubh select{width:auto;padding:6px 10px}
@@ -3208,6 +3214,26 @@ DEMO.transdisciplinary_ideas = { subjectIdeas: [
 
 /* ---------- wire as step 6, Plan & reflect becomes step 7 ---------- */
 STEP_NAMES.splice(5, 0, "Subjects");
+
+/* ---------- "Your unit so far" summary at the top of every step ---------- */
+let unitSumOpen = store.get("wn_unitsum", true);
+function unitSummary(){
+  const s = unit.step, t = themeOf(unit.theme), rows = [];
+  if(s <= 1) return "";
+  rows.push(`<div class="us-row"><span class="us-k">Theme & grade</span><span>${t ? esc(t.ic + " " + t.name) : "–"} · ${esc(gradeLabel(unit) || "–")}</span></div>`);
+  if(s > 2 && unit.centralIdea) rows.push(`<div class="us-row"><span class="us-k">Central idea</span><b class="us-ci">${esc(unit.centralIdea)}</b></div>`);
+  if(s > 3){
+    if(unit.lines.length) rows.push(`<div class="us-row"><span class="us-k">Lines of inquiry</span><div>${unit.lines.map((l,i)=>`<p class="us-line"><b>${i+1}.</b> ${esc(l.text)} <span class="tag">${esc(l.concept||"")}</span></p>`).join("")}</div></div>`);
+    const chips = (label, arr) => arr && arr.length ? `<div class="us-row"><span class="us-k">${label}</span><div>${arr.map(x=>`<span class="us-chip">${esc(x)}</span>`).join("")}</div></div>` : "";
+    rows.push(chips(esc(settings.conceptLabel || "Specified concepts"), unit.keyConcepts), chips("Related concepts", unit.relatedConcepts), chips("ATL skills", (unit.atl||[]).map(a => a.split(" · ")[1] || a)), chips("Learner profile", unit.learnerProfile));
+  }
+  if(s > 4 && (unit.sdgs||[]).length) rows.push(`<div class="us-row"><span class="us-k">SDGs</span><div>${unit.sdgs.map(n=>sdgBadge(Number(n)) + `<span class="us-sdg">${esc((SDGS[Number(n)-1]||["",""])[1])}</span>`).join("")}</div></div>`);
+  if(s > 5){ const r = []; if((unit.books||[]).length) r.push(unit.books.length + " books"); if(unit.story) r.push("1 story"); if((unit.routines||[]).length) r.push(unit.routines.length + " routines"); if((unit.provocations||[]).length) r.push(unit.provocations.length + " provocations"); if(r.length) rows.push(`<div class="us-row"><span class="us-k">Resources</span><span>${r.join(" · ")}</span></div>`); }
+  if(s > 6 && (unit.subjects||[]).length) rows.push(`<div class="us-row"><span class="us-k">Subjects</span><div>${unit.subjects.map(x=>`<span class="us-chip">${esc(x.subject)}${x.related?" · "+esc(x.related):""}</span>`).join("")}${(unit.tdExperiences||[]).length?` <span class="hint">${unit.tdExperiences.length} integrated experiences</span>`:""}</div></div>`);
+  return `<details class="unitsum" ${unitSumOpen?"open":""} ontoggle="unitSumOpen=this.open;store.set('wn_unitsum',this.open)"><summary>📋 Your unit so far</summary><div class="us-body">${rows.filter(Boolean).join("")}</div></details>`;
+}
+const _usWrap = f => () => unitSummary() + f();
+step2 = _usWrap(step2); step3 = _usWrap(step3); step4 = _usWrap(step4); step5 = _usWrap(step5); stepSubjects = _usWrap(stepSubjects); step6 = _usWrap(step6);
 
 render();
 initAuth();
