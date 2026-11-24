@@ -328,6 +328,36 @@ const SDG_STORIES = [
   .confk{min-height:100vh;background:linear-gradient(180deg,#14325c,#2f6fd6);color:#fff;display:flex;flex-direction:column}.cfkhead{display:flex;justify-content:space-between;align-items:center;padding:14px}.cfkhead button{background:rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 14px;font-size:18px}
   .cfkbody{flex:1;padding:10px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}.cfkbody h1{font-family:"Fredoka",sans-serif;font-size:30px}.cfkbody img{max-width:100%;max-height:40vh;border-radius:18px}.cfkb{font-size:21px;line-height:1.5;font-weight:700}.cfkw{background:rgba(255,255,255,.15);border-radius:14px;padding:12px;font-weight:700}
   .cfknav{display:flex;gap:10px;padding:16px}.cfknav .btn{flex:1}.cfknav .btn.ghost{background:rgba(255,255,255,.2);color:#fff;border:0}
+  /* ===== Calm theme: two pastel colours (soft blue + soft green) ===== */
+  :root{--navy:#24456F;--blue:#8DB4E2;--sky:#E3EDF8;--leaf:#8FC9A8;--coral:#8FC9A8;--lilac:#8DB4E2;--sun:#C8DBF1;--cream:#F7F9FB}
+  body{background:#F7F9FB !important}
+  .head{background:#E3EDF8 !important;color:#24456F !important}
+  .head .hi,.head h1{color:#24456F !important}
+  .head .unit{background:#fff !important;color:#26324A !important}
+  .head .back{background:#fff !important;color:#24456F !important;border:1.5px solid #C8DBF1}
+  .tile{background:#E3EDF8 !important;color:#24456F !important;border:2px solid #C8DBF1}
+  .tile[onclick*="goAdventures"],.tile[onclick*="goGrowth"],.tile[onclick*="goActions"],.tile[onclick*="goConf"],.tile[onclick*="mybird"],.tile[onclick*="goExh"]{background:#E2F1E8 !important;color:#2D6248 !important;border-color:#C6E4D2}
+  .btn{background:#C8DBF1 !important;color:#1F3D63 !important;box-shadow:none !important}
+  .btn.leaf,.btn.wide.leaf{background:#C6E4D2 !important;color:#24533D !important}
+  .btn.ghost{background:#fff !important;color:#24456F !important;border:2px solid #C8DBF1 !important}
+  .btn:disabled{opacity:.5}
+  .mic{background:#C6E4D2 !important;box-shadow:0 0 0 7px #E2F1E8 !important}
+  .speak{background:#E3EDF8 !important}
+  .card{box-shadow:0 1px 3px rgba(36,69,111,.08) !important}
+  .unitnow{background:#E3EDF8 !important}
+  .unpath .on span{background:#fff !important;box-shadow:0 0 0 4px #8DB4E2 !important}
+  .unpath .done span{background:#E2F1E8 !important}
+  .cfitem.on{border-color:#8DB4E2 !important;background:#E3EDF8 !important}
+  .confk{background:#E3EDF8 !important;color:#24456F !important}
+  .cfkhead button{background:#fff !important;color:#24456F !important}
+  .cfknav .btn.ghost{background:#fff !important;color:#24456F !important}
+  .cfkw{background:#fff !important}
+  .bbar i{background:#8FC9A8 !important}
+  .featherfly{color:#2D6248 !important}
+  textarea,input.title{border-color:#C8DBF1 !important;background:#fff !important}
+  .stat{background:#E3EDF8 !important;color:#24456F !important}.stat:nth-child(even){background:#E2F1E8 !important;color:#2D6248 !important}
+  .ccard{background:#fff !important}
+
 </style>
 </head>
 <body>
@@ -1530,6 +1560,8 @@ NEW_SCREENS.home = function(){ const h = _homeUnit(), c = unitNowCard(); return 
 const _addEntryUnit = addEntry;
 addEntry = async function(kind, title, content){ const n = (me.current_unit || {}).now; if(n && content && typeof content === "object" && !Array.isArray(content)){ content.wk = n.week; if(n.phase) content.ph = n.phase; } return _addEntryUnit(kind, title, content); };
 
+if(typeof KCONCEPTS !== "undefined") KCONCEPTS.forEach((c, i) => c.c = i % 2 ? "#3E8A64" : "#4A74A8");
+BUBBLE_COLOURS.splice(0, BUBBLE_COLOURS.length, "#E3EDF8","#E2F1E8","#E3EDF8","#E2F1E8","#E3EDF8","#E2F1E8");
 start();
 </script>
 </body>
