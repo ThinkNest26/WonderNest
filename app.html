@@ -301,6 +301,9 @@
 
   .tdsub{margin-top:10px}.tdcard{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#fff}.tdcard h4{color:var(--navy);font-size:15px}
   .tdlearn{background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}.tdlearn p{margin:2px 0}
+  .tdsubh{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdsubh b{color:var(--navy);font-size:15px}.tdsubh select{width:auto;padding:6px 10px}
+  .tdweb{width:100%;max-width:760px;display:block;margin:8px auto;background:linear-gradient(180deg,#f7faff,#fff);border-radius:16px}
+  .sigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}.sicard{border:1px solid var(--line);border-radius:14px;padding:12px 14px}.sicard h4{color:var(--navy)}.sih{font-weight:800;margin:8px 0 4px;font-size:13px}.siq{font-size:13.5px;background:var(--bg);border-radius:8px;padding:6px 9px;margin-bottom:5px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3134,13 +3137,19 @@ function stepSubjects(){
   tdObj(); const subs = unit.subjects, sug = unit.tdIdeas;
   return whyBox("subjects") + `<div class="card exg"><div class="label">1. Which subjects are teaching this unit, and what are they teaching?</div>
     <div class="chips">${SUBJECTS.map(s=>`<button class="chip ${subs.some(x=>x.subject===s)?"on":""}" onclick="tdToggle('${s}')">${s}</button>`).join("")}<button class="chip" onclick="const v=prompt('Subject name');if(v&&v.trim())tdToggle(v.trim())">＋ Other</button></div>
-    ${subs.map((x,i)=>`<div class="tdsub"><label>${esc(x.subject)}: topics or objectives this unit</label><textarea oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the topics or objectives (for example from Atlas)"}">${esc(x.topics||"")}</textarea></div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
+    ${subs.map((x,i)=>`<div class="tdsub"><div class="tdsubh"><b>${esc(x.subject)}</b>${(RELATED[relKey(x.subject)]||[]).length?`<select onchange="unit.subjects[${i}].related=this.value;saveCurrent();render()"><option value="">Related concept…</option>${RELATED[relKey(x.subject)].map(r=>`<option ${x.related===r?"selected":""}>${esc(r)}</option>`).join("")}</select>`:""}</div>
+      <label>Focus this unit: topics, skills or objectives</label><textarea oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the focus (for example from Atlas)"}">${esc(x.topics||"")}</textarea></div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
+    ${subs.length ? `<div class="label" style="margin-top:16px">How the integration looks</div>${tdWeb()}<div style="text-align:center"><button class="link" onclick="render()">↻ Update the picture</button></div>` : ""}
     <div class="actions"><span class="hint">WonderNest suggests experiences where subjects meet through your central idea, and tells you which topics are better taught on their own.</span><button class="btn" onclick="tdInspire()">✨ Inspire me</button></div></div>
-  ${sug ? `<div class="card"><div class="label">2. Ideas for meaningful experiences (keep the ones you like)</div>
+  ${sug && (sug.subjectIdeas||[]).length ? `<div class="card"><div class="label">2. Ideas, questions and activities for each subject</div><div class="sigrid">${sug.subjectIdeas.map((x,i)=>`<div class="sicard"><h4>📘 ${esc(x.subject)}</h4>${x.connection?`<p class="hint" style="margin-bottom:6px">🔗 ${esc(x.connection)}</p>`:""}
+      ${(x.relatedConcepts||[]).length?`<div>${x.relatedConcepts.map(r=>`<span class="tag">${esc(r)}</span>`).join(" ")}</div>`:""}
+      <p class="sih">❓ Inquiry questions</p>${(x.questions||[]).map(q=>`<p class="siq">${esc(q)} <button class="link" onclick="tdAddQ(${esc(JSON.stringify(q))})">＋ plan</button></p>`).join("")}
+      <p class="sih">🧪 Activities</p>${(x.activities||[]).map((a,j)=>`<p class="siq">${esc(a)} <button class="link" onclick="tdAddAct(${i},${j})">＋ keep</button></p>`).join("")}</div>`).join("")}</div></div>` : ""}
+  ${sug ? `<div class="card"><div class="label">3. Experiences where subjects meet (keep the ones you like)</div>
     ${(sug.experiences||[]).map((e,i)=>tdCard(e, `<button class="btn small ${unit.tdExperiences.some(k=>k.title===e.title)?"ghost":""}" onclick="tdKeep(${i})">${unit.tdExperiences.some(k=>k.title===e.title)?"✓ Kept":"＋ Keep"}</button>`)).join("")}
     ${(sug.standalone||[]).length ? `<div class="label" style="margin-top:14px">Better taught on their own</div>${sug.standalone.map(s=>`<p class="hint">📘 <b>${esc(s.subject)}:</b> ${esc(s.topic)} (${esc(s.why)})</p>`).join("")}` : ""}
     <div class="actions"><button class="link" onclick="tdInspire()">↻ More ideas</button><span></span></div></div>` : ""}
-  ${unit.tdExperiences.length ? `<div class="card"><div class="label">3. Our transdisciplinary experiences (${unit.tdExperiences.length})</div>${unit.tdExperiences.map((e,i)=>tdCard(e, `<button class="link" style="color:var(--coral)" onclick="unit.tdExperiences.splice(${i},1);saveCurrent();render()">Remove</button>`, i)).join("")}${tdMatrix()}</div>` : ""}
+  ${unit.tdExperiences.length ? `<div class="card"><div class="label">4. Our transdisciplinary experiences (${unit.tdExperiences.length})</div>${unit.tdExperiences.map((e,i)=>tdCard(e, `<button class="link" style="color:var(--coral)" onclick="unit.tdExperiences.splice(${i},1);saveCurrent();render()">Remove</button>`, i)).join("")}${tdMatrix()}</div>` : ""}
   <div class="actions"><span></span><button class="btn" onclick="goStep(7)">Next: plan & reflect →</button></div>`;
 }
 function tdCard(e, btn, editIdx){
@@ -3156,22 +3165,41 @@ function tdMatrix(){
   const has = (s, l) => unit.tdExperiences.filter(e => (e.subjects||[]).includes(s) && Number(e.line) === l).length;
   return `<div class="label" style="margin-top:14px">Coverage: subjects × lines of inquiry</div><div style="overflow-x:auto"><table class="tbl"><tr><th>Subject</th>${lines.map(l=>`<th>Line ${l}</th>`).join("")}</tr>${subs.map(s=>`<tr><td><b>${esc(s)}</b></td>${lines.map(l=>{const n=has(s,l);return `<td style="text-align:center;${n?"background:#e7f7ef":""}">${n?"●".repeat(Math.min(n,3)):""}</td>`;}).join("")}</tr>`).join("")}</table></div><p class="hint">Empty rows are fine: not every subject needs to connect to every line.</p>`;
 }
+const relKey = s => ({English:"Language",Arabic:"Language",Library:"Language",Mathematics:"Mathematics",Science:"Science","Social Studies":"Social studies","Islamic Education":"Social studies","Moral Education":"Social studies",Art:"Arts",Music:"Arts",PE:"PSPE",Computing:"Science"})[s];
+function tdWeb(){
+  const subs = unit.subjects, n = subs.length, W = 760, H = 420, cx = W/2, cy = H/2, R = 165, cols = ["#2f6fd6","#3bb07a","#ff7a59","#8a6cf0","#f59e0b","#0ea5e9","#be123c","#0f766e","#b45309","#6b4fd8","#c5192d","#19486a"];
+  const wrap = (t, len) => { const w = String(t||"").split(/\s+/), out = [""]; w.forEach(x => { if((out[out.length-1] + " " + x).length > len) out.push(x); else out[out.length-1] = (out[out.length-1] + " " + x).trim(); }); return out.slice(0, 3); };
+  const nodes = subs.map((x,i) => { const a = -Math.PI/2 + i * 2*Math.PI/n; return { x: cx + R*1.35*Math.cos(a), y: cy + R*Math.sin(a), s: x, c: cols[i % cols.length] }; });
+  const links = []; (unit.tdExperiences||[]).forEach(e => { const ss = (e.subjects||[]).map(z => nodes.findIndex(q => q.s.subject === z)).filter(k => k >= 0); for(let a = 0; a < ss.length; a++) for(let b = a+1; b < ss.length; b++) links.push([ss[a], ss[b]]); });
+  return `<svg viewBox="0 0 ${W} ${H}" class="tdweb" role="img" aria-label="How the subjects connect to the central idea">
+    ${links.map(([a,b])=>`<line x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}" stroke="#f59e0b" stroke-width="4" stroke-dasharray="7 5"/>`).join("")}
+    ${nodes.map(p=>`<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="${p.c}" stroke-width="2.5" opacity=".45"/>`).join("")}
+    <rect x="${cx-130}" y="${cy-48}" width="260" height="96" rx="18" fill="#14325c"/>${wrap(unit.centralIdea||"Central idea", 34).map((l,i,arr)=>`<text x="${cx}" y="${cy - (arr.length-1)*9 + i*18 + 5}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">${esc(l)}</text>`).join("")}
+    ${nodes.map(p=>`<g><rect x="${p.x-88}" y="${p.y-36}" width="176" height="72" rx="14" fill="#fff" stroke="${p.c}" stroke-width="2.5"/><text x="${p.x}" y="${p.y-14}" text-anchor="middle" fill="${p.c}" font-size="13.5" font-weight="800">${esc(p.s.subject)}${p.s.related?" · "+esc(p.s.related):""}</text>${wrap(p.s.topics||"Add the focus", 30).slice(0,2).map((l,i)=>`<text x="${p.x}" y="${p.y+4+i*15}" text-anchor="middle" fill="#475467" font-size="11.5">${esc(l)}</text>`).join("")}</g>`).join("")}
+  </svg><p class="hint" style="text-align:center">Coloured lines link each subject to the central idea. Orange dashed lines appear between subjects that meet in an experience you keep.</p>`;
+}
+function tdAddQ(q){ const p = planObj(); p.teacherQs = [p.teacherQs, q].filter(Boolean).join("\n"); saveCurrent(); toast("Added to teacher questions (step 7) ✓"); }
+function tdAddAct(i, j){ const x = unit.tdIdeas.subjectIdeas[i], a = x.activities[j]; if(!unit.tdExperiences.some(e => e.title === a)) unit.tdExperiences.push({ title: a, subjects: [x.subject], how: a, subjectLearning: {}, bigIdea: x.connection || "" }); saveCurrent(); toast("Kept ✓"); render(); }
 function tdToggle(s){ tdObj(); const i = unit.subjects.findIndex(x => x.subject === s); if(i >= 0) unit.subjects.splice(i, 1); else unit.subjects.push({ subject: s, topics: "" }); saveCurrent(); render(); }
 function tdKeep(i){ const e = unit.tdIdeas.experiences[i]; if(!unit.tdExperiences.some(k => k.title === e.title)) unit.tdExperiences.push(JSON.parse(JSON.stringify(e))); saveCurrent(); toast("Kept ✓"); render(); }
 async function tdInspire(){
   tdObj(); const subs = unit.subjects.filter(s => (s.topics||"").trim());
-  if(subs.length < 2) return toast("Add topics for at least two subjects");
+  if(subs.length < 1) return toast("Write the focus for at least one subject");
   if(!unit.centralIdea) return toast("Choose a central idea first");
   loading(true, "Looking for meaningful connections…");
-  try{ unit.tdIdeas = await ai("transdisciplinary_ideas", unit, { subjects: subs.map(s => ({ subject: s.subject, topics: s.topics.slice(0, 600) })), linesFull: unit.lines.map((l,i) => `Line ${i+1} (${l.concept}): ${l.text}`) }); saveCurrent(); }
+  try{ unit.tdIdeas = await ai("transdisciplinary_ideas", unit, { subjects: subs.map(s => ({ subject: s.subject, focus: s.topics.slice(0, 600), relatedConcept: s.related || "" })), linesFull: unit.lines.map((l,i) => `Line ${i+1} (${l.concept}): ${l.text}`) }); saveCurrent(); }
   catch(e){ error = e.message; } finally{ loading(false); render(); }
 }
 function tdWordHTML(){
   const u = tdObj(); if(!u.subjects.length && !u.tdExperiences.length) return "";
-  return `<h2>Subject learning this unit</h2><table><tr><th>Subject</th><th>Topics and objectives</th></tr>${u.subjects.map(s=>`<tr><td><b>${esc(s.subject)}</b></td><td>${esc(s.topics||"").replace(/\n/g,"<br>")}</td></tr>`).join("")}</table>
+  return `<h2>Subject learning this unit</h2><table><tr><th>Subject</th><th>Focus this unit</th></tr>${u.subjects.map(s=>`<tr><td><b>${esc(s.subject)}</b>${s.related?"<br><i>"+esc(s.related)+"</i>":""}</td><td>${esc(s.topics||"").replace(/\n/g,"<br>")}</td></tr>`).join("")}</table>
     ${u.tdExperiences.length ? `<h2>Transdisciplinary learning experiences</h2>${u.tdExperiences.map(e=>`<p><b>${esc(e.title)}</b> (${esc((e.subjects||[]).join(", "))}${e.line?"; line "+esc(String(e.line)):""}${e.concept?"; "+esc(e.concept):""})<br>${esc(e.how||"")}<br>${Object.entries(e.subjectLearning||{}).map(([s,t])=>`<i>${esc(s)}:</i> ${esc(t)}`).join("<br>")}${e.evidence?`<br><i>Evidence:</i> ${esc(e.evidence)}`:""}</p>`).join("")}` : ""}`;
 }
-DEMO.transdisciplinary_ideas = { experiences: [
+DEMO.transdisciplinary_ideas = { subjectIdeas: [
+  { subject: "English", connection: "Children use letters and persuasive writing to speak up for habitats.", relatedConcepts: ["Audience","Persuasion"], questions: ["How can our words change what people do?","Who is our audience, and what do they need to know?","How do writers show an animal's point of view?"], activities: ["Write a letter in role as an animal whose home is changing","Make persuasive posters for the school garden","Read and compare two stories about habitats"] },
+  { subject: "Mathematics", connection: "Measuring and data help children notice and compare habitats.", relatedConcepts: ["Data","Measurement"], questions: ["How can numbers help us understand a habitat?","What can a bar chart tell us that a list cannot?","How do we measure fairly?"], activities: ["Tally the minibeasts in three places around school","Measure and record plant growth each week","Make a bar chart of the class's favourite habitats"] },
+  { subject: "Science", connection: "Children investigate what living things need and how habitats provide it.", relatedConcepts: ["Interdependence","Adaptation"], questions: ["What do living things need to survive?","How are living things suited to where they live?","What happens when a habitat changes?"], activities: ["Build a mini habitat in a jar and observe it","Sort animals by the habitat they need","Test which conditions help a seed grow"] }],
+  experiences: [
   { title: "Habitat survey of our school grounds", subjects: ["Science","Mathematics"], line: 1, concept: "Form", how: "Children work in teams to find and record the living things in three places around school, then make tally charts and bar charts to compare them.", subjectLearning: { Science: "What living things need and where they live", Mathematics: "Collecting data with tallies and reading bar charts" }, bigIdea: "Different habitats meet the needs of different living things.", evidence: "Charts and children's explanations of why animals live where they do", atl: "Research: collecting and recording data" },
   { title: "Letters from a lost animal", subjects: ["English","Science"], line: 2, concept: "Causation", how: "Children write a letter in role as an animal whose habitat has changed, explaining what happened and what it needs.", subjectLearning: { English: "Letter writing and persuasive language", Science: "How changes to habitats affect living things" }, bigIdea: "Human actions can change habitats.", evidence: "Letters showing cause and effect", atl: "Communication: writing for an audience" },
   { title: "Our habitat-friendly playground plan", subjects: ["Mathematics","Art","English"], line: 3, concept: "Responsibility", how: "Children design and measure a small habitat corner for the playground, draw a labelled plan and present it to the head of school.", subjectLearning: { Mathematics: "Measuring length in cm and m", Art: "Drawing and design", English: "Presenting to an audience" }, bigIdea: "Our choices can protect habitats.", evidence: "Plans and presentation", atl: "Social: working in a team" } ],
