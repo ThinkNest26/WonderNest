@@ -319,6 +319,8 @@
 
   .wktabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.wktabs button{background:var(--bg);border-radius:10px;padding:8px 14px;font-weight:800;color:var(--muted)}.wktabs button.on{background:var(--navy);color:#fff}
   .cyclegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.cyc{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.cych{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}.cych b{color:var(--navy);font-size:14px}.cych select{width:auto;max-width:130px;padding:4px 6px;font-size:12px}.cyc textarea{min-height:90px}
+    .savenote{font-size:13px;color:var(--muted);margin:-4px 0 14px}.savenote #saveState{font-weight:800;color:#2e7d4f;margin-right:6px}.savenote #saveState:not(.on){color:var(--muted)}
+    .unitsum summary .us-peek{font-weight:600;color:var(--muted);font-size:13.5px;margin-left:8px}.unitsum summary .us-tap{float:right;font-size:12.5px;font-weight:700;color:var(--blue)}
     .wkstart{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#eef4ff;border-radius:14px;padding:14px 16px;margin-top:10px}.wkstart p{font-size:13px;color:var(--muted);margin-top:2px}
   .wkchips{display:flex;flex-direction:column;gap:5px;margin-top:6px}.wkchips button{text-align:left;background:#fff8e6;border:1px dashed #e0b44a;border-radius:10px;padding:6px 8px;font-size:12px;line-height:1.35}.wkchips button:hover{background:#ffefc2}
   .stags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.stag{display:inline-block;border:1.5px solid;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:800;cursor:pointer;background:#fff;margin:2px 2px 0 0}.stag.on{color:#fff}
@@ -572,14 +574,20 @@ let error = "";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const themeOf = id => THEMES.find(t => t.id === id);
-function saveCurrent(){ store.set("wn_current", unit); }
+let _autoT = null;
+function saveCurrent(){
+  store.set("wn_current", unit);
+  // the unit saves itself to My units (and the teacher's account) a moment after each change, once it has a central idea
+  if(view === "builder" && (unit.centralIdea||"").trim()){ clearTimeout(_autoT); saveState("saving"); _autoT = setTimeout(() => saveUnit(true).then(() => saveState("saved")), 2000); }
+}
+function saveState(st){ const el = document.getElementById("saveState"); if(el){ el.textContent = st === "saving" ? "Saving…" : "✓ Saved"; el.classList.toggle("on", st === "saved"); } }
 function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 2200); }
 function loading(on, text){ $("#loading").classList.toggle("show", on); if(text) $("#loadingText").textContent = text; }
 function toggle(arr, v){ const i = arr.indexOf(v); i >= 0 ? arr.splice(i,1) : arr.push(v); }
 
 /* ---------- AI ---------- */
 async function ai(task, u = unit, extra = {}){
-  const payload = Object.assign({theme: themeOf(u.theme)?.name || "", themeDescription: themeText(u.theme), description: u.description, ageBand: gradeLabel(u),
+  const payload = Object.assign({theme: themeOf(u.theme)?.name || "", themeDescription: ((u.description||"").trim() ? "This unit is about: " + u.description.trim() + "\n\n" : "") + themeText(u.theme), description: u.description, ageBand: gradeLabel(u),
     duration: u.duration, languages: u.languages, centralIdea: u.centralIdea,
     lines: (u.lines||[]).map(l => l.text), keyConcepts: u.keyConcepts, atl: u.atl}, extra);
   if(!WORKER_URL){ await new Promise(r => setTimeout(r, 700)); return DEMO[task]; }
@@ -664,7 +672,8 @@ function render(){
 function header(title){
   const t = themeOf(unit.theme);
   return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}${unit.grade ? " · " + esc(unit.grade) : ""}</div><h1>${title}</h1></div>
-    ${unit.step >= 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="openTeam()">👥 Team</button><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn ghost" onclick="openAssign()">📌 Use with a class</button><button class="btn" onclick="saveUnit()">💾 Save unit</button></div>` : ""}</div>${assignModal()}
+    ${unit.step >= 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="openTeam()">👥 Team</button><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn ghost" onclick="openAssign()">📌 Use with a class</button></div>` : ""}</div>${assignModal()}
+    ${unit.centralIdea ? `<div class="savenote"><span id="saveState" class="on">✓ Saved</span> WonderNest saves your unit as you go. Find it any time in <b>My units</b>.</div>` : ""}
     ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> the AI is not connected yet, so WonderNest shows sample suggestions for a habitats unit. Real suggestions start once the AI Worker is connected.</div>`}
     ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
     <div class="steps">${STEP_NAMES.map((n,i)=>{
@@ -690,6 +699,9 @@ function step1(){
       <div><label>Duration</label><input type="text" value="${esc(unit.duration)}" oninput="unit.duration=this.value;saveCurrent()"></div>
       <div><label>Languages</label><input type="text" value="${esc(unit.languages)}" placeholder="English, Arabic" oninput="unit.languages=this.value;saveCurrent()"></div>
     </div>
+    <div class="label" style="margin-top:18px">3. What is this unit about?</div>
+    <textarea id="unitDesc" style="min-height:76px" oninput="unit.description=this.value;saveCurrent()" placeholder="A sentence or two is enough. For example: how animals and plants depend on their habitats, and how people can protect them. You can also paste the unit description from your programme of inquiry.">${esc(unit.description||"")}</textarea>
+    <div class="hint" style="margin-top:6px">WonderNest uses this to suggest central ideas that fit your unit.</div>
     <div class="actions"><div class="hint">WonderNest only suggests. Your team chooses, edits and owns every part of the unit.</div>
       <button class="btn" onclick="suggestIdeas()">✨ Suggest central ideas</button></div>
   </div>`;
@@ -732,7 +744,7 @@ function step3(){
         ${unit.atl.filter(a=>a.startsWith(cat+" ·") && unit.atlWhy[a]).map(a=>`<div class="why">💡 <b>${esc(a.split(" · ")[1])}:</b> ${esc(unit.atlWhy[a])}</div>`).join("")}</div>`).join("")}
       <div class="label" style="margin-top:6px">Learner profile</div>
       <div class="chips">${LEARNER_PROFILE.map(l=>`<button class="chip lp ${unit.learnerProfile.includes(l)?"on":""}" onclick="toggle(unit.learnerProfile,'${l}');saveCurrent();render()">${l}</button>`).join("")}</div>
-      <div class="actions"><span></span><button class="btn" onclick="goStep(4)">Next: SDGs →</button></div>
+
     </div>
   </div>`;
 }
@@ -774,9 +786,9 @@ function step5(){
 function homeView(){
   const units = store.get("wn_units", []);
   return `<div class="top"><div><div class="crumb">WonderNest</div><h1>My units</h1></div><button class="btn" onclick="startNew()">＋ New unit</button></div>
-  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))} · saved ${esc(u.updated||"")}${u.shared ? " · <b>shared</b>" : ""}</p></div>
+  <div class="card">${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))} · saved ${esc(u.updated||"")}${u.shared ? " · <b>shared</b>" : ""}${u.finished ? "" : ` · <span class="tag">In progress</span>`}</p></div>
     <div style="display:flex;gap:14px;flex-shrink:0"><button class="link" onclick="openUnit('${u.id}')">Open</button><button class="link danger" onclick="deleteUnit('${u.id}')">Delete</button></div></div>`).join("")
-    : `<div class="empty">🐦<br><br>No saved units yet.<br>Build your first unit and click <b>Save unit</b> at the end.</div>`}</div>
+    : `<div class="empty">🐦<br><br>No saved units yet.<br>Build your first unit in the <b>Unit builder</b>. It saves as you go.</div>`}</div>
   <div class="hint">Units are saved to your WonderNest account, so they appear on any device you sign in on. Units marked "shared" belong to a colleague whose class you teach.</div>`;
 }
 
@@ -854,7 +866,7 @@ function summativeView(){
     <div class="card"><div class="label">Choose a saved unit</div>
     ${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}${u.summative ? " · <b style='color:var(--leaf)'>task ready</b>" : ""}</p></div>
       <button class="btn small ${u.summative?"ghost":""}" onclick="openSum('${u.id}')">${u.summative ? "Open task" : "✨ Create task"}</button></div>`).join("")
-    : `<div class="empty">🎯<br><br>No saved units yet.<br>Build a unit in the <b>Unit builder</b> and click <b>Save unit</b>, then come back here.</div>`}
+    : `<div class="empty">🎯<br><br>No saved units yet.<br>Build a unit in the <b>Unit builder</b> (it saves as you go), then come back here.</div>`}
     </div>`;
   }
   const u = sumUnit(), t = u.summative ? draft() : null, cl = settings.conceptLabel || "Specified concepts";
@@ -2142,6 +2154,7 @@ function addRelated(){ const v = prompt("Add a related concept"); if(v && v.trim
 function suggestIdeas(){
   if(!unit.theme){ error = "Please choose a transdisciplinary theme first."; return render(); }
   if(!unit.grade){ error = "Please choose the grade, so the central idea fits the children's age."; return render(); }
+  if(!(unit.description||"").trim()){ error = "Please write a sentence about what this unit is about, so the central ideas fit your unit."; render(); const d = document.getElementById("unitDesc"); if(d) d.focus(); return; }
   run("central_ideas", "Writing central ideas…", d => {
     unit.centralIdeaOptions = (d.centralIdeas || []).slice(0,5);
     if(!unit.centralIdeaOptions.includes(unit.centralIdea)) unit.centralIdea = unit.centralIdeaOptions[0] || "";
@@ -2177,10 +2190,11 @@ async function saveUnit(quiet){
   unit.updated = new Date().toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"});
   const units = store.get("wn_units", []).filter(u => u.id !== unit.id);
   units.unshift(JSON.parse(JSON.stringify(unit)));
-  store.set("wn_units", units); saveCurrent();
+  store.set("wn_units", units); store.set("wn_current", unit);
   const ok = await pushUnit(unit);
   if(!quiet) toast(ok ? "Unit saved to your account ✓" : "Unit saved on this device");
 }
+async function finishUnit(){ unit.finished = true; await saveUnit(true); view = "home"; render(); toast("Unit finished and saved ✓"); }
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
 function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); if(db && isUuid(id)) db.from("units").delete().eq("id", id).then(()=>{}); render(); } }
@@ -2852,7 +2866,7 @@ async function cqMake(){
   catch(e){ error = e.message; } finally{ loading(false); render(); }
 }
 const _step2Base = step2; step2 = function(){ return _step2Base() + ciCheckCard(); };
-const _step3Base = step3; step3 = function(){ return _step3Base() + conceptQCard(); };
+const _step3Base = step3; step3 = function(){ return _step3Base() + conceptQCard() + `<div class="actions"><span></span><button class="btn" onclick="goStep(4)">Next: SDGs →</button></div>`; };
 document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { if(n.dataset.view === "concepts"){ cnS.classes = null; cnS.cls = null; cnS.modal = null; render(); } }));
 
 
@@ -2950,7 +2964,7 @@ function step6(){
       ${planTA("before","Before the unit: what do children already know? What might be challenging?","")}
       ${planTA("during","During the unit: what is working? What are we changing?","")}
       ${planTA("after","After the unit: what did children learn? What will we change next time?","")}</div>
-    <div class="card"><div class="actions" style="margin-top:0"><span class="hint">Everything here is included in the Word download.</span><button class="btn" onclick="saveUnit()">💾 Save unit</button></div></div></div></div>`;
+    <div class="card"><div class="actions" style="margin-top:0"><span class="hint">Everything here is included in the Word download. Your unit is saved as you go.</span><button class="btn" onclick="finishUnit()">✓ Finish unit</button></div></div></div></div>`;
 }
 async function loadClassWonders(){
   const { data: cls } = await db.from("classes").select("id, name, current_unit");
@@ -3243,11 +3257,12 @@ DEMO.transdisciplinary_ideas = { subjectIdeas: [
 STEP_NAMES.splice(5, 0, "Subjects");
 
 /* ---------- "Your unit so far" summary at the top of every step ---------- */
-let unitSumOpen = store.get("wn_unitsum", true), usRes = null;
+let unitSumOpen = store.get("wn_unitsum2", false), usRes = null;
 function unitSummary(){
   const s = unit.step, t = themeOf(unit.theme), rows = [];
   if(s <= 1) return "";
   rows.push(`<div class="us-row"><span class="us-k">Theme & grade</span><span>${t ? esc(t.ic + " " + t.name) : "–"} · ${esc(gradeLabel(unit) || "–")}</span></div>`);
+  if((unit.description||"").trim()) rows.push(`<div class="us-row"><span class="us-k">About the unit</span><span>${esc(unit.description)}</span></div>`);
   if(s > 2 && unit.centralIdea) rows.push(`<div class="us-row"><span class="us-k">Central idea</span><b class="us-ci">${esc(unit.centralIdea)}</b></div>`);
   if(s > 3){
     if(unit.lines.length) rows.push(`<div class="us-row"><span class="us-k">Lines of inquiry</span><div>${unit.lines.map((l,i)=>`<p class="us-line"><b>${i+1}.</b> ${esc(l.text)} <span class="tag">${esc(l.concept||"")}</span></p>`).join("")}</div></div>`);
@@ -3266,7 +3281,8 @@ function unitSummary(){
     if(r.length) rows.push(`<div class="us-row"><span class="us-k">Resources</span><div><div>${r.join(" ")}</div>${list ? `<div class="us-list">${list}</div>` : ""}</div></div>`);
   }
   if(s > 6 && (unit.subjects||[]).length) rows.push(`<div class="us-row"><span class="us-k">Subjects</span><div>${unit.subjects.map(x=>`<span class="us-chip">${esc(x.subject)}${x.related?" · "+esc(x.related):""}</span>`).join("")}${(unit.tdExperiences||[]).length?` <span class="hint">${unit.tdExperiences.length} integrated experiences</span>`:""}</div></div>`);
-  return `<details class="unitsum" ${unitSumOpen?"open":""} ontoggle="unitSumOpen=this.open;store.set('wn_unitsum',this.open)"><summary>📋 Your unit so far</summary><div class="us-body">${rows.filter(Boolean).join("")}</div></details>`;
+  const peek = [t ? t.ic + " " + t.name : "", unit.grade || "", s > 2 && unit.centralIdea ? "“" + (unit.centralIdea.length > 70 ? unit.centralIdea.slice(0, 68) + "…" : unit.centralIdea) + "”" : ""].filter(Boolean).join(" · ");
+  return `<details class="unitsum" ${unitSumOpen?"open":""} ontoggle="unitSumOpen=this.open;store.set('wn_unitsum2',this.open)"><summary>📋 Your unit so far <span class="us-peek">${esc(peek)}</span><span class="us-tap">${unitSumOpen ? "hide" : "show"}</span></summary><div class="us-body">${rows.filter(Boolean).join("")}</div></details>`;
 }
 const _usWrap = f => () => unitSummary() + f();
 step2 = _usWrap(step2); step3 = _usWrap(step3); step4 = _usWrap(step4); step5 = _usWrap(step5); stepSubjects = _usWrap(stepSubjects); step6 = _usWrap(step6);
@@ -3427,13 +3443,14 @@ function stepWeeks(){
     ${W.every(x=>!Object.values(x.cells||{}).some(v=>v&&v.trim())) ? `<div class="wkstart"><div><b>⏱️ Save planning time</b><p>Let WonderNest draft all ${W.length} weeks from your central idea, lines of inquiry, ${subs.length ? "the focus of " + subs.join(", ") : "subjects"} and your resources. Subjects are woven into the phases. You then just edit what you want to change.</p></div><button class="btn" onclick="wkAll()">✨ Draft all ${W.length} weeks for me</button></div>` : ""}
     <div class="wktabs">${W.map((x,k)=>`<button class="${k===i?"on":""}" onclick="wkS.week=${k};render()">Week ${k+1}${Object.values(x.cells||{}).some(v=>v&&v.trim())?" ✓":""}</button>`).join("")}</div>
     <div class="grid2" style="grid-template-columns:1fr 2fr;margin-top:10px"><div><label>Line of inquiry this week</label><select onchange="unit.weeks[${i}].line=this.value;saveCurrent();render()"><option value="">Choose…</option>${unit.lines.map((l,k)=>`<option value="${k+1}" ${String(w.line)===String(k+1)?"selected":""}>Line ${k+1}: ${esc(l.text.slice(0,60))}</option>`).join("")}</select></div>
-      <div><label>Focus this week</label><input value="${esc(w.focus||"")}" oninput="unit.weeks[${i}].focus=this.value;saveCurrent()" placeholder="For example: what a habitat is"></div></div>
+      <div><label>Focus this week</label><input type="text" value="${esc(w.focus||"")}" oninput="unit.weeks[${i}].focus=this.value;saveCurrent()" placeholder="For example: what a habitat is"></div></div>
     <div class="cyclegrid">${CYCLE.map(([ph,ic])=>`<div class="cyc"><div class="cych"><b>${ic} ${ph}</b>${opts.length?`<select onchange="if(this.value!==''){wkSlot(${i},'${ph}',+this.value);this.value=''}"><option value="">＋ Slot in…</option>${opts.map((o,k)=>`<option value="${k}">${esc(o[0])}</option>`).join("")}</select>`:""}</div><textarea oninput="unit.weeks[${i}].cells['${ph}']=this.value;saveCurrent()" placeholder="What will children do?">${esc(w.cells[ph]||"")}</textarea>
       ${subs.length?`<div class="stags">${subs.map(s=>subTag(s,(w.tags[ph]||[]).includes(s),`wkTag(${i},'${ph}','${esc(s)}')`)).join("")}</div>`:""}
       ${((wkS.ideas[i]||{})[ph]||[]).length?`<div class="wkchips">${wkS.ideas[i][ph].map((t,k)=>`<button onclick="wkUse(${i},'${ph}',${k})" title="Add this idea">＋ ${esc(t.text)}${(t.subjects||[]).length?`<br>${t.subjects.map(s=>subTag(s,true)).join("")}`:""}</button>`).join("")}</div>`:""}</div>`).join("")}</div>
     ${subs.length ? `<div class="wksubs"><div class="label">📚 What each subject teaches this week</div><div class="wksubgrid">${subs.map(s=>{ const ph = CYCLE.filter(([p]) => (w.tags[p]||[]).includes(s)).map(([p,ic]) => ic); return `<div class="wksub" style="border-left-color:${subCol(s)}"><div class="actions" style="margin:0"><b style="color:${subCol(s)}">${esc(s)}</b><span class="hint">${ph.length ? "In: " + ph.join(" ") : "Not in a phase yet"}</span></div><textarea oninput="unit.weeks[${i}].subj['${esc(s)}']=this.value;saveCurrent()" placeholder="Skill or objective this week">${esc(w.subj[s]||"")}</textarea></div>`; }).join("")}</div>
       ${missing.length ? `<div class="wkwarn">💡 ${missing.map(esc).join(", ")} ${missing.length>1?"are":"is"} not part of this week yet. That is fine if it is taught on its own this week; otherwise tag a phase or use the ideas button.</div>` : ""}</div>` : ""}
-    <div class="actions"><button class="link" onclick="wkCopyPrev(${i})" ${i?"":"disabled"}>Copy last week's routines</button><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="wkFill(${i},true)">💡 3 ideas for each box</button><button class="btn" onclick="wkFill(${i})">✨ Fill the empty boxes for week ${i+1}</button></span></div></div>
+    <div class="actions"><button class="link" onclick="wkCopyPrev(${i})" ${i?"":"disabled"}>Copy last week's routines</button><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" onclick="wkFill(${i},true)" title="Ideas appear under each box. Nothing changes until you tap one.">💡 Show ideas to pick from</button><button class="btn" onclick="wkFill(${i})" title="Writes an activity in every empty box of this week. Boxes you have written in stay as they are.">✨ Write the empty boxes for me</button></span></div>
+    <p class="hint" style="margin:6px 0 0;text-align:right">💡 shows ideas under each box for you to choose. ✨ writes the empty boxes of week ${i+1}; your own writing is kept.</p></div>
   <div class="card"><div class="label">Overview</div><div style="overflow-x:auto"><table class="tbl wkt"><tr><th>Phase</th>${W.map((x,k)=>`<th>Week ${k+1}${x.line?`<br><small>Line ${esc(String(x.line))}</small>`:""}</th>`).join("")}</tr>${CYCLE.map(([ph,ic])=>`<tr><td><b>${ic} ${ph}</b></td>${W.map(x=>`<td>${esc((x.cells[ph]||"").slice(0,90))}${(x.tags[ph]||[]).length?`<div>${x.tags[ph].map(s=>subTag(s,true)).join("")}</div>`:""}</td>`).join("")}</tr>`).join("")}
     ${subs.map(s=>`<tr class="subrow"><td><b style="color:${subCol(s)}">${esc(s)}</b></td>${W.map(x=>`<td>${esc((x.subj[s]||"").slice(0,90))}</td>`).join("")}</tr>`).join("")}</table></div>
     ${subs.length ? `<div class="label" style="margin-top:14px">Integration at a glance (phases each subject is part of)</div><div style="overflow-x:auto"><table class="tbl wkt"><tr><th>Subject</th>${W.map((x,k)=>`<th>Week ${k+1}</th>`).join("")}</tr>${subs.map(s=>`<tr><td><b style="color:${subCol(s)}">${esc(s)}</b></td>${W.map(x=>{ const n = CYCLE.filter(([p]) => (x.tags[p]||[]).includes(s)).length; return `<td style="text-align:center">${n ? `<span class="dot" style="background:${subCol(s)}">${n}</span>` : (x.subj[s]||"").trim() ? "◦" : "·"}</td>`; }).join("")}</tr>`).join("")}</table></div><p class="hint">Numbers show how many phases use the subject that week. ◦ means the subject has its own objective but isn't tagged in a phase.</p>` : ""}</div>
@@ -3659,7 +3676,7 @@ function weekView(){
   const partial = u._partial ? `<div class="wkwarn" style="margin-bottom:12px">📌 ${esc(c.name)} was linked to this unit before units were saved online, so its weekly plan can't be shown here. Open the unit in <button class="link" onclick="goView('home')">My units</button>, then click <b>📌 Use with a class</b> and choose ${esc(c.name)} again. This only needs doing once.</div>` : "";
   const W = u.weeks || [], hasWeeks = W.some(w => Object.values(w.cells||{}).some(v => v && v.trim()));
   const now = cu.now || {}, i = Math.max(0, Math.min(hbS.week || 0, Math.max(W.length - 1, 0))), w = W[i] || { cells: {}, tags: {}, subj: {} }, isNow = (now.week || 1) === i + 1;
-  const keep = unit, ko = unitSumOpen; unit = u; unitSumOpen = false; let sum = ""; try{ sum = unitSummary().replace("ontoggle=\"unitSumOpen=this.open;store.set('wn_unitsum',this.open)\"", ""); } finally{ unit = keep; unitSumOpen = ko; }
+  const keep = unit, ko = unitSumOpen; unit = u; unitSumOpen = false; let sum = ""; try{ sum = unitSummary().replace("ontoggle=\"unitSumOpen=this.open;store.set('wn_unitsum2',this.open)\"", ""); } finally{ unit = keep; unitSumOpen = ko; }
   const att = atS.data ? atS.data.items.filter(x => x.cls === c.id && x.type !== "expert") : [];
   const E = hbS.ent || [], kid = id => (hbS.kids||[]).find(k => k.id === id) || {}, wonders = E.filter(e => e.kind === "wonder").slice(0, 6);
   const subs = (u.subjects||[]).map(s => s.subject), subTagU = s => { const k = subs.indexOf(s); const col = SUBCOL[(k<0?0:k) % SUBCOL.length]; return `<span class="stag on" style="background:${col};border-color:${col}">${esc(s)}</span>`; };
