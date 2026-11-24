@@ -322,6 +322,11 @@ const SDG_STORIES = [
   .earn{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed #eee;font-weight:800}.earn span{flex:1}.earn b{color:var(--coral)}.earn small{color:var(--muted)}
   .featherfly{position:fixed;left:50%;top:40%;transform:translateX(-50%);font-size:34px;font-weight:900;color:#ff7a59;z-index:99;animation:fly 1.6s ease-out forwards;pointer-events:none}
   @keyframes fly{0%{opacity:0;transform:translate(-50%,20px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-120px) scale(1)}}
+
+  .cfitem{border-radius:14px;background:#f4f6fb;margin-bottom:8px;border:3px solid transparent}.cfitem.on{border-color:#be123c;background:#fff0f3}.cfitem>button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:10px;background:none}.cfitem>button>span{font-size:22px}.cfitem small{font-weight:800;color:var(--muted)}.cfitem p{font-weight:700;font-size:14px}.cfitem img{width:54px;height:54px;object-fit:cover;border-radius:10px;margin-left:auto}.cfitem input{margin:0 10px 10px;width:calc(100% - 20px)}
+  .confk{min-height:100vh;background:linear-gradient(180deg,#14325c,#2f6fd6);color:#fff;display:flex;flex-direction:column}.cfkhead{display:flex;justify-content:space-between;align-items:center;padding:14px}.cfkhead button{background:rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 14px;font-size:18px}
+  .cfkbody{flex:1;padding:10px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}.cfkbody h1{font-family:"Fredoka",sans-serif;font-size:30px}.cfkbody img{max-width:100%;max-height:40vh;border-radius:18px}.cfkb{font-size:21px;line-height:1.5;font-weight:700}.cfkw{background:rgba(255,255,255,.15);border-radius:14px;padding:12px;font-weight:700}
+  .cfknav{display:flex;gap:10px;padding:16px}.cfknav .btn{flex:1}.cfknav .btn.ghost{background:rgba(255,255,255,.2);color:#fff;border:0}
 </style>
 </head>
 <body>
@@ -1462,6 +1467,47 @@ addEntry = async function(kind, title, content){
   return ok;
 };
 function featherFly(n){ const el = document.createElement("div"); el.className = "featherfly"; el.textContent = "🪶 +" + n; document.body.appendChild(el); setTimeout(() => el.remove(), 1600); }
+
+
+/* =====================================================================
+   MY CONFERENCE: children choose their best work and present it
+   ===================================================================== */
+let confPick = {}, confI = 0, confGallery = [];
+const CONF_KINDS = { wonder: "💭 A wonder", routine: "🧠 My thinking", story: "📖 My story", concept: "💡 A big idea", lp: "🌟 Learner profile", action: "🧱 My action", journal: "📓 Journal" };
+async function goConf(){
+  const r = await db.from("inquiries").select("*").eq("student_id", me.student_id); confGallery = (r.data || []).filter(q => q.data && q.data.share);
+  const c = entries.filter(e => e.kind === "conference")[0]; confPick = {}; if(c) (c.content.items || []).forEach(it => confPick[it.id] = it.why || "");
+  go("conf");
+}
+function confItems(){ return [...confGallery.map(q => ({ id: q.id, label: "🌸 My inquiry", text: (q.data.share.title || q.data.wonder || ""), img: q.data.share.img })),
+  ...entries.filter(e => CONF_KINDS[e.kind]).map(e => ({ id: e.id, label: CONF_KINDS[e.kind], text: String(e.content.text || e.content.lens || (e.content.answers||[]).map(a => a.text).filter(Boolean).join(" · ") || (e.content.attr ? e.content.attr + ": " + (e.content.text||"") : "") || e.title || ""), img: e.content.photo }))]; }
+NEW_SCREENS.conf = function(){
+  const items = confItems(), n = Object.keys(confPick).length, c = entries.filter(e => e.kind === "conference")[0];
+  return khead("My conference 🎤", "Show my family what I learned", "#be123c") + `<div class="body">
+    <div class="card"><h2>👋 How I will start<button class="speak" onclick="speak('Say hello and tell your family what you will show them.')">🔊</button></h2><div class="mic-row">${micBtn("cfIntro")}<textarea id="cfIntro" placeholder="Welcome! Today I will show you…">${esc((c && c.content.intro) || "")}</textarea></div></div>
+    <div class="card"><h2>⭐ Choose my best work (${n}/8)</h2>${items.map(it=>`<div class="cfitem ${confPick[it.id]!==undefined?"on":""}"><button onclick="confToggle('${it.id}')"><span>${confPick[it.id]!==undefined?"✅":"⬜"}</span><div><small>${esc(it.label)}</small><p>${esc(it.text.slice(0,110))}</p></div>${it.img?`<img src="${it.img}">`:""}</button>
+      ${confPick[it.id]!==undefined?`<input class="title" placeholder="Why I chose this…" value="${esc(confPick[it.id])}" oninput="confPick['${it.id}']=this.value">`:""}</div>`).join("") || `<p>Add some wonders, stories or thinking first!</p>`}</div>
+    <div class="card"><h2>🎯 My next step</h2><div class="mic-row">${micBtn("cfGoal")}<textarea id="cfGoal" placeholder="Next I want to get better at…">${esc((c && c.content.goal) || "")}</textarea></div></div>
+    <button class="btn wide leaf" onclick="confSave()">💾 Save my slideshow</button>
+    ${c ? `<button class="btn wide" style="margin-top:10px;background:#be123c" onclick="confI=0;go('confshow')">▶ Present my slideshow</button>` : ""}</div>`;
+};
+function confToggle(id){ const keep = [$("#cfIntro").value, $("#cfGoal").value]; if(confPick[id] !== undefined) delete confPick[id]; else { if(Object.keys(confPick).length >= 8) return toast("8 is the most!"); confPick[id] = ""; } draw(); $("#cfIntro").value = keep[0]; $("#cfGoal").value = keep[1]; }
+async function confSave(){
+  if(!Object.keys(confPick).length) return toast("Choose at least one piece of work!");
+  if(await addEntry("conference", "My conference", { intro: $("#cfIntro").value.trim(), goal: $("#cfGoal").value.trim(), items: Object.entries(confPick).map(([id, why]) => ({ id, why })) })){ confI = 0; go("confshow"); }
+}
+NEW_SCREENS.confshow = function(){
+  const c = entries.filter(e => e.kind === "conference")[0]; if(!c) return go("conf");
+  const all = confItems(), f = typeof feathers === "function" ? feathers() : 0;
+  const S = [{ t: `${me.first_name}'s learning`, b: c.content.intro || "", bird: true }].concat((c.content.items||[]).map(it => { const x = all.find(a => a.id === it.id); return x ? { t: x.label, b: x.text, img: x.img, why: it.why } : null; }).filter(Boolean), [{ t: "🌱 How I've grown", b: `I have ${f} feathers in my nest!`, bird: true }, { t: "🎯 My next step", b: c.content.goal || "" }]);
+  const i = Math.min(confI, S.length - 1), s = S[i];
+  return `<div class="confk"><div class="cfkhead"><button onclick="go('conf')">✕</button><span>${i+1} / ${S.length}</span><button onclick="speak(${esc(JSON.stringify(s.t + ". " + s.b + (s.why ? ". I chose this because " + s.why : "")))})">🔊</button></div>
+    <div class="cfkbody"><h1>${esc(s.t)}</h1>${s.bird && typeof birdHTML === "function" ? birdHTML(200) : ""}${s.img?`<img src="${s.img}">`:""}<p class="cfkb">${esc(s.b)}</p>${s.why?`<p class="cfkw">💬 I chose this because ${esc(s.why)}</p>`:""}</div>
+    <div class="cfknav"><button class="btn ghost" ${i?"":"disabled"} onclick="confI--;draw()">◀ Back</button><button class="btn" ${i<S.length-1?"":"disabled"} onclick="confI++;draw()">Next ▶</button></div></div>`;
+};
+const _homeConf = NEW_SCREENS.home;
+NEW_SCREENS.home = function(){ const a = tileW("🧱","Action wall","#0f766e","goActions()"); return _homeConf().replace(a, a + tileW("🎤","My conference","#be123c","goConf()")); };
+FEATHERS.conference = 3;
 
 start();
 </script>

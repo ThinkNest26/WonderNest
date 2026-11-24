@@ -316,6 +316,11 @@
   .pgstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px}.pgstat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px}.pgstat span{font-size:22px}.pgstat b{font-size:24px;color:var(--navy)}.pgstat small{color:var(--muted);font-weight:700;font-size:12px}.pgstat em{font-style:normal;color:#1d7a4e;font-size:11.5px;font-weight:800}
   .pgchart{width:100%;height:auto}.pglegend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);margin-top:4px}.pglegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
   .hb{display:grid;grid-template-columns:130px 1fr 30px;gap:8px;align-items:center;margin:5px 0;font-size:13px}.hb div{background:#eef1f7;border-radius:6px;height:12px;overflow:hidden}.hb i{display:block;height:100%}
+
+  .wktabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.wktabs button{background:var(--bg);border-radius:10px;padding:8px 14px;font-weight:800;color:var(--muted)}.wktabs button.on{background:var(--navy);color:#fff}
+  .cyclegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.cyc{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.cych{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}.cych b{color:var(--navy);font-size:14px}.cych select{width:auto;max-width:130px;padding:4px 6px;font-size:12px}.cyc textarea{min-height:90px}
+  table.wkt td{font-size:12px;min-width:120px}
+  .confslide{background:#fff;border-radius:20px;padding:26px;width:min(760px,94vw);max-height:92vh;overflow:auto;text-align:center}.confslide h2{color:var(--navy);font-size:26px;margin:6px 0 10px}.confslide img{max-width:100%;max-height:44vh;border-radius:14px}.cfb{font-size:18px;line-height:1.55;margin-top:10px}.cfw{background:#fff8e6;border-radius:12px;padding:10px;margin-top:10px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -463,6 +468,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="sdg">🌍 SDG stories</button>
     <button class="nav" data-view="stories">📚 Story library</button>
     <div class="navg">Teach & assess</div>
+    <button class="nav" data-view="attention">🔔 Needs attention</button>
     <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
     <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
     <button class="nav" data-view="atl">📈 ATL growth</button>
@@ -471,6 +477,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="exh">🏆 PYP Exhibition</button>
     <div class="navg">School</div>
     <button class="nav" data-view="school">🏫 My school</button>
+    <button class="nav" data-view="reviews">✅ Unit reviews</button>
     <button class="nav" data-view="settings">⚙️ School settings</button>
     <button class="nav" data-view="basics">📖 PYP basics</button>
     <a class="nav" href="privacy.html" target="_blank" style="text-decoration:none">🔒 Privacy</a>
@@ -636,6 +643,8 @@ function render(){
   else if(view === "basics") m.innerHTML = basicsView();
   else if(view === "poi") m.innerHTML = poiView();
   else if(view === "progress") m.innerHTML = progressView();
+  else if(view === "attention") m.innerHTML = attentionView();
+  else if(view === "reviews") m.innerHTML = reviewsView();
   else if(view === "exh") m.innerHTML = exView();
   else if(view === "school") m.innerHTML = sch.school ? schoolView() : schoolSetupView();
   else m.innerHTML = builderView();
@@ -656,8 +665,8 @@ function header(title){
 }
 
 function builderView(){
-  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry","Transdisciplinary learning: subjects together","Plan, assess and reflect"];
-  const body = [step1, step2, step3, step4, step5, stepSubjects, step6][unit.step-1]();
+  const titles = ["Start a new unit of inquiry","Choose your central idea","Lines of inquiry and concepts","Connect to the Sustainable Development Goals","Stories, thinking routines and open inquiry","Transdisciplinary learning: subjects together","Weekly inquiry cycle","Plan, assess and reflect"];
+  const body = [step1, step2, step3, step4, step5, stepSubjects, stepWeeks, step6][unit.step-1]();
   return header(titles[unit.step-1]) + body;
 }
 
@@ -2186,6 +2195,7 @@ function downloadWord(){
   <h2>Learner profile</h2><p>${esc(unit.learnerProfile.join(", "))}</p>
   <h2>Sustainable Development Goals</h2><ul>${SDGS.filter(s=>unit.sdgs.includes(s[0])).map(([n,name])=>`<li>SDG ${n} ${name}${unit.sdgWhy[n]?" — "+esc(unit.sdgWhy[n]):""}</li>`).join("")}</ul>
   ${tdWordHTML()}
+  ${weeksWordHTML()}
   ${planWordHTML()}
   <h2>Books</h2><ul>${unit.books.map(b=>`<li><b>${esc(b.title)}</b>, ${esc(b.author)} — ${esc(b.why)}<br><a href="${(b.ol&&b.ol.url)||"https://openlibrary.org/search?q="+q(b)}">Open Library${b.ol&&b.ol.readable?" (read online free)":""}</a> · <a href="https://search.worldcat.org/search?q=${q(b)}">Find in a library</a></li>`).join("")}</ul>
   ${unit.story ? `<h2>Original story: ${esc(unit.story.title)}</h2><p>${esc(unit.story.text).replace(/\n/g,"<br>")}</p>${unit.story.textSecond?`<p dir="rtl">${esc(unit.story.textSecond).replace(/\n/g,"<br>")}</p>`:""}` : ""}
@@ -3165,7 +3175,7 @@ function stepSubjects(){
     ${(sug.standalone||[]).length ? `<div class="label" style="margin-top:14px">Better taught on their own</div>${sug.standalone.map(s=>`<p class="hint">📘 <b>${esc(s.subject)}:</b> ${esc(s.topic)} (${esc(s.why)})</p>`).join("")}` : ""}
     <div class="actions"><button class="link" onclick="tdInspire()">↻ More ideas</button><span></span></div></div>` : ""}
   ${unit.tdExperiences.length ? `<div class="card"><div class="label">4. Our transdisciplinary experiences (${unit.tdExperiences.length})</div>${unit.tdExperiences.map((e,i)=>tdCard(e, `<button class="link" style="color:var(--coral)" onclick="unit.tdExperiences.splice(${i},1);saveCurrent();render()">Remove</button>`, i)).join("")}${tdMatrix()}</div>` : ""}
-  <div class="actions"><span></span><button class="btn" onclick="goStep(7)">Next: plan & reflect →</button></div>`;
+  <div class="actions"><span></span><button class="btn" onclick="goStep(7)">Next: weekly plan →</button></div>`;
 }
 function tdCard(e, btn, editIdx){
   const ed = editIdx !== undefined;
@@ -3369,6 +3379,171 @@ function pgSchool(){
   </div><p class="hint">Whole-school figures show numbers only, never children's names.</p>`;
 }
 document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { if(n.dataset.view === "progress"){ pgS.classes = null; pgS.cls = null; pgS.data = null; pgS.school = null; render(); } }));
+
+
+/* =====================================================================
+   WEEKLY INQUIRY CYCLE
+   ===================================================================== */
+const CYCLE = [["Tuning in","🎵"],["Finding out","🔍"],["Sorting out","🧩"],["Going further","🚀"],["Making connections","🔗"],["Taking action","🌱"]];
+WHY.weeks = ["Why plan each week through the inquiry cycle?", "Each week children move through the whole cycle: they tune in, find out, sort out what they found, go further, make connections to the central idea and their lives, and take action. Planning every phase makes sure inquiry is not only 'finding out', and that children have time to make connections and act."];
+const wkS = { week: 0 };
+function weeksObj(){
+  const n = Math.max(1, Math.min(12, parseInt(String(unit.duration).match(/\d+/) || [6], 10)));
+  unit.weeks = unit.weeks || [];
+  while(unit.weeks.length < n) unit.weeks.push({ line: "", focus: "", cells: {} });
+  if(unit.weeks.length > n) unit.weeks.length = n;
+  return unit.weeks;
+}
+function slotOptions(){
+  const o = [];
+  (unit.provocations||[]).forEach(p => o.push(["✨ " + p.title, p.title]));
+  (unit.routines||[]).forEach(r => o.push(["🧠 " + r.name, "Thinking routine: " + r.name]));
+  (unit.tdExperiences||[]).forEach(e => o.push(["🔗 " + e.title, e.title + " (" + (e.subjects||[]).join(", ") + ")"]));
+  (unit.books||[]).forEach(b => o.push(["📚 " + b.title, "Read: " + b.title]));
+  if(unit.story) o.push(["📖 " + unit.story.title, "Story: " + unit.story.title]);
+  return o;
+}
+function stepWeeks(){
+  const W = weeksObj(), i = Math.min(wkS.week, W.length - 1), w = W[i], opts = slotOptions();
+  return whyBox("weeks") + `<div class="card exg"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🗓️ Weekly inquiry cycle · ${W.length} weeks</div><span class="hint">Weeks come from the unit duration (${esc(unit.duration)}). Change it in step 1.</span></div>
+    <div class="wktabs">${W.map((x,k)=>`<button class="${k===i?"on":""}" onclick="wkS.week=${k};render()">Week ${k+1}${Object.values(x.cells||{}).some(v=>v&&v.trim())?" ✓":""}</button>`).join("")}</div>
+    <div class="grid2" style="grid-template-columns:1fr 2fr;margin-top:10px"><div><label>Line of inquiry this week</label><select onchange="unit.weeks[${i}].line=this.value;saveCurrent()"><option value="">Choose…</option>${unit.lines.map((l,k)=>`<option value="${k+1}" ${String(w.line)===String(k+1)?"selected":""}>Line ${k+1}: ${esc(l.text.slice(0,60))}</option>`).join("")}</select></div>
+      <div><label>Focus this week</label><input value="${esc(w.focus||"")}" oninput="unit.weeks[${i}].focus=this.value;saveCurrent()" placeholder="For example: what a habitat is"></div></div>
+    <div class="cyclegrid">${CYCLE.map(([ph,ic])=>`<div class="cyc"><div class="cych"><b>${ic} ${ph}</b>${opts.length?`<select onchange="if(this.value){wkSlot(${i},'${ph}',this.value);this.value=''}"><option value="">＋ Slot in…</option>${opts.map(o=>`<option value="${esc(o[1])}">${esc(o[0])}</option>`).join("")}</select>`:""}</div><textarea oninput="unit.weeks[${i}].cells['${ph}']=this.value;saveCurrent()" placeholder="What will children do?">${esc((w.cells||{})[ph]||"")}</textarea></div>`).join("")}</div>
+    <div class="actions"><button class="link" onclick="wkCopyPrev(${i})" ${i?"":"disabled"}>Copy last week's routines</button><button class="btn" onclick="wkFill(${i})">✨ Fill the empty boxes for week ${i+1}</button></div></div>
+  <div class="card"><div class="label">Overview</div><div style="overflow-x:auto"><table class="tbl wkt"><tr><th>Phase</th>${W.map((x,k)=>`<th>Week ${k+1}${x.line?`<br><small>Line ${esc(String(x.line))}</small>`:""}</th>`).join("")}</tr>${CYCLE.map(([ph,ic])=>`<tr><td><b>${ic} ${ph}</b></td>${W.map(x=>`<td>${esc(((x.cells||{})[ph]||"").slice(0,90))}</td>`).join("")}</tr>`).join("")}</table></div></div>
+  <div class="actions"><span></span><button class="btn" onclick="goStep(8)">Next: plan & reflect →</button></div>`;
+}
+function wkSlot(i, ph, v){ const c = unit.weeks[i].cells; c[ph] = [c[ph], v].filter(Boolean).join("\n"); saveCurrent(); render(); }
+function wkCopyPrev(i){ const prev = unit.weeks[i-1].cells || {}, cur = unit.weeks[i].cells; CYCLE.forEach(([ph]) => { const r = (prev[ph]||"").split("\n").filter(l => /Thinking routine/i.test(l)); if(r.length && !(cur[ph]||"").trim()) cur[ph] = r.join("\n"); }); saveCurrent(); toast("Copied ✓"); render(); }
+async function wkFill(i){
+  const w = unit.weeks[i];
+  loading(true, "Planning week " + (i+1) + "…");
+  try{
+    const r = await ai("weekly_cycle", unit, { week: i+1, weeks: unit.weeks.length, lineNo: w.line, lineText: w.line ? (unit.lines[w.line-1]||{}).text : "", focus: w.focus, phases: CYCLE.map(c => c[0]), existing: w.cells,
+      resources: slotOptions().map(o => o[1]).slice(0, 25), subjects: (unit.subjects||[]).map(s => s.subject + ": " + (s.topics||"").slice(0, 200)) });
+    const p = r.phases || {}; CYCLE.forEach(([ph]) => { if(!(w.cells[ph]||"").trim() && p[ph]) w.cells[ph] = p[ph]; }); saveCurrent();
+  }catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+function weeksWordHTML(){
+  if(!(unit.weeks||[]).some(w => Object.values(w.cells||{}).some(v => v && v.trim()))) return "";
+  return `<h2>Weekly inquiry cycle</h2><table><tr><th>Phase</th>${unit.weeks.map((w,k)=>`<th>Week ${k+1}${w.line?" (line "+esc(String(w.line))+")":""}${w.focus?"<br>"+esc(w.focus):""}</th>`).join("")}</tr>${CYCLE.map(([ph])=>`<tr><td><b>${ph}</b></td>${unit.weeks.map(w=>`<td>${esc((w.cells||{})[ph]||"").replace(/\n/g,"<br>")}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+DEMO.weekly_cycle = { phases: { "Tuning in": "Mystery bag: children feel objects from a habitat and guess where they came from. See · Think · Wonder.", "Finding out": "Habitat walk around school with clipboards; tally the living things in three places.", "Sorting out": "Sort findings onto a class chart: what each living thing needs.", "Going further": "Groups choose one animal and find out how its home meets its needs.", "Making connections": "How is a habitat like our home? Children draw and label the connections.", "Taking action": "Make a 'please be gentle' sign for the minibeasts in the school garden." } };
+
+/* =====================================================================
+   NEEDS YOUR ATTENTION
+   ===================================================================== */
+const atS = { data: null, loading: false };
+async function loadAttention(){
+  if(!db || !tc.user || atS.loading) return; atS.loading = true;
+  const { data: cls } = await db.from("classes").select("id, name, grade").order("created_at");
+  const ids = (cls || []).map(c => c.id), since = new Date(Date.now() - 14*864e5).toISOString();
+  if(!ids.length){ atS.data = { cls: [], items: [] }; atS.loading = false; attBadge(); return render(); }
+  const [e, q, n, k] = await Promise.all([db.from("entries").select("id, class_id, student_id, kind, title, content, publish, created_at").in("class_id", ids).order("created_at", { ascending: false }).limit(800),
+    db.from("inquiries").select("id, class_id, student_id, stage, data, updated_at, shared").in("class_id", ids), db.from("inquiry_notes").select("inquiry_id, author_type, created_at").in("class_id", ids),
+    db.from("students").select("id, first_name, picture, class_id").in("class_id", ids)]);
+  const items = [], kid = id => (k.data || []).find(x => x.id === id) || {};
+  (e.data || []).filter(x => x.publish === "pending").forEach(x => items.push({ type: x.kind === "story" ? "story" : "action", cls: x.class_id, kid: kid(x.student_id), entry: x, when: x.created_at }));
+  (e.data || []).filter(x => x.kind === "criteria" && x.created_at > since).forEach(x => items.push({ type: "criteria", cls: x.class_id, kid: kid(x.student_id), entry: x, when: x.created_at }));
+  (q.data || []).forEach(x => { const stamps = ((x.data||{}).stamps||[]).length, last = (n.data || []).filter(t => t.inquiry_id === x.id && t.author_type === "teacher").map(t => t.created_at).sort().pop();
+    if(stamps && (!last || last < x.updated_at)) items.push({ type: "feedback", cls: x.class_id, kid: kid(x.student_id), inq: x, when: x.updated_at });
+    if((x.data||{}).expertQ && ((x.data||{}).expertIds||[]).length && x.updated_at > since) items.push({ type: "expert", cls: x.class_id, kid: kid(x.student_id), inq: x, when: x.updated_at }); });
+  atS.data = { cls: cls || [], items: items.sort((a, b) => String(b.when).localeCompare(String(a.when))) }; atS.loading = false; attBadge(); render();
+}
+function attBadge(){ const b = document.querySelector('.nav[data-view="attention"]'); if(b && atS.data){ const n = atS.data.items.filter(i => i.type !== "expert").length; b.innerHTML = "🔔 Needs attention" + (n ? ` <span class="pill">${n}</span>` : ""); } }
+const AT_T = { story: ["📖","Story waiting for the bookshelf"], action: ["🧱","Action waiting for the wall"], feedback: ["🌸","Inquiry waiting for feedback"], expert: ["🧑‍🔬","Question for an expert"], criteria: ["💡","Success criterion suggested"] };
+function attentionView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🔔 Needs your attention</h1></div><button class="btn ghost" onclick="atS.data=null;render()">↻ Refresh</button></div>`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(!atS.data){ loadAttention(); return top + `<div class="card">Loading…</div>`; }
+  const I = atS.data.items, cn = id => (atS.data.cls.find(c => c.id === id) || {}).name || "";
+  if(!I.length) return top + `<div class="card empty">🎉<br><br>Nothing waiting. Children's work is all looked after.</div>`;
+  const groups = ["story","action","feedback","criteria","expert"].map(t => [t, I.filter(i => i.type === t)]).filter(g => g[1].length);
+  return top + `<div class="pgstats">${groups.map(([t,l])=>`<div class="pgstat"><span>${AT_T[t][0]}</span><b>${l.length}</b><small>${AT_T[t][1]}</small></div>`).join("")}</div>` +
+    groups.map(([t, list]) => `<div class="card"><div class="label">${AT_T[t][0]} ${AT_T[t][1]} (${list.length})</div>${list.slice(0, 40).map(i => `<div class="unit-row" style="align-items:flex-start"><div><h4>${esc(i.kid.picture||"")} ${esc(i.kid.first_name||"")} <span class="hint">· ${esc(cn(i.cls))} · ${new Date(i.when).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span></h4>
+      <p>${esc(i.entry ? String(i.entry.content.text || i.entry.title || "").slice(0, 200) : t === "expert" ? `"${i.inq.data.expertQ}"` : (i.inq.data.wonder || ""))}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${i.type === "story" || i.type === "action" ? `<button class="link" onclick="atSet('${i.entry.id}','none')">Not this time</button><button class="btn small" onclick="atSet('${i.entry.id}','approved')">✅ ${i.type === "story" ? "Publish" : "Put on the wall"}</button>`
+        : i.type === "criteria" ? `<button class="btn small ghost" onclick="view='summative';render()">Open summative tasks</button>` : `<button class="btn small ghost" onclick="atGoOI('${i.cls}','${t === "expert" ? "questions" : "board"}','${i.inq.id}')">Open</button>`}</div></div>`).join("")}</div>`).join("");
+}
+async function atSet(id, v){ const { error: e } = await db.from("entries").update({ publish: v }).eq("id", id); if(e){ error = tcErr(e); return render(); } toast(v === "approved" ? "Approved ✓" : "Updated"); atS.data = null; render(); }
+async function atGoOI(classId, tab, inqId){ view = "inquiry"; await oiLoadClasses(); await oiOpen(classId); oi.tab = tab; if(tab === "board") oi.open = inqId; render(); }
+
+/* =====================================================================
+   COORDINATOR REVIEW
+   ===================================================================== */
+const rvS = { byUnit: {}, list: null, open: null };
+const RV = { submitted: ["📤","Submitted for review","#2f6fd6"], changes: ["✏️","Changes suggested","#b45309"], ready: ["✅","Ready to teach","#1d7a4e"] };
+async function rvLoad(id){ const { data } = await db.from("unit_reviews").select("*").eq("unit_id", id).order("created_at", { ascending: false }); rvS.byUnit[id] = data || []; render(); }
+function reviewCard(){
+  if(!db || !tc.user || !isUuid(unit.id)) return "";
+  const r = rvS.byUnit[unit.id]; if(r === undefined){ rvS.byUnit[unit.id] = null; rvLoad(unit.id); return ""; } if(r === null) return "";
+  const cur = r[0];
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">✅ Coordinator review</div>${cur ? `<p style="font-weight:800;color:${RV[cur.status][2]}">${RV[cur.status][0]} ${RV[cur.status][1]}</p>` : `<p class="hint">Not submitted yet. When your team is happy, send it to your coordinator.</p>`}</div>
+    ${!cur || cur.status === "changes" ? `<button class="btn" onclick="rvSubmit()">📤 Submit for review</button>` : ""}</div>
+    ${r.filter(x => x.comment).slice(0, 5).map(x=>`<div class="hist">${RV[x.status][0]} <b>${esc(x.author_email||"")}</b> · ${new Date(x.created_at).toLocaleDateString("en-GB")}<br>${esc(x.comment)}</div>`).join("")}</div>`;
+}
+async function rvSubmit(){
+  await saveUnit(true);
+  const { error: e } = await db.from("unit_reviews").insert({ unit_id: unit.id, school_id: sch.school ? sch.school.id : null, status: "submitted", author_email: tc.user.email || "" });
+  if(e){ error = tcErr(e); return render(); } toast("Sent to your coordinator ✓"); rvLoad(unit.id);
+}
+async function rvList(){
+  const { data: rv } = await db.from("unit_reviews").select("*").order("created_at", { ascending: false });
+  const latest = {}; (rv || []).forEach(r => { if(!latest[r.unit_id]) latest[r.unit_id] = r; });
+  const ids = Object.keys(latest); let units = [];
+  if(ids.length){ const { data } = await db.from("units").select("id, data, owner").in("id", ids); units = (data || []).map(u => Object.assign({}, u.data, { id: u.id })); }
+  rvS.list = units.map(u => ({ u, r: latest[u.id], all: (rv || []).filter(x => x.unit_id === u.id) })).sort((a, b) => (a.r.status === "submitted" ? 0 : 1) - (b.r.status === "submitted" ? 0 : 1) || String(b.r.created_at).localeCompare(String(a.r.created_at))); render();
+}
+function withUnit(u, f){ const keep = unit; unit = Object.assign({}, u, { step: 9 }); try{ return f(); } finally{ unit = keep; } }
+function reviewsView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>✅ Unit reviews</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!schoolAdmin()) return top + `<div class="card">Only school admins (coordinators) review units. Teachers submit units from the unit builder.</div>`;
+  if(!rvS.list){ rvList(); return top + `<div class="card">Loading…</div>`; }
+  if(rvS.open){ const it = rvS.list.find(x => x.u.id === rvS.open); if(it) return top + `<div class="crumb" style="margin:-6px 0 12px"><button class="link" onclick="rvS.open=null;render()">‹ All units</button></div>` + rvDetail(it); }
+  return top + `<div class="card">${rvS.list.map(({u,r})=>`<div class="unit-row"><div><h4>${esc((themeOf(u.theme)||{}).ic||"")} ${esc(u.centralIdea||"Untitled")}</h4><p>${esc((themeOf(u.theme)||{}).name||"")} · ${esc(u.grade||"")} · <span style="color:${RV[r.status][2]};font-weight:800">${RV[r.status][0]} ${RV[r.status][1]}</span> · ${esc(r.author_email||"")} · ${new Date(r.created_at).toLocaleDateString("en-GB")}</p></div><button class="btn small ${r.status==="submitted"?"":"ghost"}" onclick="rvS.open='${u.id}';render()">${r.status==="submitted"?"Review":"Open"}</button></div>`).join("") || `<p class="hint">No units submitted yet.</p>`}</div>`;
+}
+function rvDetail({ u, all }){
+  const body = withUnit(u, () => unitSummary().replace("<details", "<details open") + `<div class="card">${planWordHTML()}${weeksWordHTML()}${tdWordHTML()}</div>`);
+  return `<div class="card"><div class="actions" style="margin-top:0"><h3 style="color:var(--navy)">${esc(u.centralIdea||"")}</h3><button class="btn small ghost" onclick="withUnit(rvS.list.find(x=>x.u.id===rvS.open).u, downloadWord)">⬇️ Word</button></div></div>${body}
+  <div class="card exg"><div class="label">Your feedback</div>${all.filter(x=>x.comment).map(x=>`<div class="hist">${RV[x.status][0]} <b>${esc(x.author_email||"")}</b> · ${new Date(x.created_at).toLocaleDateString("en-GB")}<br>${esc(x.comment)}</div>`).join("")}
+    <textarea id="rvC" placeholder="What is strong, and what should the team change?" style="min-height:90px;margin-top:8px"></textarea>
+    <div class="actions"><button class="btn ghost" onclick="rvDecide('changes')">✏️ Suggest changes</button><button class="btn" onclick="rvDecide('ready')">✅ Ready to teach</button></div></div>`;
+}
+async function rvDecide(status){
+  const c = $("#rvC").value.trim(); if(status === "changes" && !c) return toast("Write what the team should change");
+  const { error: e } = await db.from("unit_reviews").insert({ unit_id: rvS.open, school_id: sch.school.id, status, comment: c, author_email: tc.user.email || "" });
+  if(e){ error = tcErr(e); return render(); } toast(status === "ready" ? "Marked ready to teach ✓" : "Feedback sent ✓"); rvS.list = null; rvS.open = null; render();
+}
+
+/* =====================================================================
+   CONFERENCE SLIDESHOW (teacher view of a child's choices)
+   ===================================================================== */
+const cfS = { open: false, i: 0 };
+function confSlides(D, kidId){
+  const conf = D.ent.filter(e => e.student_id === kidId && e.kind === "conference").pop(); if(!conf) return null;
+  const k = D.kids.find(x => x.id === kidId), byId = id => D.ent.find(e => e.id === id) || D.inq.find(q => q.id === id);
+  const slides = [{ t: `${k.picture} ${k.first_name}'s learning`, b: conf.content.intro || "" }];
+  (conf.content.items || []).forEach(it => { const e = byId(it.id); if(!e) return; const txt = e.kind ? String(e.content.text || e.content.lens || (e.content.answers||[]).map(a=>a.label+": "+a.text).join("\n") || e.title || "") : (e.data.share && (e.data.share.title + "\n" + (e.data.share.label||"")) || e.data.wonder || "");
+    slides.push({ t: e.kind ? (KIND_NAMES[e.kind] || e.kind) : "🌸 My inquiry", b: txt, img: e.content ? e.content.photo : (e.data.share && e.data.share.img), why: it.why }); });
+  slides.push({ t: "🎯 My next step", b: conf.content.goal || "" });
+  return slides;
+}
+function confModal(){
+  if(!cfS.open || !pgS.data || !pgS.kid) return "";
+  const S = confSlides(pgS.data, pgS.kid); if(!S) return `<div class="modal-bg" onclick="cfS.open=false;render()"><div class="modal"><p>This child hasn't made their conference slideshow yet. They make it in 🎤 My conference.</p></div></div>`;
+  const i = Math.min(cfS.i, S.length - 1), s = S[i];
+  return `<div class="modal-bg" style="background:rgba(20,30,50,.9)" onclick="if(event.target===this){cfS.open=false;render()}"><div class="confslide"><p class="hint" style="color:#cbd5e1">${i+1} / ${S.length}</p><h2>${esc(s.t)}</h2>${s.img?`<img src="${s.img}">`:""}<p class="cfb">${esc(s.b).replace(/\n/g,"<br>")}</p>${s.why?`<p class="cfw">💬 Why I chose this: ${esc(s.why)}</p>`:""}
+    <div class="actions"><button class="btn ghost" ${i?"":"disabled"} onclick="cfS.i=${i-1};render()">◀</button><button class="link" style="color:#fff" onclick="cfS.open=false;render()">Close</button><button class="btn" ${i<S.length-1?"":"disabled"} onclick="cfS.i=${i+1};render()">▶</button></div></div></div>`;
+}
+
+/* ---------- wiring ---------- */
+STEP_NAMES.splice(6, 0, "Weekly plan");
+const _s6rv = step6; step6 = () => _s6rv() + reviewCard();
+const _pgChild = pgChild; pgChild = () => { const h = _pgChild(); return pgS.kid ? h.replace('<button class="btn small ghost" onclick="pgWord()">', '<button class="btn small ghost" onclick="cfS.open=true;cfS.i=0;render()">🎤 Conference slideshow</button> <button class="btn small ghost" onclick="pgWord()">') + confModal() : h; };
+document.querySelectorAll(".nav[data-view]").forEach(n => n.addEventListener("click", () => { const v = n.dataset.view; if(v === "attention"){ atS.data = null; render(); } if(v === "reviews"){ rvS.list = null; rvS.open = null; render(); } if(v === "builder" && isUuid(unit.id)){ delete rvS.byUnit[unit.id]; render(); } }));
+setTimeout(() => { if(tc.user) loadAttention(); }, 2500);
+stepWeeks = _usWrap(stepWeeks);
 
 render();
 initAuth();
