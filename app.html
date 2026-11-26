@@ -646,7 +646,10 @@ async function checkBooks(){
 }
 
 /* ---------- views ---------- */
+const renderPlace = { at: null, msg: "", y: 0 };
+window.addEventListener("scroll", () => { renderPlace.y = window.scrollY; }, { passive: true });
 function render(){
+  renderPlace.y = window.scrollY;
   document.querySelectorAll(".nav[data-view]").forEach(n => n.classList.toggle("on", n.dataset.view === view));
   $("#footSchool").innerHTML = esc(settings.school || "Your school") + "<br>Programme of inquiry";
   const m = $("#main");
@@ -670,7 +673,12 @@ function render(){
   else if(view === "exh") m.innerHTML = exView();
   else if(view === "school") m.innerHTML = sch.school ? schoolView() : schoolSetupView();
   else m.innerHTML = builderView();
-  window.scrollTo(0,0);
+  /* Stay where the teacher is when the same page redraws; go to the top only for a new page or a new message. */
+  const place = view + "|" + (view === "builder" ? (unit.id || "") + "|" + unit.step : "");
+  const msg = (typeof error === "string" && error) || "";
+  if(place !== renderPlace.at || (msg && msg !== renderPlace.msg)) window.scrollTo(0,0);
+  else if(window.scrollY !== renderPlace.y) window.scrollTo(0, renderPlace.y);
+  renderPlace.at = place; renderPlace.msg = msg;
   if(view === "builder" && unit.step === 5) checkBooks();
 }
 
