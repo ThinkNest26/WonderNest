@@ -762,6 +762,7 @@ function step4(){
     <div class="sdgs">${SDGS.map(([n,name,col])=>`<button class="sdg ${unit.sdgs.includes(n)?"on":""}" style="background:${col}" onclick="toggle(unit.sdgs,${n});saveCurrent();render()"><b>${n}</b>${name}</button>`).join("")}</div>
   </div>
   ${chosen.length ? `<div class="card"><div class="label">How this unit connects</div>${chosen.map(([n,name,col])=>`<div class="sdg-why"><span style="background:${col}">${n}</span><div><b>${name}</b><br><span style="color:var(--muted)">${esc(unit.sdgWhy[n] || "Chosen by your team.")}</span></div></div>`).join("")}</div>` : ""}
+  ${!unit.sdgs.length && ownLineTexts().length ? `<div class="actions" style="margin-top:0"><span class="hint">No goals chosen yet. WonderNest can suggest goals from your central idea and lines of inquiry.</span><button class="btn ghost" onclick="fillRest()">✨ Suggest goals for my unit</button></div>` : ""}
   <div class="actions"><span class="hint">Suggested goals are already selected. Add or remove any.</span><button class="btn" onclick="suggestResources()">Next: stories & routines →</button></div>`;
 }
 
@@ -2154,7 +2155,42 @@ async function slUnshare(storyId){
 }
 
 /* ---------- actions ---------- */
-function goStep(s){ unit.step = s; error = ""; saveCurrent(); render(); }
+function goStep(s){
+  if(s >= 4 && unit.step <= 3 && needsRest()) return fillRest(s);
+  unit.step = s; error = ""; saveCurrent(); render();
+}
+/* Teacher wrote her own lines: still suggest SDGs, ATL skills, learner profile and related concepts from her central idea and lines.
+   Only empty parts are filled, so nothing the teacher has chosen is replaced. */
+const ownLineTexts = () => (unit.lines || []).map(l => (l.text || "").trim()).filter(Boolean);
+function needsRest(){
+  if(unit.loiMode !== "own" || !ownLineTexts().length) return false;
+  return !(unit.sdgs||[]).length || !(unit.atl||[]).length || !(unit.learnerProfile||[]).length || !(unit.relatedConcepts||[]).length;
+}
+async function fillRest(next){
+  if(!(unit.centralIdea||"").trim()){ error = "Please choose or write a central idea first."; return render(); }
+  error = ""; loading(true, "Matching goals and skills to your lines…");
+  try{
+    const lines = ownLineTexts();
+    const d = await ai("inquiry", unit, {description: ((unit.description||"").trim() ? unit.description.trim() + "\n" : "") + "The team has written its own lines of inquiry: " + lines.map((t,i) => (i+1) + ". " + t).join(" ") + ". Base every suggestion on this central idea and these lines."});
+    if(!(unit.relatedConcepts||[]).length) unit.relatedConcepts = d.relatedConcepts || [];
+    if(!(unit.atl||[]).length){
+      unit.atl = []; unit.atlWhy = {};
+      (d.atl || []).forEach(a => {
+        const cat = Object.keys(ATL).find(c => c.toLowerCase() === String(a.category||"").toLowerCase());
+        const skill = cat && ATL[cat].find(x => x.toLowerCase() === String(a.skill||"").toLowerCase());
+        if(skill){ const k = cat + " · " + skill; unit.atl.push(k); unit.atlWhy[k] = a.why || ""; }
+      });
+    }
+    if(!(unit.learnerProfile||[]).length) unit.learnerProfile = (d.learnerProfile || []).map(l => LEARNER_PROFILE.find(x => x.toLowerCase() === String(l).toLowerCase())).filter(Boolean);
+    if(!(unit.sdgs||[]).length){
+      unit.sdgs = []; unit.sdgWhy = {};
+      (d.sdgs || []).forEach(x => { const n = Number(x.number); if(n>=1 && n<=17 && !unit.sdgs.includes(n)){ unit.sdgs.push(n); unit.sdgWhy[n] = x.why || ""; } });
+    }
+    if(next) unit.step = next;
+    saveCurrent();
+  }catch(e){ error = e.message || "Something went wrong. Please try again."; if(next){ unit.step = next; saveCurrent(); } }
+  finally{ loading(false); render(); }
+}
 function pickGrade(g){ unit.grade = g; unit.ageBand = (GRADES.find(x=>x[0]===g)||["",""])[1]; saveCurrent(); }
 function pickTheme(id){ unit.theme = id; saveCurrent(); render(); }
 function pickIdea(i){ unit.centralIdea = unit.centralIdeaOptions[i]; unit.ciOwn = false; saveCurrent(); render(); }
