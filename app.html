@@ -332,6 +332,7 @@
   .navbox summary{cursor:pointer;list-style:none}.navbox summary::-webkit-details-marker{display:none}.navbox summary::after{content:' ▸'}.navbox[open] summary::after{content:' ▾'}
   table.wkt td{font-size:12px;min-width:120px}
   .confslide{background:#fff;border-radius:20px;padding:26px;width:min(760px,94vw);max-height:92vh;overflow:auto;text-align:center}.confslide h2{color:var(--navy);font-size:26px;margin:6px 0 10px}.confslide img{max-width:100%;max-height:44vh;border-radius:14px}.cfb{font-size:18px;line-height:1.55;margin-top:10px}.cfw{background:#fff8e6;border-radius:12px;padding:10px;margin-top:10px}
+.loitabs{display:inline-flex;gap:4px;background:#EEF2F7;border-radius:12px;padding:4px;margin-top:4px}.loitabs button{padding:7px 12px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted);background:none}.loitabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -704,20 +705,21 @@ function step1(){
     <textarea id="unitDesc" style="min-height:76px" oninput="unit.description=this.value;saveCurrent()" placeholder="A sentence or two is enough. For example: how animals and plants depend on their habitats, and how people can protect them. You can also paste the unit description from your programme of inquiry.">${esc(unit.description||"")}</textarea>
     <div class="hint" style="margin-top:6px">WonderNest uses this to suggest central ideas that fit your unit.</div>
     <div class="actions"><div class="hint">WonderNest only suggests. Your team chooses, edits and owns every part of the unit.</div>
-      <button class="btn" onclick="suggestIdeas()">✨ Suggest central ideas</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="writeOwnIdea()">✍️ Write my own central idea</button><button class="btn" onclick="suggestIdeas()">✨ Suggest central ideas</button></div></div>
   </div>`;
 }
 
 function step2(){
-  const own = unit.centralIdea && !unit.centralIdeaOptions.includes(unit.centralIdea);
+  const own = unit.ciOwn || (unit.centralIdea && !unit.centralIdeaOptions.includes(unit.centralIdea));
   return `<div class="card">
     <div class="label">Central idea for ${esc(gradeLabel(unit))} · pick one, edit it, or write your own</div>
-    ${unit.centralIdeaOptions.map((c,i)=>`<button class="ci ${unit.centralIdea===c?"sel":""}" onclick="pickIdea(${i})"><div class="rb"></div><div>${esc(c)}</div></button>`).join("")}
-    <div class="label" style="margin-top:16px">Your chosen central idea (you can edit it here)</div>
-    <textarea id="ciText" style="min-height:70px" oninput="unit.centralIdea=this.value;saveCurrent()" placeholder="Choose an idea above or write your own">${esc(unit.centralIdea)}</textarea>
+    ${unit.centralIdeaOptions.map((c,i)=>`<button class="ci ${!own && unit.centralIdea===c?"sel":""}" onclick="pickIdea(${i})"><div class="rb"></div><div>${esc(c)}</div></button>`).join("")}
+    <button class="ci ${own?"sel":""}" onclick="writeOwnIdea()"><div class="rb"></div><div><b>✍️ Write my own central idea</b><br><span class="hint">Use your team's own wording instead of a suggestion.</span></div></button>
+    <div class="label" style="margin-top:16px">${own ? "Your own central idea" : "Your chosen central idea (you can edit it here)"}</div>
+    <textarea id="ciText" style="min-height:70px" oninput="unit.centralIdea=this.value;unit.ciOwn=!unit.centralIdeaOptions.includes(this.value);saveCurrent()" placeholder="${own ? "Type your central idea here" : "Choose an idea above or write your own"}">${esc(unit.centralIdea)}</textarea>
     <div class="actions">
-      <button class="link" onclick="suggestIdeas()">↻ Suggest different ideas</button>
-      <button class="btn" onclick="suggestInquiry()">Next: lines of inquiry →</button>
+      ${unit.centralIdeaOptions.length ? `<button class="link" onclick="suggestIdeas()">↻ Suggest different ideas</button>` : `<button class="link" onclick="suggestIdeas()">✨ Show me some suggestions too</button>`}
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="writeOwnLines()">✍️ Write my own lines of inquiry</button><button class="btn" onclick="suggestInquiry()">Next: suggest lines of inquiry →</button></div>
     </div>
     ${own ? `<div class="hint" style="margin-top:8px">You're using your own central idea.</div>` : ""}
   </div>`;
@@ -730,8 +732,10 @@ function step3(){
       <div class="card"><div class="label">Central idea · ${esc(gradeLabel(unit))}</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(unit.centralIdea)}</div></div>
       <div class="card">
         <div class="label">Lines of inquiry</div>
+        <div class="loitabs"><button class="${unit.loiMode!=="own"?"on":""}" onclick="loiMode('ai')">✨ Suggested lines</button><button class="${unit.loiMode==="own"?"on":""}" onclick="loiMode('own')">✍️ My own lines</button></div>
+        <div class="hint" style="margin:6px 0 10px">${unit.loiMode==="own" ? "Write your team's own lines of inquiry. Your suggested lines are kept, so you can switch back at any time." : (unit.linesAI||[]).length ? "Edit these suggestions, or switch to “My own lines” to write your own." : "No suggestions yet. Click “Suggest again”, or write your own."}</div>
         ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="unit.lines[${i}].text=this.value;saveCurrent()">${esc(l.text)}</textarea><select onchange="unit.lines[${i}].concept=this.value;saveCurrent()">${conceptOpts(l.concept)}</select><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
-        <div class="actions" style="margin-top:10px"><button class="link" onclick="unit.lines.push({text:'',concept:'Form'});saveCurrent();render()">＋ Add a line of inquiry</button><button class="link" onclick="suggestInquiry()">↻ Suggest again</button></div>
+        <div class="actions" style="margin-top:10px"><button class="link" onclick="unit.lines.push({text:'',concept:'Form'});saveCurrent();render()">＋ Add a line of inquiry</button><button class="link" onclick="suggestInquiry()">${(unit.linesAI||[]).length ? "↻ Suggest again" : "✨ Suggest lines"}</button></div>
       </div>
     </div>
     <div class="card">
@@ -2152,7 +2156,26 @@ async function slUnshare(storyId){
 function goStep(s){ unit.step = s; error = ""; saveCurrent(); render(); }
 function pickGrade(g){ unit.grade = g; unit.ageBand = (GRADES.find(x=>x[0]===g)||["",""])[1]; saveCurrent(); }
 function pickTheme(id){ unit.theme = id; saveCurrent(); render(); }
-function pickIdea(i){ unit.centralIdea = unit.centralIdeaOptions[i]; saveCurrent(); render(); }
+function pickIdea(i){ unit.centralIdea = unit.centralIdeaOptions[i]; unit.ciOwn = false; saveCurrent(); render(); }
+function writeOwnIdea(){
+  if(!unit.theme){ error = "Please choose a transdisciplinary theme first."; return render(); }
+  if(!unit.grade){ error = "Please choose the grade first."; return render(); }
+  unit.centralIdeaOptions = unit.centralIdeaOptions || [];
+  if(!unit.ciOwn){ unit.ciOwn = true; if(unit.centralIdeaOptions.includes(unit.centralIdea)) unit.centralIdea = ""; }
+  unit.step = 2; error = ""; saveCurrent(); render();
+  setTimeout(() => { const t = document.getElementById("ciText"); if(t) t.focus(); }, 50);
+}
+function writeOwnLines(){
+  if(!(unit.centralIdea||"").trim()){ error = "Please choose or write a central idea first."; return render(); }
+  unit.step = 3; error = ""; loiMode("own");
+}
+function loiMode(m){
+  if(m === unit.loiMode || (m === "ai" && unit.loiMode !== "own")) { if(m === "own" && !(unit.lines||[]).length){ unit.lines = [1,2,3].map(() => ({text:"", concept:"Form"})); saveCurrent(); render(); } return; }
+  if(unit.loiMode === "own") unit.linesOwn = unit.lines; else unit.linesAI = unit.lines;
+  unit.loiMode = m;
+  unit.lines = m === "own" ? ((unit.linesOwn||[]).length ? unit.linesOwn : [1,2,3].map(() => ({text:"", concept:"Form"}))) : (unit.linesAI || []);
+  saveCurrent(); render();
+}
 function addRelated(){ const v = prompt("Add a related concept"); if(v && v.trim()){ unit.relatedConcepts.push(v.trim()); saveCurrent(); render(); } }
 
 function suggestIdeas(){
@@ -2161,14 +2184,16 @@ function suggestIdeas(){
   if(!(unit.description||"").trim()){ error = "Please write a sentence about what this unit is about, so the central ideas fit your unit."; render(); const d = document.getElementById("unitDesc"); if(d) d.focus(); return; }
   run("central_ideas", "Writing central ideas…", d => {
     unit.centralIdeaOptions = (d.centralIdeas || []).slice(0,5);
-    if(!unit.centralIdeaOptions.includes(unit.centralIdea)) unit.centralIdea = unit.centralIdeaOptions[0] || "";
+    if(!unit.ciOwn && !unit.centralIdeaOptions.includes(unit.centralIdea)) unit.centralIdea = unit.centralIdeaOptions[0] || "";
     unit.step = 2;
   });
 }
 function suggestInquiry(){
   if(!unit.centralIdea.trim()){ error = "Please choose or write a central idea first."; return render(); }
   run("inquiry", "Building lines of inquiry…", d => {
+    if(unit.loiMode === "own") unit.linesOwn = unit.lines;
     unit.lines = (d.lines || []).map(l => ({text:l.text, concept: KEY_CONCEPTS.find(k => k.toLowerCase() === String(l.concept||"").toLowerCase()) || "Form"}));
+    unit.linesAI = unit.lines; unit.loiMode = "ai";
     unit.keyConcepts = (d.keyConcepts || []).map(k => KEY_CONCEPTS.find(x => x.toLowerCase() === String(k).toLowerCase())).filter(Boolean);
     unit.relatedConcepts = d.relatedConcepts || [];
     unit.atl = []; unit.atlWhy = {};
