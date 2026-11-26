@@ -335,6 +335,7 @@
 .loitabs{display:inline-flex;gap:4px;background:#EEF2F7;border-radius:12px;padding:4px;margin-top:4px}.loitabs button{padding:7px 12px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted);background:none}.loitabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .loisel{display:flex;flex-direction:column;gap:3px}.loiauto{font-size:11.5px;color:var(--muted);font-weight:700;min-height:14px}
 .tdfocush{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdfocush .link{font-weight:800;white-space:nowrap}.tdideas{margin-top:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:#fbfcff}.tdideash{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px;font-size:13.5px;color:var(--navy)}.tdidea{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:5px 0}.tdidea .chip{margin:0}
+.wkdl{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin:6px 0 4px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3035,11 +3036,12 @@ const _ev = exView; exView = () => _ev().replace(/(<\/h1><\/div><\/div>)/, "$1" 
 STEP_NAMES.push("Plan & reflect");
 const FORMATIVE = ["Observation","Conversations","Exit tickets","Thinking routines","Self-assessment","Peer feedback","Conferences","Learning journals","Quizzes","Work samples"];
 function planObj(){ return unit.plan = Object.assign({ goals: "", criteria: "", teacherQs: "", studentQs: "", formative: [], formativeNotes: "", agency: "", im: "", languages: "", subjects: "", before: "", during: "", after: "" }, unit.plan || {}); }
-const planTA = (k, label, ph, h = 70) => `<label>${label}</label><textarea style="min-height:${h}px" placeholder="${esc(ph||"")}" oninput="planObj().${k}=this.value;saveCurrent()">${esc(planObj()[k]||"")}</textarea>`;
+const PR_AI = ["goals","criteria","teacherQs","formativeNotes","agency","im","languages","before"];
+const planTA = (k, label, ph, h = 70) => `${PR_AI.includes(k) ? `<div class="tdfocush"><label>${label}</label><button class="link" onclick="prInspire('${k}')">✨ Inspire me</button></div>` : `<label>${label}</label>`}<textarea style="min-height:${h}px" placeholder="${esc(ph||"")}" oninput="planObj().${k}=this.value;saveCurrent()">${esc(planObj()[k]||"")}</textarea>`;
 const wonderS = { list: null };
 function step6(){
   const p = planObj();
-  return whyBox("step6") + `<div class="grid2"><div>
+  return whyBox("step6") + `<div class="card" style="padding:12px 16px"><div class="actions" style="margin:0"><span class="hint">Write your own, or tap <b>✨ Inspire me</b> on any box for ideas from your unit. Everything stays editable.</span><button class="btn ghost" onclick="prInspire()">✨ Fill all the empty boxes</button></div></div><div class="grid2"><div>
     <div class="card exg"><div class="label">🎯 Learning goals and success criteria</div>
       ${planTA("goals","What do we want children to understand, know and be able to do? (one per line)","Children will understand that…")}
       ${planTA("criteria","Success criteria in children's words (one per line)","I can explain… I can show…")}
@@ -3062,6 +3064,32 @@ function step6(){
       ${planTA("during","During the unit: what is working? What are we changing?","")}
       ${planTA("after","After the unit: what did children learn? What will we change next time?","")}</div>
     <div class="card"><div class="actions" style="margin-top:0"><span class="hint">Everything here is included in the Word download. Your unit is saved as you go.</span><button class="btn" onclick="finishUnit()">✓ Finish unit</button></div></div></div></div>`;
+}
+/* Plan & reflect: AI ideas for one box (k) or every empty box (no k). Teacher's own writing is never replaced. */
+function prText(v){ return Array.isArray(v) ? v.map(x => typeof x === "string" ? x : Object.values(x||{}).join(" ")).filter(Boolean).join("\n") : String(v || ""); }
+async function prInspire(k){
+  const p = planObj();
+  if(!(unit.centralIdea||"").trim()) return toast("Choose a central idea first");
+  const fresh = !unit.prIdeas || (k && (unit.prUsed||{})[k]);
+  if(fresh){
+    loading(true, k ? "Finding ideas…" : "Filling the empty boxes…");
+    try{
+      unit.prIdeas = await ai("plan_reflect", unit, {
+        linesFull: (unit.lines||[]).map((l,i) => `Line ${i+1} (${l.concept}): ${l.text}`),
+        learnerProfile: unit.learnerProfile || [], sdgs: (unit.sdgs||[]).map(n => "SDG " + n),
+        subjects: (unit.subjects||[]).map(s => s.subject + ": " + (s.topics||"").slice(0, 200)),
+        already: Object.fromEntries(PR_AI.map(f => [f, (p[f]||"").slice(0, 400)])) });
+      unit.prUsed = {};
+    }catch(e){ error = /unknown task/i.test(e.message||"") ? "These ideas need a small update to the WonderNest AI. Please ask your WonderNest administrator to update the AI worker." : e.message; loading(false); return render(); }
+    loading(false);
+  }
+  const put = f => { const t = prText(unit.prIdeas[f]).trim(); if(!t) return false;
+    const cur = (p[f]||"").trim(); const add = t.split("\n").filter(l => l.trim() && !cur.toLowerCase().includes(l.trim().toLowerCase())).join("\n");
+    if(!add) return false; p[f] = cur ? cur + "\n" + add : add; unit.prUsed = unit.prUsed || {}; unit.prUsed[f] = true; return true; };
+  let n = 0;
+  if(k) n = put(k) ? 1 : 0; else PR_AI.forEach(f => { if(!(p[f]||"").trim() && put(f)) n++; });
+  saveCurrent(); render();
+  toast(n ? (k ? "Ideas added ✓ Edit them as you like" : n + " boxes filled ✓ Edit anything you like") : (k ? "No new ideas this time. Tap again for more." : "All the boxes already have writing"));
 }
 async function loadClassWonders(){
   const { data: cls } = await db.from("classes").select("id, name, current_unit");
@@ -3565,6 +3593,7 @@ function stepWeeks(){
   return whyBox("weeks") + `<div class="card exg"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🗓️ Weekly inquiry cycle · ${W.length} weeks</div><span class="hint">Weeks come from the unit duration (${esc(unit.duration)}). Lines are spread across the weeks for you.</span></div>
     ${!subs.length ? `<div class="wkwarn">🔗 No subjects chosen yet. <button class="link" onclick="goStep(6)">Add the subjects in step 6</button> so they can be woven into each week.</div>` : ""}
     ${W.every(x=>!Object.values(x.cells||{}).some(v=>v&&v.trim())) ? `<div class="wkstart"><div><b>⏱️ Save planning time</b><p>Let WonderNest draft all ${W.length} weeks from your central idea, lines of inquiry, ${subs.length ? "the focus of " + subs.join(", ") : "subjects"} and your resources. Subjects are woven into the phases. You then just edit what you want to change.</p></div><button class="btn" onclick="wkAll()">✨ Draft all ${W.length} weeks for me</button></div>` : ""}
+    <div class="wkdl"><span class="hint">⬇️ Download the weekly plan (Word):</span><button class="btn small ghost" onclick="downloadWeeks(${i})">Week ${i+1}</button><button class="btn small ghost" onclick="downloadWeeks('all')">All ${W.length} weeks</button></div>
     <div class="wktabs">${W.map((x,k)=>`<button class="${k===i?"on":""}" onclick="wkS.week=${k};render()">Week ${k+1}${Object.values(x.cells||{}).some(v=>v&&v.trim())?" ✓":""}</button>`).join("")}</div>
     <div class="grid2" style="grid-template-columns:1fr 2fr;margin-top:10px"><div><label>Line of inquiry this week</label><select onchange="unit.weeks[${i}].line=this.value;saveCurrent();render()"><option value="">Choose…</option>${unit.lines.map((l,k)=>`<option value="${k+1}" ${String(w.line)===String(k+1)?"selected":""}>Line ${k+1}: ${esc(l.text.slice(0,60))}</option>`).join("")}</select></div>
       <div><label>Focus this week</label><input type="text" value="${esc(w.focus||"")}" oninput="unit.weeks[${i}].focus=this.value;saveCurrent()" placeholder="For example: what a habitat is"></div></div>
@@ -3613,6 +3642,28 @@ async function wkAll(){
       wkSubjText(w, x.subjects); });
     saveCurrent(); toast("Draft ready ✓ Check each week and change anything you like");
   }catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+/* Download the weekly plan as a Word file (landscape): this week or all weeks. */
+function weekPageHTML(w, k){
+  const subs = wkSubs(), line = w.line ? (unit.lines[w.line-1]||{}) : null;
+  return `<h1>Week ${k+1} of ${unit.weeks.length}</h1>
+  <p><b>Central idea:</b> ${esc(unit.centralIdea||"")}</p>
+  ${line ? `<p><b>Line of inquiry ${esc(String(w.line))}:</b> ${esc(line.text||"")} <i>(${esc(line.concept||"")})</i></p>` : ""}
+  ${w.focus ? `<p><b>Focus this week:</b> ${esc(w.focus)}</p>` : ""}
+  <table><tr><th style="width:18%">Inquiry cycle</th><th>Learning experiences</th><th style="width:20%">Subjects</th></tr>
+  ${CYCLE.map(([ph]) => `<tr><td><b>${ph}</b></td><td>${esc((w.cells||{})[ph]||"").replace(/\n/g,"<br>")}</td><td>${esc(((w.tags||{})[ph]||[]).join(", "))}</td></tr>`).join("")}</table>
+  ${subs.some(s => ((w.subj||{})[s]||"").trim()) ? `<h2>What each subject teaches this week</h2><table><tr><th style="width:18%">Subject</th><th>This week</th></tr>${subs.map(s => `<tr><td><b>${esc(s)}</b></td><td>${esc((w.subj||{})[s]||"").replace(/\n/g,"<br>")}</td></tr>`).join("")}</table>` : ""}`;
+}
+function downloadWeeks(which){
+  const W = weeksObj(), t = themeOf(unit.theme);
+  const list = which === "all" ? W.map((w,k) => [w,k]) : [[W[which], which]];
+  const head = `<p style="color:#667085">${esc(settings.school || "")} · ${esc(t ? t.name : "Unit of inquiry")} · ${esc(gradeLabel(unit))}</p>`;
+  const body = list.map(([w,k], n) => (n ? `<br clear="all" style="page-break-before:always">` : "") + head + weekPageHTML(w, k)).join("")
+    + (which === "all" ? `<br clear="all" style="page-break-before:always">${head}${weeksWordHTML()}` : "");
+  const h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page Section1{size:841.9pt 595.3pt;mso-page-orientation:landscape;margin:36pt 40pt}div.Section1{page:Section1}body{font-family:Arial;font-size:11pt;color:#1d2433}h1{color:#14325c;font-size:18pt;margin:0 0 6pt}h2{color:#2f6fd6;font-size:13pt;margin-top:14pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #c9d1de;padding:5pt;vertical-align:top;font-size:10pt}th{background:#14325c;color:#fff;text-align:left}</style></head><body><div class="Section1">${body}</div></body></html>`;
+  const blob = new Blob(["\ufeff", h], {type:"application/msword"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "Weekly plan - " + (t ? t.name : "unit") + (which === "all" ? " - all weeks" : " - week " + (which+1)) + ".doc";
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 function weeksWordHTML(){
   if(!(unit.weeks||[]).some(w => Object.values(w.cells||{}).some(v => v && v.trim()))) return "";
