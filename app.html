@@ -333,6 +333,7 @@
   table.wkt td{font-size:12px;min-width:120px}
   .confslide{background:#fff;border-radius:20px;padding:26px;width:min(760px,94vw);max-height:92vh;overflow:auto;text-align:center}.confslide h2{color:var(--navy);font-size:26px;margin:6px 0 10px}.confslide img{max-width:100%;max-height:44vh;border-radius:14px}.cfb{font-size:18px;line-height:1.55;margin-top:10px}.cfw{background:#fff8e6;border-radius:12px;padding:10px;margin-top:10px}
 .loitabs{display:inline-flex;gap:4px;background:#EEF2F7;border-radius:12px;padding:4px;margin-top:4px}.loitabs button{padding:7px 12px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted);background:none}.loitabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.loisel{display:flex;flex-direction:column;gap:3px}.loiauto{font-size:11.5px;color:var(--muted);font-weight:700;min-height:14px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -733,8 +734,8 @@ function step3(){
       <div class="card">
         <div class="label">Lines of inquiry</div>
         <div class="loitabs"><button class="${unit.loiMode!=="own"?"on":""}" onclick="loiMode('ai')">✨ Suggested lines</button><button class="${unit.loiMode==="own"?"on":""}" onclick="loiMode('own')">✍️ My own lines</button></div>
-        <div class="hint" style="margin:6px 0 10px">${unit.loiMode==="own" ? "Write your team's own lines of inquiry. Your suggested lines are kept, so you can switch back at any time." : (unit.linesAI||[]).length ? "Edit these suggestions, or switch to “My own lines” to write your own." : "No suggestions yet. Click “Suggest again”, or write your own."}</div>
-        ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="unit.lines[${i}].text=this.value;saveCurrent()">${esc(l.text)}</textarea><select onchange="unit.lines[${i}].concept=this.value;saveCurrent()">${conceptOpts(l.concept)}</select><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
+        <div class="hint" style="margin:6px 0 10px">${unit.loiMode==="own" ? "Write your team's own lines of inquiry. As you type, WonderNest picks the specified concept that matches your wording, and ticks it on the right. You can change any of them. Your suggested lines are kept, so you can switch back at any time." : (unit.linesAI||[]).length ? "Edit these suggestions, or switch to “My own lines” to write your own." : "No suggestions yet. Click “Suggest again”, or write your own."}</div>
+        ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="loiTyped(${i},this.value)" onchange="loiDone()">${esc(l.text)}</textarea><div class="loisel"><select id="loic${i}" onchange="unit.lines[${i}].concept=this.value;unit.lines[${i}].manual=true;syncLineConcepts();saveCurrent();render()">${conceptOpts(l.concept)}</select>${unit.loiMode==="own" && (l.text||"").trim() ? `<small id="loia${i}" class="loiauto">${l.manual ? "✋ chosen by you" : "✨ matched to your wording"}</small>` : `<small id="loia${i}" class="loiauto"></small>`}</div><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
         <div class="actions" style="margin-top:10px"><button class="link" onclick="unit.lines.push({text:'',concept:'Form'});saveCurrent();render()">＋ Add a line of inquiry</button><button class="link" onclick="suggestInquiry()">${(unit.linesAI||[]).length ? "↻ Suggest again" : "✨ Suggest lines"}</button></div>
       </div>
     </div>
@@ -2169,11 +2170,41 @@ function writeOwnLines(){
   if(!(unit.centralIdea||"").trim()){ error = "Please choose or write a central idea first."; return render(); }
   unit.step = 3; error = ""; loiMode("own");
 }
+/* Own lines of inquiry: pick the specified concept from the teacher's wording (she can always change it). */
+const CONCEPT_CUES = {
+  Responsibility: [/responsib/, /\bcare (for|about)\b/, /\bprotect/, /\bshould\b/, /take action/, /\bour role\b/, /\bduty\b/, /\brights?\b/, /\bmake a difference\b/, /\bhelp (to )?(protect|look after|care)/, /\bconserv/, /\bsustain/, /\bfair(ly|ness)?\b/, /\brespect/],
+  Causation: [/\bwhy\b/, /\bcaus/, /\beffects?\b/, /\bimpact/, /\baffect/, /\bbecause\b/, /\bresult/, /consequence/, /\blead(s)? to\b/, /\binfluenc/, /\breasons?\b/],
+  Perspective: [/perspective/, /point of view/, /\bviews?\b/, /\bopinion/, /\bbelie/, /\bcultur/, /\bdifferent people\b/, /\bvalue[sd]?\b/, /\bfeel about\b/, /\bthink about\b/, /\binterpret/],
+  Change: [/\bchang/, /\bgrow(s|th|ing)?\b/, /\bdevelop/, /over time/, /\btransform/, /\badapt/, /life ?cycle/, /\bevolv/, /\bin the past\b/, /\bthen and now\b/, /\bbecome/],
+  Connection: [/\bconnect/, /relationship/, /\bdepend/, /\binteract/, /\bsupports?\b/, /\blink/, /\bsystems?\b/, /\bbetween\b/, /\btogether\b/, /\bshare\b/, /\bcommunit/, /\bnetworks?\b/, /\brely\b/],
+  Function: [/how .* works?\b/, /\bworks?\b/, /\bfunction/, /\broles?\b/, /\bpurpose/, /\bused (for|to)\b/, /\bjobs?\b/, /\bstructure/, /\bhow .* (is|are) (made|used)\b/, /\bsurviv/],
+  Form: [/what .* (is|are) like/, /\bfeatures?\b/, /characteristic/, /\btypes?\b/, /\bkinds?\b/, /\bdescrib/, /\bpropert/, /\blooks? like\b/, /\bwhat (is|are)\b/, /\bdifferent\b/, /\bvariety\b/]
+};
+const CONCEPT_ORDER = ["Responsibility", "Causation", "Perspective", "Change", "Connection", "Function", "Form"];
+function conceptFor(text){
+  const t = " " + String(text || "").toLowerCase() + " "; let best = "Form", top = 0;
+  CONCEPT_ORDER.forEach(c => { const n = CONCEPT_CUES[c].filter(rx => rx.test(t)).length; if(n > top){ top = n; best = c; } });
+  return best;
+}
+function loiTyped(i, v){
+  const l = unit.lines[i]; l.text = v;
+  if(unit.loiMode === "own" && !l.manual){ l.concept = conceptFor(v); const sel = document.getElementById("loic" + i); if(sel) sel.value = l.concept; const a = document.getElementById("loia" + i); if(a) a.textContent = v.trim() ? "✨ matched to your wording" : ""; }
+  saveCurrent();
+}
+function syncLineConcepts(){
+  if(unit.loiMode !== "own") return;
+  const used = [...new Set(unit.lines.filter(l => (l.text||"").trim()).map(l => l.concept))];
+  const prevAuto = unit.kcAuto || [], manual = unit.keyConcepts.filter(k => !prevAuto.includes(k));
+  unit.kcAuto = used.filter(k => !manual.includes(k));
+  unit.keyConcepts = KEY_CONCEPTS.filter(k => manual.includes(k) || used.includes(k));
+}
+function loiDone(){ syncLineConcepts(); saveCurrent(); render(); }
 function loiMode(m){
   if(m === unit.loiMode || (m === "ai" && unit.loiMode !== "own")) { if(m === "own" && !(unit.lines||[]).length){ unit.lines = [1,2,3].map(() => ({text:"", concept:"Form"})); saveCurrent(); render(); } return; }
   if(unit.loiMode === "own") unit.linesOwn = unit.lines; else unit.linesAI = unit.lines;
   unit.loiMode = m;
   unit.lines = m === "own" ? ((unit.linesOwn||[]).length ? unit.linesOwn : [1,2,3].map(() => ({text:"", concept:"Form"}))) : (unit.linesAI || []);
+  if(m === "own"){ unit.lines.forEach(l => { if(!l.manual && (l.text||"").trim()) l.concept = conceptFor(l.text); }); unit.kcAuto = []; syncLineConcepts(); }
   saveCurrent(); render();
 }
 function addRelated(){ const v = prompt("Add a related concept"); if(v && v.trim()){ unit.relatedConcepts.push(v.trim()); saveCurrent(); render(); } }
