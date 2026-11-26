@@ -334,6 +334,7 @@
   .confslide{background:#fff;border-radius:20px;padding:26px;width:min(760px,94vw);max-height:92vh;overflow:auto;text-align:center}.confslide h2{color:var(--navy);font-size:26px;margin:6px 0 10px}.confslide img{max-width:100%;max-height:44vh;border-radius:14px}.cfb{font-size:18px;line-height:1.55;margin-top:10px}.cfw{background:#fff8e6;border-radius:12px;padding:10px;margin-top:10px}
 .loitabs{display:inline-flex;gap:4px;background:#EEF2F7;border-radius:12px;padding:4px;margin-top:4px}.loitabs button{padding:7px 12px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted);background:none}.loitabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .loisel{display:flex;flex-direction:column;gap:3px}.loiauto{font-size:11.5px;color:var(--muted);font-weight:700;min-height:14px}
+.tdfocush{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdfocush .link{font-weight:800;white-space:nowrap}.tdideas{margin-top:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:#fbfcff}.tdideash{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px;font-size:13.5px;color:var(--navy)}.tdidea{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:5px 0}.tdidea .chip{margin:0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3282,7 +3283,8 @@ function stepSubjects(){
   return whyBox("subjects") + `<div class="card exg"><div class="label">1. Which subjects are teaching this unit, and what are they teaching?</div>
     <div class="chips">${SUBJECTS.map(s=>`<button class="chip ${subs.some(x=>x.subject===s)?"on":""}" onclick="tdToggle('${s}')">${s}</button>`).join("")}<button class="chip" onclick="const v=prompt('Subject name');if(v&&v.trim())tdToggle(v.trim())">＋ Other</button></div>
     ${subs.map((x,i)=>`<div class="tdsub"><div class="tdsubh"><b>${esc(x.subject)}</b>${(RELATED[relKey(x.subject)]||[]).length?`<select onchange="unit.subjects[${i}].related=this.value;saveCurrent();render()"><option value="">Related concept…</option>${RELATED[relKey(x.subject)].map(r=>`<option ${x.related===r?"selected":""}>${esc(r)}</option>`).join("")}</select>`:""}</div>
-      <label>Focus this unit: topics, skills or objectives</label><textarea oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the focus (for example from Atlas)"}">${esc(x.topics||"")}</textarea></div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
+      <div class="tdfocush"><label>Focus this unit: topics, skills or objectives</label><button class="link" onclick="tdFocusIdeas(${i})">✨ Inspire me</button></div>
+      <textarea id="tdtop${i}" oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the focus (for example from Atlas)"}">${esc(x.topics||"")}</textarea>${tdFocusPanel(x,i)}</div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
     ${subs.length ? `<div class="label" style="margin-top:16px">How the integration looks</div>${tdWeb()}<div style="text-align:center"><button class="link" onclick="render()">↻ Update the picture</button></div>` : ""}
     <div class="actions"><span class="hint">WonderNest suggests experiences where subjects meet through your central idea, and tells you which topics are better taught on their own.</span><button class="btn" onclick="tdInspire()">✨ Inspire me</button></div></div>
   ${sug && (sug.subjectIdeas||[]).length ? `<div class="card"><div class="label">2. Ideas, questions and activities for each subject</div><div class="sigrid">${sug.subjectIdeas.map((x,i)=>`<div class="sicard"><h4>📘 ${esc(x.subject)}</h4>${x.connection?`<p class="hint" style="margin-bottom:6px">🔗 ${esc(x.connection)}</p>`:""}
@@ -3326,6 +3328,32 @@ function tdAddQ(q){ const p = planObj(); p.teacherQs = [p.teacherQs, q].filter(B
 function tdAddAct(i, j){ const x = unit.tdIdeas.subjectIdeas[i], a = x.activities[j]; if(!unit.tdExperiences.some(e => e.title === a)) unit.tdExperiences.push({ title: a, subjects: [x.subject], how: a, subjectLearning: {}, bigIdea: x.connection || "" }); saveCurrent(); toast("Kept ✓"); render(); }
 function tdToggle(s){ tdObj(); const i = unit.subjects.findIndex(x => x.subject === s); if(i >= 0) unit.subjects.splice(i, 1); else unit.subjects.push({ subject: s, topics: "" }); saveCurrent(); render(); }
 function tdKeep(i){ const e = unit.tdIdeas.experiences[i]; if(!unit.tdExperiences.some(k => k.title === e.title)) unit.tdExperiences.push(JSON.parse(JSON.stringify(e))); saveCurrent(); toast("Kept ✓"); render(); }
+/* Per subject: the teacher writes her own focus, or asks for ideas from this subject's curriculum that link to the unit. */
+function tdFocusPanel(x, i){
+  const ideas = x.ideas || [];
+  if(!ideas.length) return "";
+  const have = (x.topics || "").toLowerCase();
+  return `<div class="tdideas"><div class="tdideash"><b>✨ Ideas for ${esc(x.subject)} that link to this unit</b><span><button class="link" onclick="tdFocusIdeas(${i})">↻ More ideas</button> <button class="link" style="color:var(--muted)" onclick="unit.subjects[${i}].ideas=[];saveCurrent();render()">Hide</button></span></div>
+    ${ideas.map((d,j)=>{ const on = have.includes(String(d.topic||"").toLowerCase()); return `<div class="tdidea"><button class="chip ${on?"on":""}" ${on?"disabled":""} onclick="tdFocusAdd(${i},${j})">${on?"✓":"＋"} ${esc(d.topic)}</button>${d.why?`<span class="hint">${esc(d.why)}</span>`:""}</div>`; }).join("")}
+    <div class="hint" style="margin-top:6px">Tap an idea to add it to the focus box. You can edit anything you add.</div></div>`;
+}
+function tdFocusAdd(i, j){
+  const x = unit.subjects[i], d = (x.ideas || [])[j]; if(!d) return;
+  const cur = (x.topics || "").replace(/\s+$/, "");
+  x.topics = (cur ? cur + "\n" : "") + d.topic; saveCurrent(); render();
+}
+async function tdFocusIdeas(i){
+  tdObj(); const x = unit.subjects[i]; if(!x) return;
+  if(!(unit.centralIdea||"").trim()) return toast("Choose a central idea first");
+  loading(true, "Finding " + x.subject + " ideas for this unit…");
+  try{
+    const d = await ai("subject_focus", unit, { subject: x.subject, already: (x.topics||"").slice(0, 600), lines: (unit.lines||[]).map(l => l.text).filter(Boolean) });
+    const ideas = (d.ideas || []).filter(v => v && v.topic).slice(0, 8);
+    if(!ideas.length) throw new Error("No ideas came back. Please try again.");
+    x.ideas = ideas; saveCurrent();
+  }catch(e){ error = /unknown task/i.test(e.message||"") ? "Subject ideas need a small update to the WonderNest AI. Please ask your WonderNest administrator to update the AI worker." : e.message; }
+  finally{ loading(false); render(); }
+}
 async function tdInspire(){
   tdObj(); const subs = unit.subjects.filter(s => (s.topics||"").trim());
   if(subs.length < 1) return toast("Write the focus for at least one subject");
