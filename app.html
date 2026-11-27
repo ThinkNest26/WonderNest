@@ -3570,7 +3570,7 @@ function poiUploadView(){
         return `<td class="t${k % 2}">${us.map(([u, ui]) => `<button class="pg-u ${poiU.open && poiU.open[0] === gi && poiU.open[1] === ui ? "on" : ""}" onclick="poiU.open=[${gi},${ui}];render()">${u.title ? `<small>${esc(u.title)}</small>` : ""}<b>${esc(u.centralIdea || "Unit")}</b>${u.keyConcepts.length ? `<span class="pg-k">${u.keyConcepts.slice(0, 3).map(esc).join(" · ")}</span>` : ""}</button>`).join("") || `<span class="pg-none">No unit</span>`}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
     if(poiU.open){ const g = G[poiU.open[0]], u = g && g.units[poiU.open[1]];
       if(u){ const t = poiTh(u.theme); body += `<div class="pg-bg" onclick="poiU.open=null;render()"></div><aside class="pg-panel"><div class="pg-ph"><div><small>${esc(g.grade)}</small><h3>${t.ic} ${esc(t.name)}</h3></div><button class="pg-x" onclick="poiU.open=null;render()" title="Close">✕</button></div>
-        ${poiUnitCard(u, poiU.open[0], poiU.open[1], false)}${editable ? `<button class="btn ghost" style="margin-top:12px;width:100%" onclick="poiU.edit=poiU.open;poiU.open=null;render()">✏️ Edit this unit</button>` : ""}
+        ${poiUnitCard(u, poiU.open[0], poiU.open[1], false)}${!editable ? `<button class="btn" style="margin-top:12px;width:100%" onclick="npUse(${poiU.open[0]},${poiU.open[1]})">${poiExisting(u) ? "📂 Open my saved unit" : "✨ Plan this unit in the unit builder"}</button>` : ""}${editable ? `<button class="btn ghost" style="margin-top:12px;width:100%" onclick="poiU.edit=poiU.open;poiU.open=null;render()">✏️ Edit this unit</button>` : ""}
         <div class="pg-nav">${(() => { const flat = []; G.forEach((x, a) => cols.forEach(c => x.units.forEach((y, b) => { if(c.id ? y.theme === c.id : !THEMES.find(z => z.id === y.theme)) flat.push([a, b]); }))); const n = flat.findIndex(f => f[0] === poiU.open[0] && f[1] === poiU.open[1]);
           return `<button class="btn small ghost" ${n > 0 ? "" : "disabled"} onclick="poiU.open=[${(flat[n - 1] || []).join(",")}];render()">‹ Previous</button><button class="btn small ghost" ${n < flat.length - 1 ? "" : "disabled"} onclick="poiU.open=[${(flat[n + 1] || []).join(",")}];render()">Next ›</button>`; })()}</div></aside>`; }
       else poiU.open = null; }
@@ -4733,6 +4733,68 @@ const UW_CSS = `.uw-card{cursor:pointer;transition:.15s}.uw-card:hover{transform
   .uw-edh label{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:13px;color:var(--muted)}.uw-edh select{min-width:220px}
   .uw-s:hover path{filter:brightness(1.07)}`; document.head.appendChild(st); })();
 
+
+/* =====================================================================
+   NEW UNIT FROM THE PROGRAMME OF INQUIRY
+   ===================================================================== */
+const npS = { open: false, grade: "" };
+const poiGradeKey = g => { const s = String(g || "").toLowerCase().replace(/[\s\-_.]/g, "");
+  if(/^(prek|pk|nursery|fs1)/.test(s)) return "Pre-K"; let m = s.match(/^(?:kg|kindergarten)(\d)/); if(m) return "KG" + m[1];
+  m = s.match(/^(?:grade|gr|g)(\d{1,2})/); if(m) return "Grade " + Number(m[1]); return String(g || "").trim(); };
+const poiAllUnits = () => { const p = poiSaved(); return p ? (p.grades || []).flatMap(g => g.units.map(u => ({ g: g.grade, u }))) : []; };
+const npPick = (list, all) => (list || []).map(x => all.find(a => a.toLowerCase() === String(x).trim().toLowerCase().replace(/\s+skills?$/, ""))).filter(Boolean);
+function poiAtl(list){
+  const out = [];
+  (list || []).forEach(x => { const t = String(x).trim().toLowerCase().replace(/\s+skills?$/, "");
+    for(const [cat, skills] of Object.entries(ATL)){ const s = skills.find(k => k.toLowerCase() === t); if(s){ out.push(cat + " · " + s); return; }
+      if(cat.toLowerCase() === t || cat.toLowerCase().replace("-", " ") === t){ out.push(cat + " · " + skills[0]); return; } } });
+  return [...new Set(out)];
+}
+function unitFromPoi(gradeName, pu){
+  const u = newUnit(), grade = poiGradeKey(gradeName), kc = npPick(pu.keyConcepts, KEY_CONCEPTS);
+  u.theme = THEMES.find(t => t.id === pu.theme) ? pu.theme : ""; u.grade = GRADES.find(g => g[0] === grade) ? grade : ""; u.ageBand = (GRADES.find(g => g[0] === u.grade) || ["", ""])[1];
+  if(!u.grade) u.ageBand = "";
+  u.centralIdea = pu.centralIdea || ""; u.centralIdeaOptions = u.centralIdea ? [u.centralIdea] : [];
+  u.description = [pu.title, gradeName && !u.grade ? gradeName : ""].filter(Boolean).join(" · ");
+  u.loiMode = "own";
+  u.lines = (pu.lines || []).map((t, i) => { const g = conceptFor(t); return { text: t, concept: kc.length === pu.lines.length ? kc[i] : (kc.includes(g) ? g : (kc[i % (kc.length || 1)] || g)), manual: true }; });
+  u.linesOwn = u.lines; u.keyConcepts = kc.length ? kc : [...new Set(u.lines.map(l => l.concept))]; u.kcAuto = [];
+  u.relatedConcepts = (pu.relatedConcepts || []).slice(); u.atl = poiAtl(pu.atl); u.learnerProfile = npPick(pu.learnerProfile, LEARNER_PROFILE);
+  u.sdgs = (pu.sdgs || []).map(Number).filter(n => n >= 1 && n <= 17);
+  const subs = (pu.subjects || []).map(s => { const t = String(s).trim().toLowerCase(); return SUBJECTS.find(x => x.toLowerCase() === t) || (/^math/.test(t) ? "Mathematics" : /^islam/.test(t) ? "Islamic Education" : /^social/.test(t) ? "Social Studies" : /^(pe|physical)/.test(t) ? "PE" : /^(ict|comput)/.test(t) ? "Computing" : /^art/.test(t) ? "Art" : String(s).trim()); });
+  u.subjects = [...new Set(subs)].filter(Boolean).map(s => ({ subject: s, topics: "" }));
+  const wk = String(pu.timing || "").match(/(\d{1,2})\s*weeks?/i); if(wk) u.duration = wk[1] + " weeks";
+  u.fromPoi = { grade: gradeName, theme: pu.theme }; u.step = 3;
+  return u;
+}
+const poiExisting = pu => savedUnits().find(s => (s.centralIdea || "").trim().toLowerCase() === (pu.centralIdea || "").trim().toLowerCase() && pu.centralIdea);
+function npUse(gi, ui){
+  const g = poiSaved().grades[gi], pu = g.units[ui], ex = poiExisting(pu);
+  if(ex){ npS.open = false; poiU.open = null; openUnit(ex.id); toast("Opened your saved unit"); return; }
+  unit = unitFromPoi(g.grade, pu); saveCurrent(); npS.open = false; poiU.open = null; view = "builder"; render();
+  toast("✓ Filled in from your programme of inquiry. Check it, then carry on.");
+}
+const _startNewNP = startNew;
+startNew = function(){ if(poiAllUnits().length){ npS.open = true; if(!npS.grade){ const G = poiSaved().grades; npS.grade = ((G.find(g => poiGradeKey(g.grade) === unit.grade)) || G[0]).grade; } render(); } else _startNewNP(); };
+function npModal(){
+  const G = poiSaved().grades || [], g = G.find(x => x.grade === npS.grade) || G[0], gi = G.indexOf(g);
+  const units = g.units.map((u, ui) => [u, ui]).sort((a, b) => POI_ORDER.findIndex(t => t.id === a[0].theme) - POI_ORDER.findIndex(t => t.id === b[0].theme));
+  return `<div class="modal-bg" onclick="if(event.target===this){npS.open=false;render()}"><div class="modal np-modal">
+    <div class="np-h"><div><h2>✨ Start a new unit</h2><p class="hint">Pick a unit from your programme of inquiry. WonderNest fills in the theme, grade, central idea, lines of inquiry, concepts, ATL and subjects for you.</p></div><button class="pg-x" onclick="npS.open=false;render()" title="Close">✕</button></div>
+    <div class="chips" style="margin:10px 0 12px">${G.map(x => `<button class="chip ${x === g ? "on" : ""}" onclick="npS.grade='${esc(x.grade).replace(/'/g, "\\'")}';render()">${esc(x.grade)}</button>`).join("")}</div>
+    <div class="np-grid">${units.map(([u, ui]) => { const t = poiTh(u.theme), ex = poiExisting(u);
+      return `<button class="np-card" onclick="npUse(${gi},${ui})"><span class="np-th">${t.ic} ${esc(t.name)}</span>${u.title ? `<small>${esc(u.title)}</small>` : ""}<b>${esc(u.centralIdea || "No central idea")}</b>
+        ${u.keyConcepts.length ? `<span class="pg-k">${u.keyConcepts.map(esc).join(" · ")}</span>` : ""}<span class="np-go">${ex ? "📂 Open my saved unit" : "✨ Start this unit →"}</span></button>`; }).join("")}</div>
+    <div class="actions"><span class="hint">Something not in the programme?</span><button class="btn ghost" onclick="npS.open=false;_startNewNP()">Start a blank unit</button></div></div></div>`;
+}
+(function(){ const st = document.createElement("style"); st.textContent = `
+  .np-modal{width:min(980px,96vw);max-height:90vh;overflow-y:auto}.np-h{display:flex;justify-content:space-between;gap:14px}.np-h h2{color:var(--navy);font-family:"Fredoka",sans-serif}
+  .np-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+  .np-card{text-align:left;background:#fff;border:1.5px solid #dde6f5;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;transition:.15s}
+  .np-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,79,176,.12)}
+  .np-th{font-family:"Fredoka",sans-serif;font-weight:600;color:var(--navy);font-size:14px}.np-card small{color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase}
+  .np-card b{font-weight:600;font-size:14px;line-height:1.45;color:#1d2740}.np-go{margin-top:auto;padding-top:6px;color:var(--blue);font-weight:800;font-size:13px}`; document.head.appendChild(st); })();
+
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
 function teacherOnly(m){
@@ -4747,6 +4809,7 @@ render = function(){
   if(view === "stories" && sl.tab === "shelf") sl.tab = "library";
   _renderT();
   const m = $("#main"); if(m) try{ teacherOnly(m); }catch(e){}
+  if(m && npS.open && poiAllUnits().length) m.insertAdjacentHTML("beforeend", npModal());
 };
 
 /* ---------- sidebar: This week first ---------- */
