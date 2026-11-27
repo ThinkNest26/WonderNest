@@ -1751,7 +1751,7 @@ async function exLogin(raw){
   const { data, error } = await db.rpc("student_login", { p_code: code, p_student: st.id, p_picture: c.pic });
   if(error || !data) return msg("Something went wrong. Try again.");
   if(!data.ok) return msg(data.reason === "locked" ? "Too many tries. Please ask your teacher, or wait 10 minutes." : "That code didn't work. Check it with your teacher.");
-  const m = await db.rpc("me_student"); me = m.data; exh = null; await loadEntries(); screen = "home"; draw(); speak("Hello " + me.first_name + "!");
+  const m = await db.rpc("me_student"); me = m.data; exh = null; exOpenOK = null; await loadEntries(); screen = "home"; draw(); speak("Hello " + me.first_name + "!");
 }
 start = async function(){
   try{
@@ -1776,10 +1776,14 @@ NEW_SCREENS.code = function(){
 };
 NEW_SCREENS.names = NEW_SCREENS.picture = function(){ screen = "code"; return NEW_SCREENS.code(); };
 
-let exLoading = false;
+let exLoading = false, exOpenOK = null;
+async function exCheck(){ if(exLoading) return; exLoading = true;
+  try{ const { data } = await db.from("exhibitions").select("*").eq("class_id", me.class_id); const r = (data || [])[0]; exOpenOK = !!(r && r.active !== false) || (!r && !!me.exhibition); }catch(e){ exOpenOK = !!me.exhibition; }
+  exLoading = false; draw(); }
 const jHead = () => `<div class="head" style="background:linear-gradient(135deg,#2f6fd6,#5aa0f0)"><div class="hi">Hello, ${esc(me.first_name)}!</div><h1>My Exhibition Journal 📓</h1><button class="back" onclick="if(confirm('Close your journal?')) logout()">👋 Bye</button></div>`;
 NEW_SCREENS.home = function(){
-  if(!me.exhibition) return jHead() + `<div class="body"><div class="card center"><div style="font-size:54px">🔒</div><h2 style="justify-content:center">Your journal isn't open yet</h2><p class="sub">Your teacher will open the exhibition soon. Come back then!</p></div>
+  if(exOpenOK === null){ exCheck(); return jHead() + `<div class="body"><div class="card center">Opening your journal… 🐦</div></div>`; }
+  if(!exOpenOK) return jHead() + `<div class="body"><div class="card center"><div style="font-size:54px">🔒</div><h2 style="justify-content:center">Your journal isn't open yet</h2><p class="sub">Your teacher will open the exhibition soon. Come back then!</p></div>
     <div class="tiles">${tileW("🔎", "Wonder Library", "var(--blue)", "goLibrary()", true)}</div></div>`;
   if(!exh){ if(!exLoading){ exLoading = true; goExh().finally(() => { exLoading = false; }); } return jHead() + `<div class="body"><div class="card center">Opening your journal… 🐦</div></div>`; }
   const t = (exh.data && exh.data.timeline) || [], g = myGroup(), n = k => entries.filter(e => e.kind === k).length, done = t.filter(m => m.done).length;

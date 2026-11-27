@@ -439,6 +439,8 @@
   .kcode{font:700 14px ui-monospace,Menlo,monospace;background:#fff7dc;border:1px solid #f5d27a;border-radius:8px;padding:3px 8px;letter-spacing:.5px;color:#5c4300;white-space:nowrap}
   .exintro{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,#f5f9ff,#fffaea)}.exintro>span{font-size:34px}
   .exmore{margin-top:6px}.exmore summary{cursor:pointer;font-weight:700;color:var(--blue);padding:8px 2px}
+  .exvis{display:flex;gap:14px;align-items:center}.exvis>span{font-size:30px}.exvis>div{flex:1}.exvis.on{background:#eefaf2;border-color:#bfe6cd}.exvis.off{background:#fff7dc;border-color:#f5d27a}
+  .exsw{display:flex;gap:8px;align-items:center;font-weight:800;font-size:16px;cursor:pointer}.exsw input{width:22px !important;height:22px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2845,7 +2847,7 @@ async function exOpen(id){
   exS.exh = (e.data || [])[0] || null; exS.groups = g.data || []; exS.mentors = m.data || []; exS.kids = k.data || []; exS.entries = en.data || []; exS.grades = gr.data || []; exS.feedback = fb.data || [];
   await loadQR(); render();
 }
-async function exStart(){
+async function exStart(){ if(!exS.cls) return;
   const data = { timeline: EXH_MILESTONES.map(t => ({ title: t, date: "", done: false, notes: "" })), rubric: EXH_CRITERIA.map(([c, d]) => ({ criterion: c, desc: d })) };
   const { error: e } = await db.from("exhibitions").insert({ class_id: exS.cls.id, data, active: true });
   if(e){ error = tcErr(e); return render(); } toast("Exhibition started ✓"); exOpen(exS.cls.id);
@@ -4545,7 +4547,9 @@ exView = function(){
 };
 function exKids(){
   const c = exS.cls, admin = exAdmin(), K = exS.kids;
-  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👧 Students (${K.length})</div>${K.length ? `<button class="btn small ghost" onclick="exPrintCodes()">🖨️ Print code cards</button>` : ""}</div>
+  const vis = !exS.exh ? `<div class="card exvis off"><span>🔒</span><div><b>The exhibition hasn't started yet</b><p class="hint">Students can't open their journals until you start it.</p></div><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`
+    : `<div class="card exvis ${exS.exh.active ? "on" : "off"}"><span>${exS.exh.active ? "✅" : "🔒"}</span><div><b>${exS.exh.active ? "Students can open their journals" : "Journals are closed to students"}</b><p class="hint">${exS.exh.active ? "Untick to close the journals for a while." : "Tick the box to let students in with their codes."}</p></div><label class="exsw"><input type="checkbox" ${exS.exh.active ? "checked" : ""} onchange="exS.exh.active=this.checked;exSaveExh();render();toast(this.checked?'Journals are open ✓':'Journals closed')"> Open</label></div>`;
+  return vis + `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👧 Students (${K.length})</div>${K.length ? `<button class="btn small ghost" onclick="exPrintCodes()">🖨️ Print code cards</button>` : ""}</div>
     <p class="hint" style="margin-bottom:10px">Each student has their own code. They type it on the WonderNest home page (box "Exhibition journal"), or scan the QR code on their card. It opens their exhibition journal and the Wonder Library only.</p>
     ${K.length ? `<table class="tbl"><tr><th>Student</th><th>Code</th><th>Journal</th>${admin ? "<th></th>" : ""}</tr>${K.map(k => { const n = exS.entries.filter(e => e.student_id === k.id).length;
       return `<tr><td><b>${esc(k.first_name)}</b></td><td><code class="kcode">${esc(kidCode(c, k))}</code></td><td>${n ? `<button class="link" onclick="exS.kid='${k.id}';render()">${n} entr${n === 1 ? "y" : "ies"}</button>` : `<span class="hint">Nothing yet</span>`}</td>${admin ? `<td style="text-align:right"><button class="link danger" onclick="exRemoveKid('${k.id}')">Remove</button></td>` : ""}</tr>`; }).join("")}</table>` : `<div class="empty">👧<br><br>No students yet.${admin ? " Add them below." : " Your PYP coordinator will add them."}</div>`}
