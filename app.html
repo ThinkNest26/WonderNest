@@ -641,7 +641,7 @@ const SDG_STORIES = [
 
 <script>
 /* ================= CONFIG =================
-   When the AI Worker is ready, paste its address between the quotes below.
+   Suggestions service address.
    While it is empty, WonderNest runs in demo mode with sample suggestions. */
 const WORKER_URL = "https://wondernest-ai.thinknest2026.workers.dev";
 /* ========================================== */
@@ -726,7 +726,7 @@ function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add
 function loading(on, text){ $("#loading").classList.toggle("show", on); if(text) $("#loadingText").textContent = text; }
 function toggle(arr, v){ const i = arr.indexOf(v); i >= 0 ? arr.splice(i,1) : arr.push(v); }
 
-/* ---------- AI ---------- */
+/* ---------- Suggestions ---------- */
 async function ai(task, u = unit, extra = {}){
   const payload = Object.assign({theme: themeOf(u.theme)?.name || "", themeDescription: ((u.description||"").trim() ? "This unit is about: " + u.description.trim() + "\n\n" : "") + themeText(u.theme), description: u.description, ageBand: gradeLabel(u),
     duration: u.duration, languages: u.languages, centralIdea: u.centralIdea,
@@ -734,7 +734,7 @@ async function ai(task, u = unit, extra = {}){
   if(!WORKER_URL){ await new Promise(r => setTimeout(r, 700)); return DEMO[task]; }
   const res = await fetch(WORKER_URL, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({task, unit: payload})});
   const data = await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(data.error || "The AI could not answer just now.");
+  if(!res.ok) throw new Error(data.error || "WonderNest couldn't get suggestions just now. Please try again.");
   return data;
 }
 async function run(task, text, apply){
@@ -827,7 +827,7 @@ function header(title){
   return `<div class="top"><div><div class="crumb">Unit builder${t ? " › " + esc(t.name) : " › New unit"}${unit.grade ? " · " + esc(unit.grade) : ""}</div><h1>${title}</h1></div>
     ${unit.step >= 5 ? `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="openTeam()">👥 Team</button><button class="btn ghost" onclick="downloadWord()">⬇️ Download as Word</button><button class="btn ghost" onclick="openAssign()">📌 Use with a class</button></div>` : ""}</div>${assignModal()}
     ${unit.centralIdea ? `<div class="savenote"><span id="saveState" class="on">✓ Saved</span> WonderNest saves your unit as you go. Find it any time in <b>My units</b>.</div>` : ""}
-    ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> the AI is not connected yet, so WonderNest shows sample suggestions for a habitats unit. Real suggestions start once the AI Worker is connected.</div>`}
+    ${WORKER_URL ? "" : `<div class="demo">🧪 <b>Demo mode:</b> suggestions are not switched on yet, so WonderNest shows sample suggestions for a habitats unit.</div>`}
     ${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}
     <div class="steps">${STEP_NAMES.map((n,i)=>{
       const s = i+1, cls = s < unit.step ? "done" : s === unit.step ? "now" : "";
@@ -1456,7 +1456,7 @@ function atlKidView(){
         ${hist.slice(0,4).map(r=>`<div class="hist">${r.source==="self"?"🧒 "+SELF_FACES[Math.min(r.level,4)-1]+" ":"👩‍🏫 "}<b>${esc(r.level_label)}</b> · ${new Date(r.created_at).toLocaleDateString("en-GB")}${r.note?` · ${esc(r.note)}`:""}</div>`).join("") || `<div class="hint">No evidence yet.</div>`}</div>`;}).join("")}
   </div>
   <div class="card"><div class="label">✨ Report comment (ATL / inquiry)</div>
-    <p class="hint" style="margin-bottom:10px">WonderNest drafts a comment from this child's ATL evidence. The child's name is not sent to the AI. Always read and edit before using it.</p>
+    <p class="hint" style="margin-bottom:10px">WonderNest drafts a comment from this child's ATL evidence. The child's name is not included. Always read and edit before using it.</p>
     <textarea id="atlComment" style="min-height:190px" placeholder="Click Draft comment">${esc(atlS.comment)}</textarea>
     <div class="actions"><button class="link" onclick="navigator.clipboard.writeText($('#atlComment').value).then(()=>toast('Copied ✓'))">📋 Copy</button><button class="btn" onclick="atlDraft()">✨ Draft comment</button></div>
   </div></div>`;
@@ -1983,7 +1983,7 @@ function oiView(){
     const kids = oi.students.map(k => ({ k, qs: oi.inqs.filter(q => q.student_id === k.id) }));
     const counts = [0,1,2,3,4,5,6].map(st => oi.inqs.filter(q => q.stage === st).length);
     body = `<div class="card"><div class="actions" style="margin-top:0;margin-bottom:8px"><div class="hint">Each plant is a child's wonder. It grows with every step of their journey. Click a plant to see their work and give feedback.</div>
-        <label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px;white-space:nowrap;cursor:pointer"><input type="checkbox" ${oi.cls.kid_ai !== false ? "checked" : ""} onchange="oiKidAI(this.checked)" style="width:18px;height:18px"> 🐦 Children's AI helpers ${oi.cls.kid_ai !== false ? "on" : "off"}</label></div>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px;white-space:nowrap;cursor:pointer"><input type="checkbox" ${oi.cls.kid_ai !== false ? "checked" : ""} onchange="oiKidAI(this.checked)" style="width:18px;height:18px"> 🐦 Children's bird helpers ${oi.cls.kid_ai !== false ? "on" : "off"}</label></div>
       <p class="hint" style="margin:-2px 0 10px;text-align:right">When on, children can tap 🐦 for help during their inquiry: making their question stronger, reading a hard text, planning an interview or getting unstuck. Untick to switch it off for this class.</p>
       <div class="label" style="margin:4px 0 6px">How many inquiries are at each stop</div>
       <div class="chips" style="margin-bottom:6px">${[1,2,3,4,5,6].map(st=>`<span class="chip" style="cursor:default">${OI_STOPS[st]}: <b>${counts[st]}</b></span>`).join("")}</div>
@@ -2082,7 +2082,7 @@ function oiAddParcel(k){ const b = oi.parcels[k]; oiAddProvRow({ kind: ["provoca
 async function oiKidAI(on){
   const { error: e } = await db.from("classes").update({ kid_ai: on }).eq("id", oi.cls.id);
   if(e){ error = tcErr(e) + " (has the Wonder Garden database update been run?)"; return render(); }
-  oi.cls.kid_ai = on; toast(on ? "Children's AI helpers are on" : "Children's AI helpers are off"); render();
+  oi.cls.kid_ai = on; toast(on ? "Children's bird helpers are on" : "Children's bird helpers are off"); render();
 }
 async function oiNote(kind, text){
   const q = oi.inqs.find(x => x.id === oi.open);
@@ -3281,7 +3281,7 @@ function step6(){
       ${planTA("after","After the unit: what did children learn? What will we change next time?","")}</div>
     <div class="card"><div class="actions" style="margin-top:0"><span class="hint">Everything here is included in the Word download. Your unit is saved as you go.</span><button class="btn" onclick="finishUnit()">✓ Finish unit</button></div></div></div></div>`;
 }
-/* Plan & reflect: AI ideas for one box (k) or every empty box (no k). Teacher's own writing is never replaced. */
+/* Plan & reflect: ideas for one box (k) or every empty box (no k). Teacher's own writing is never replaced. */
 function prText(v){ return Array.isArray(v) ? v.map(x => typeof x === "string" ? x : Object.values(x||{}).join(" ")).filter(Boolean).join("\n") : String(v || ""); }
 async function prInspire(k){
   const p = planObj();
@@ -3296,7 +3296,7 @@ async function prInspire(k){
         subjects: (unit.subjects||[]).map(s => s.subject + ": " + (s.topics||"").slice(0, 200)),
         already: Object.fromEntries(PR_AI.map(f => [f, (p[f]||"").slice(0, 400)])) });
       unit.prUsed = {};
-    }catch(e){ error = /unknown task/i.test(e.message||"") ? "These ideas need a small update to the WonderNest AI. Please ask your WonderNest administrator to update the AI worker." : e.message; loading(false); return render(); }
+    }catch(e){ error = /unknown task/i.test(e.message||"") ? "This feature isn't switched on yet. Please contact your WonderNest administrator." : e.message; loading(false); return render(); }
     loading(false);
   }
   const put = f => { const t = prText(unit.prIdeas[f]).trim(); if(!t) return false;
@@ -3469,7 +3469,7 @@ async function poiCall(task, unitObj, file){
   try{
     const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task, unit: unitObj, file }), signal: ctrl.signal });
     const d = await res.json().catch(() => ({}));
-    if(!res.ok) throw new Error(d.error === "Unknown task." ? "The AI helper needs its update first (worker.js). Word files work straight away." : (d.error || "The AI could not read this file just now. Word files work straight away."));
+    if(!res.ok) throw new Error(d.error === "Unknown task." ? "Reading PDFs and photos isn't switched on yet. Please contact your WonderNest administrator. Word files work straight away." : (d.error || "WonderNest couldn't read this file just now. Word files work straight away."));
     return d;
   }catch(e){ if(e.name === "AbortError") throw new Error(poiU.stopped ? "STOPPED" : "This took too long, so I stopped it. Please try again, or upload the Word version, which is read straight away."); throw e; }
   finally{ clearTimeout(to); }
@@ -3557,7 +3557,7 @@ function poiUploadView(){
       <input type="file" accept=".docx,.pdf,image/*" hidden onchange="poiUpload(this.files[0])"></label>`;
   if(poiU.busy) return top + `<div class="card pu-busy"><img src="wondernest-mark.png" alt=""><div style="flex:1"><b>${esc(poiU.busy)}</b>${poiU.t0 ? `<div class="hint" style="margin-top:4px">⏱️ <span id="poiTimer">${poiClock()}</span>${poiU.prog ? ` · <span id="poiProg">${esc(poiU.prog)}</span>` : ""} · usually under a minute</div>` : ""}</div>${poiU.t0 ? `<button class="btn ghost" onclick="poiStop()">Stop</button>` : ""}</div>`;
   const errBox = poiU.err ? `<div class="err">⚠️ ${esc(poiU.err)}</div>` : "";
-  if(!p) return top + errBox + `<div class="card"><p class="hint" style="margin-bottom:12px">Upload the programme of inquiry your school already has. WonderNest reads it and shows it here in the WonderNest design, so every teacher can see the whole programme at a glance. Word files are read exactly as written. PDFs and photos are read by WonderNest's AI, so please check them before saving.</p>${drop}</div>
+  if(!p) return top + errBox + `<div class="card"><p class="hint" style="margin-bottom:12px">Upload the programme of inquiry your school already has. WonderNest reads it and shows it here in the WonderNest design, so every teacher can see the whole programme at a glance. Word files are read exactly as written. PDFs and photos are read automatically, so please check them before saving.</p>${drop}</div>
     <div class="card"><div class="label">Tips for the best result</div><ul class="pu-tips"><li>Keep the grades and the six transdisciplinary themes in one table (grades down the side, themes across the top, or the other way round).</li><li>Label each part, for example <b>Central idea:</b>, <b>Lines of inquiry:</b>, <b>Specified concepts:</b>.</li><li>Photos: take the picture straight on, in good light, with the whole table showing.</li></ul></div>`;
   const G = p.grades || [], total = G.reduce((a, g) => a + g.units.length, 0);
   if(!G.find(g => g.grade === poiU.grade)) poiU.grade = (G[0] || {}).grade || "";
@@ -3827,7 +3827,7 @@ async function tdFocusIdeas(i){
     const ideas = (d.ideas || []).filter(v => v && v.topic).slice(0, 8);
     if(!ideas.length) throw new Error("No ideas came back. Please try again.");
     x.ideas = ideas; saveCurrent();
-  }catch(e){ error = /unknown task/i.test(e.message||"") ? "Subject ideas need a small update to the WonderNest AI. Please ask your WonderNest administrator to update the AI worker." : e.message; }
+  }catch(e){ error = /unknown task/i.test(e.message||"") ? "Subject ideas aren't switched on yet. Please contact your WonderNest administrator." : e.message; }
   finally{ loading(false); render(); }
 }
 async function tdInspire(){
@@ -4663,7 +4663,7 @@ exMentors = function(){
   const M = exS.mentors, noCode = M.length && M.some(m => !m.code);
   return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🧑‍🏫 Mentors (${M.length})</div>${M.length && !noCode ? `<button class="btn small ghost" onclick="exPrintMentors()">🖨️ Print mentor cards</button>` : ""}</div>
     <p class="hint" style="margin-bottom:10px">Teachers, staff, parents or community members who guide a group. Choose each group's mentor inside the group (💡 Passions & groups → Open). Each mentor gets a code: it opens a page with <b>only their groups</b>: the group's work, each member's process journal, research notes and questions, and a place to write meeting notes. Codes work only while the exhibition is open.</p>
-    ${noCode ? `<div class="wkwarn" style="margin-bottom:10px">🔧 Mentor codes need a one-time set-up in Supabase. Ask Claude for the mentor set-up steps.</div>` : ""}
+    ${noCode ? `<div class="wkwarn" style="margin-bottom:10px">🔧 Mentor codes aren't switched on yet. Please contact your WonderNest administrator.</div>` : ""}
     ${M.length ? `<table class="tbl"><tr><th>Mentor</th><th>Groups</th><th>Code</th><th></th></tr>${M.map(m => { const gs = exS.groups.filter(g => (g.mentor||"").trim().toLowerCase() === m.name.trim().toLowerCase());
       return `<tr><td><b>${esc(m.name)}</b>${m.role ? `<br><small class="hint">${esc(m.role)}</small>` : ""}${m.contact ? `<br><small class="hint">${esc(m.contact)}</small>` : ""}</td><td>${gs.map(g => esc(g.name)).join(", ") || `<span class="hint">No group yet</span>`}</td>
         <td>${m.code ? `<code class="kcode">${esc(m.code)}</code>` : "–"}</td><td style="text-align:right;white-space:nowrap">${m.code ? `<button class="link" onclick="exCopyMentor('${m.id}')">🔗 Copy link</button> · ` : ""}<button class="link danger" onclick="exDelMentor('${m.id}')">Remove</button></td></tr>`; }).join("")}</table>` : `<p class="hint">No mentors yet.</p>`}
@@ -4897,7 +4897,7 @@ async function kudSuggest(){
     const L = v => Array.isArray(v) ? v.join("\n") : String(v || "");
     ["integration", "understandings", "know", "understand", "do"].forEach(k => { if(!String(K[k] || "").trim() && d[k]) K[k] = L(d[k]); });
     saveCurrent(); toast("Filled the empty boxes ✓");
-  }catch(e){ error = /unknown task/i.test(e.message || "") ? "This needs a small update to the WonderNest AI worker (worker.js). You can still write it yourself." : e.message; }
+  }catch(e){ error = /unknown task/i.test(e.message || "") ? "This feature isn't switched on yet. Please contact your WonderNest administrator. You can still write it yourself." : e.message; }
   finally{ loading(false); render(); }
 }
 function kudCard(){
@@ -5058,7 +5058,7 @@ tdFocusIdeas = async function(i){
     const ideas = (d.ideas || []).filter(v => v && v.topic).map(v => Object.assign(v, { topic: String(v.topic).replace(/^[^|]*\|\s*/, "") })).slice(0, 8);
     if(!ideas.length) throw new Error("No ideas came back. Please try again.");
     x.ideas = ideas; saveCurrent(); }
-  catch(e){ error = /unknown task/i.test(e.message || "") ? "Subject ideas need a small update to the WonderNest AI. Please ask your WonderNest administrator to update the AI worker." : e.message; }
+  catch(e){ error = /unknown task/i.test(e.message || "") ? "Subject ideas aren't switched on yet. Please contact your WonderNest administrator." : e.message; }
   finally{ loading(false); render(); }
 };
 
@@ -5086,7 +5086,7 @@ async function parentPage(word){
     ${row("Science", focus(/^science/i), "Art / STEAM", focus(/^(art|steam|design)/i))}
     ${subs.some(s => /^arabic/i.test(s.subject)) ? row("Arabic", focus(/^arabic/i)) : ""}
     ${others.map(s => row(esc(s.subject), esc(obLines(s.topics)[0]))).join("")}</table>
-    <h2>What your child will learn</h2>${String(P.learn || "").split(/\n\s*\n|\n/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join("") || `<p class="hint">Write the KUD on the Inquiry cycle page, or ask your administrator to update the AI worker.</p>`}
+    <h2>What your child will learn</h2>${String(P.learn || "").split(/\n\s*\n|\n/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join("") || `<p class="hint">Write the KUD on the Inquiry cycle page, or ask your WonderNest administrator.</p>`}
     ${P.talk || P.tryTogether || P.explore ? `<div class="pgp-home"><h3>LEARNING AT HOME</h3>${P.talk ? `<p><b>Talk about:</b> ${esc(P.talk)}</p>` : ""}${P.tryTogether ? `<p><b>Try together:</b> ${esc(P.tryTogether)}</p>` : ""}${P.explore ? `<p><b>Explore:</b> ${esc(P.explore)}</p>` : ""}</div>` : ""}</div>`;
   const css = `body{font-family:Arial,sans-serif;color:#1b2540}.pgp-h{display:flex;gap:14px;align-items:center;background:#1f4fb0;color:#fff;border-radius:14px;padding:12px 18px}.pgp-h span{font-size:38px}.pgp-h small{font-weight:700}.pgp-h h1{margin:2px 0 0;color:#fff;font-size:26px}
     h2{color:#1f4fb0;font-size:17px;margin:16px 0 8px}.pgp-t{width:100%;border-collapse:collapse;font-size:12.5px}.pgp-t th{background:#eef4ff;color:#1f4fb0;text-align:left;width:15%;padding:7px;border:1px solid #d9e2f1;vertical-align:top}.pgp-t td{padding:7px;border:1px solid #d9e2f1;vertical-align:top}
