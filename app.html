@@ -4877,6 +4877,61 @@ summativeView = function(){ const h = _svSx(); if(!draft()) return h; const k = 
   .sx-drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px dashed #c9d8f3;border-radius:16px;padding:26px;background:#f7faff;cursor:pointer;text-align:center}.sx-drop span{font-size:32px}.sx-drop b{color:var(--navy)}.sx-drop small{color:var(--muted)}.sx-drop.on{border-color:var(--blue);background:#eaf3ff}
   .sx-big{background:#fff;border-radius:18px;padding:12px;max-width:min(900px,92vw);max-height:90vh;overflow:auto}.sx-big img{max-width:100%;max-height:78vh;display:block;margin:auto;border-radius:10px}.sx-big p{text-align:center;font-weight:700;margin-top:8px}`; document.head.appendChild(st); })();
 
+
+/* =====================================================================
+   UNIT KUD: subject integration, conceptual understandings, Know / Understand / Do
+   ===================================================================== */
+const kudObj = () => unit.kud = Object.assign({ integration: "", understandings: "", know: "", understand: "", do: "" }, unit.kud || {});
+function kudSet(k, v){ kudObj()[k] = v; saveCurrent(); }
+async function kudSuggest(){
+  const K = kudObj(); if(!(unit.centralIdea || "").trim()) return toast("Choose a central idea first");
+  loading(true, "Writing the integration and understandings…");
+  try{
+    const d = await ai("unit_kud", unit, { linesFull: (unit.lines || []).map((l, i) => `Line ${i + 1} (${l.concept}): ${l.text}`), relatedConcepts: unit.relatedConcepts || [], learnerProfile: unit.learnerProfile || [],
+      subjects: (unit.subjects || []).map(s => s.subject + ": " + (s.topics || "").slice(0, 300)), experiences: (unit.tdExperiences || []).map(e => e.title + " (" + (e.subjects || []).join(", ") + ")").slice(0, 10),
+      weeks: (unit.weeks || []).map((w, k) => `Week ${k + 1} (${phaseOfWeek(k, unit.weeks.length)}): ${w.focus || ""} ${Object.entries(w.subj || {}).filter(([a, b]) => String(b).trim()).map(([a, b]) => a + ": " + String(b).split("\n")[0]).join("; ")}`).join("\n").slice(0, 3000),
+      already: K });
+    const L = v => Array.isArray(v) ? v.join("\n") : String(v || "");
+    ["integration", "understandings", "know", "understand", "do"].forEach(k => { if(!String(K[k] || "").trim() && d[k]) K[k] = L(d[k]); });
+    saveCurrent(); toast("Filled the empty boxes ✓");
+  }catch(e){ error = /unknown task/i.test(e.message || "") ? "This needs a small update to the WonderNest AI worker (worker.js). You can still write it yourself." : e.message; }
+  finally{ loading(false); render(); }
+}
+function kudCard(){
+  const K = kudObj(), subs = (unit.subjects || []).filter(s => s.subject), kc = unit.keyConcepts || [], cl = settings.conceptLabel || "Specified concepts";
+  const ta = (k, ph, h) => `<textarea style="min-height:${h || 90}px" placeholder="${esc(ph)}" oninput="kudSet('${k}',this.value)">${esc(K[k] || "")}</textarea>`;
+  return `<div class="card kud"><div class="actions" style="margin-top:0;align-items:center"><div class="label" style="margin:0">🧩 How this unit works: integration and understanding</div><button class="btn small ghost" onclick="kudSuggest()" title="Fills the empty boxes only">✨ Suggest</button></div>
+    <div class="kud-ci"><span>💡 Central idea</span><b>${esc(unit.centralIdea || "")}</b>${kc.length ? `<div>${kc.map(c => `<span class="tag">${esc(c)}</span>`).join(" ")}</div>` : ""}</div>
+    <div class="kud-row">
+      <div class="kud-box int"><h4>🔗 How the subjects come together</h4>
+        ${subs.length ? `<div class="kud-subs">${subs.map(s => `<span style="border-color:${subCol(s.subject)};color:${subCol(s.subject)}">${esc(s.subject)}</span>`).join("")}</div>` : `<p class="hint">Add subjects in step 6 to show them here.</p>`}
+        ${ta("integration", "How do the subjects serve the central idea? e.g. In Science children investigate habitats; in English they write information texts about them; in Maths they collect and present data on…", 120)}</div>
+      <div class="kud-box cu"><h4>🧠 Conceptual understandings</h4><p class="hint">The big, transferable ideas we want children to understand by the end, written as statements (one per line).</p>
+        ${ta("understandings", "e.g. Living things depend on their habitats to survive.\nPeople's choices can change habitats.", 120)}</div></div>
+    <div class="kud-row three">
+      <div class="kud-box k"><h4>📘 Children will KNOW</h4><p class="hint">Facts, vocabulary, information (one per line)</p>${ta("know", "e.g. The names of four habitats and an animal that lives in each")}</div>
+      <div class="kud-box u"><h4>💡 Children will UNDERSTAND</h4><p class="hint">Concepts and big ideas (one per line)</p>${ta("understand", "e.g. A habitat gives animals what they need: food, water and shelter")}</div>
+      <div class="kud-box d"><h4>🛠️ Children will be able to DO</h4><p class="hint">Skills, including ATL (one per line)</p>${ta("do", "e.g. Sort animals by habitat and explain their choices")}</div></div></div>`;
+}
+function kudPrintHTML(){
+  const K = kudObj(), li = v => String(v || "").split("\n").map(x => x.trim()).filter(Boolean).map(x => `<li>${esc(x)}</li>`).join("");
+  if(!["integration", "understandings", "know", "understand", "do"].some(k => String(K[k] || "").trim())) return "";
+  return `<div class="kudp"><h2>How this unit works</h2>${K.integration ? `<p><b>🔗 How the subjects come together:</b> ${esc(K.integration).replace(/\n/g, "<br>")}</p>` : ""}
+    ${K.understandings ? `<p><b>🧠 Conceptual understandings</b></p><ul>${li(K.understandings)}</ul>` : ""}
+    <table><tr><th>📘 Know</th><th>💡 Understand</th><th>🛠️ Do</th></tr><tr><td><ul>${li(K.know)}</ul></td><td><ul>${li(K.understand)}</ul></td><td><ul>${li(K.do)}</ul></td></tr></table></div>`;
+}
+const _cycleKud = cycleView;
+cycleView = function(){ const h = _cycleKud(); const k = h.indexOf('<div class="card uw-ed"'); return k < 0 ? h : h.slice(0, k) + kudCard() + h.slice(k); };
+uWheelPrint = function(){ printWin("Inquiry cycle - " + (unit.centralIdea || "unit"), uWheelHTML(null) + kudPrintHTML(), WHEEL_CSS + UW_CSS + "@page{size:A4 landscape;margin:8mm}body{margin:0}.kudp{break-before:page;font-family:Arial,sans-serif;color:#1b2540;padding:10px}.kudp h2{color:#1f4fb0}.kudp table{width:100%;border-collapse:collapse;margin-top:10px}.kudp th{background:#1f4fb0;color:#fff;padding:6px;text-align:left}.kudp td{border:1px solid #d9e2f1;vertical-align:top;padding:6px;font-size:12.5px}"); };
+(function(){ const st = document.createElement("style"); st.textContent = `
+  .kud-ci{background:#14325c;color:#fff;border-radius:16px;padding:14px 18px;margin:10px 0 14px}.kud-ci>span{display:block;font-size:12px;font-weight:800;opacity:.8;text-transform:uppercase;letter-spacing:.06em}.kud-ci b{font-size:17px;line-height:1.4;display:block;margin:4px 0 6px}.kud-ci .tag{display:inline-block;background:#ffd25a;color:#3d2a00;margin-right:4px}
+  .kud-row{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px}.kud-row.three{grid-template-columns:repeat(3,1fr);margin-bottom:0}
+  .kud-box{border-radius:16px;padding:12px 14px;border:1px solid var(--line)}.kud-box h4{font-family:"Fredoka",sans-serif;font-size:16px;margin-bottom:4px}.kud-box .hint{margin-bottom:6px;font-size:12.5px}.kud-box textarea{background:#fff}
+  .kud-box.int{background:#f5f9ff}.kud-box.int h4{color:#1f4fb0}.kud-box.cu{background:#fff8e6}.kud-box.cu h4{color:#8a6400}
+  .kud-box.k{background:#eef4ff}.kud-box.k h4{color:#2f6fd6}.kud-box.u{background:#fff6dc}.kud-box.u h4{color:#a97a00}.kud-box.d{background:#ecf8f1}.kud-box.d h4{color:#1d7a4e}
+  .kud-subs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.kud-subs span{border:1.5px solid;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:800;background:#fff}
+  @media (max-width:1000px){.kud-row,.kud-row.three{grid-template-columns:1fr}}`; document.head.appendChild(st); })();
+
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
 function teacherOnly(m){
