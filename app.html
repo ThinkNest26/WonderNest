@@ -547,6 +547,7 @@ const SDG_STORIES = [
     <div class="navg">Plan</div>
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
+    <button class="nav" data-view="cycle">🎡 Inquiry cycle</button>
     <button class="nav" data-view="poi">📚 Programme of inquiry</button>
     <button class="nav" data-view="poiup">📥 Our uploaded POI</button>
     <button class="nav" data-view="concepts">💡 Concepts</button>
@@ -739,6 +740,7 @@ function render(){
   else if(view === "concepts") m.innerHTML = conceptsView();
   else if(view === "basics") m.innerHTML = basicsView();
   else if(view === "poi") m.innerHTML = poiView();
+  else if(view === "cycle") m.innerHTML = cycleView();
   else if(view === "poiup") m.innerHTML = poiUploadView();
   else if(view === "progress") m.innerHTML = progressView();
   else if(view === "week") m.innerHTML = weekView();
@@ -4082,6 +4084,20 @@ stepWeeks = function(){
   return html.replace('<div class="cyclegrid">', tog + wheelHTML(i) + wheelDetails(i) + '<div class="cyclegrid" style="display:none">');
 };
 
+
+/* ---------- Sidebar page: the inquiry cycle wheel for any unit and week ---------- */
+function cycleSwitch(id){ const u = savedUnits().find(x => x.id === id); if(u){ unit = u; saveCurrent(); wkS.week = 0; render(); } }
+function cycleView(){
+  const units = savedUnits(), has = unit && (unit.centralIdea || (unit.weeks || []).length);
+  const pick = units.length ? `<select style="max-width:420px" onchange="cycleSwitch(this.value)">${units.some(u => u.id === unit.id) ? "" : `<option>${esc(unit.centralIdea || "Current unit")}</option>`}${units.map(u => { const t = themeOf(u.theme); return `<option value="${u.id}" ${u.id === unit.id ? "selected" : ""}>${esc((t ? t.ic + " " : "") + (gradeLabel(u) ? gradeLabel(u) + " · " : "") + (u.centralIdea || "Untitled unit").slice(0, 80))}</option>`; }).join("")}</select>` : "";
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🎡 Inquiry cycle in action</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!has) return top + `<div class="card empty">🎡<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The cycle view shows each week of the unit's weekly inquiry cycle as a poster.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}<button class="btn" onclick="view='builder';render()">✨ Go to the unit builder</button></div>`;
+  const W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
+  return top + `<div class="card"><div class="actions" style="margin-top:0;align-items:flex-end"><div><label style="display:block">Unit</label>${pick || `<b>${esc(unit.centralIdea || "Current unit")}</b>`}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="view='builder';goStep(7)">📝 Plan this week</button><button class="btn" onclick="wheelPrint(${i})">🖨️ Print or save as PDF</button></div></div>
+    <div class="wktabs" style="margin-top:12px">${W.map((x, k) => `<button class="${k === i ? "on" : ""}" onclick="wkS.week=${k};render()">Week ${k + 1}${Object.values(x.cells || {}).some(v => v && v.trim()) ? " ✓" : ""}</button>`).join("")}</div></div>
+    ${wheelHTML(i)}${wheelDetails(i)}`;
+}
 /* Download the weekly plan as a Word file (landscape): this week or all weeks. */
 function weekPageHTML(w, k){
   const subs = wkSubs(), line = w.line ? (unit.lines[w.line-1]||{}) : null;
