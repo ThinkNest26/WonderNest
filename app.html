@@ -439,7 +439,7 @@
   .kcode{font:700 14px ui-monospace,Menlo,monospace;background:#fff7dc;border:1px solid #f5d27a;border-radius:8px;padding:3px 8px;letter-spacing:.5px;color:#5c4300;white-space:nowrap}
   .exintro{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,#f5f9ff,#fffaea)}.exintro>span{font-size:34px}
   .exmore{margin-top:6px}.exmore summary{cursor:pointer;font-weight:700;color:var(--blue);padding:8px 2px}
-  .exvis{display:flex;gap:14px;align-items:center}.exvis>span{font-size:30px}.exvis>div{flex:1}.exvis.on{background:#eefaf2;border-color:#bfe6cd}.exvis.off{background:#fff7dc;border-color:#f5d27a}
+  .exvis{display:flex;gap:14px;align-items:center;padding:14px 20px;margin-bottom:14px}.exvis>span{font-size:30px}.exvis>div{flex:1}.exvis.on{background:#eefaf2;border-color:#bfe6cd}.exvis.off{background:#fff7dc;border-color:#f5d27a}
   .exsw{display:flex;gap:8px;align-items:center;font-weight:800;font-size:16px;cursor:pointer}.exsw input{width:22px !important;height:22px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2870,7 +2870,7 @@ function exView(){
 }
 function exTimeline(){
   const t = exS.exh.data.timeline || [], done = t.filter(x => x.done).length;
-  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">Exhibition journey · ${done}/${t.length} done</div><label style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" style="width:auto" ${exS.exh.active?"checked":""} onchange="exS.exh.active=this.checked;exSaveExh();toast(this.checked?'Children can see the exhibition':'Hidden from children')"> Children can see it</label></div>
+  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">Exhibition journey · ${done}/${t.length} done</div><span></span></div>
     <div class="bar" style="margin:8px 0 14px"><i style="width:${t.length?Math.round(done/t.length*100):0}%;background:var(--leaf)"></i></div>
     ${t.map((m,i)=>`<div class="mile ${m.done?"done":""}"><input type="checkbox" style="width:auto" ${m.done?"checked":""} onchange="exS.exh.data.timeline[${i}].done=this.checked;exSaveExh();render()"><input value="${esc(m.title)}" onchange="exS.exh.data.timeline[${i}].title=this.value;exSaveExh()" style="flex:2"><input type="date" value="${esc(m.date)}" onchange="exS.exh.data.timeline[${i}].date=this.value;exSaveExh()" style="width:160px"><input placeholder="Notes" value="${esc(m.notes||"")}" onchange="exS.exh.data.timeline[${i}].notes=this.value;exSaveExh()" style="flex:2"><button class="link" style="color:var(--coral)" onclick="exS.exh.data.timeline.splice(${i},1);exSaveExh();render()">✕</button></div>`).join("")}
     <button class="link" onclick="exS.exh.data.timeline.push({title:'New milestone',date:'',done:false,notes:''});exSaveExh();render()">＋ Add a milestone</button></div>`;
@@ -4540,16 +4540,18 @@ exView = function(){
   const tabs = [["kids","👧 Students & codes"],["timeline","🗓️ Timeline"],["groups","💡 Passions & groups"],["mentors","🧑‍🏫 Mentors"],["journals","📓 Journals"],["day","🏛️ Exhibition day"],["assess","✅ Assessment"]];
   let body;
   if(exS.tab === "kids" && !exS.group && !exS.kid) body = exKids();
-  else if(!exS.exh) body = `<div class="card empty">🏆<br><br><b>Start the PYP Exhibition for ${esc(exS.cls.name)}</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Students will see the timeline, their passions, their group, their journal, booths to visit and self-assessment.</p><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`;
+  else if(!exS.exh) body = `<div class="card empty">🏆<br><br><b>Start the exhibition first</b><p class="hint" style="margin:8px auto 0;max-width:520px">Click 🏆 Start the exhibition at the top of this page. Then the timeline, groups, mentors, journals and assessment will appear here.</p></div>`;
   else if(exS.group) body = exGroupView(); else if(exS.kid) body = exKidView();
   else body = ({ timeline: exTimeline, groups: exGroups, mentors: exMentors, journals: exJournals, day: exDay, assess: exAssess })[exS.tab]();
-  return top + pick + `<div class="tabs" style="max-width:none">${tabs.map(([k, l]) => `<button class="${exS.tab === k && !exS.group && !exS.kid ? "on" : ""}" onclick="exS.tab='${k}';exS.group=null;exS.kid=null;render()">${l}</button>`).join("")}</div>` + body + (exS.tab === "kids" ? more : "");
+  return top + pick + exVisBar() + `<div class="tabs" style="max-width:none">${tabs.map(([k, l]) => `<button class="${exS.tab === k && !exS.group && !exS.kid ? "on" : ""}" onclick="exS.tab='${k}';exS.group=null;exS.kid=null;render()">${l}</button>`).join("")}</div>` + body + (exS.tab === "kids" ? more : "");
 };
+function exVisBar(){
+  return !exS.exh ? `<div class="card exvis off"><span>🔒</span><div><b>The exhibition hasn't started yet</b><p class="hint">Students can't open their journals until you start it.</p></div><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`
+    : `<div class="card exvis ${exS.exh.active ? "on" : "off"}"><span>${exS.exh.active ? "✅" : "🔒"}</span><div><b>${exS.exh.active ? "Students can open their journals" : "Journals are closed to students"}</b><p class="hint">${exS.exh.active ? "Untick to close the journals for a while." : "Tick the box to let students in with their codes."}</p></div><label class="exsw"><input type="checkbox" ${exS.exh.active ? "checked" : ""} onchange="exS.exh.active=this.checked;exSaveExh();render();toast(this.checked?'Journals are open ✓':'Journals closed')"> Open</label></div>`;
+}
 function exKids(){
   const c = exS.cls, admin = exAdmin(), K = exS.kids;
-  const vis = !exS.exh ? `<div class="card exvis off"><span>🔒</span><div><b>The exhibition hasn't started yet</b><p class="hint">Students can't open their journals until you start it.</p></div><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`
-    : `<div class="card exvis ${exS.exh.active ? "on" : "off"}"><span>${exS.exh.active ? "✅" : "🔒"}</span><div><b>${exS.exh.active ? "Students can open their journals" : "Journals are closed to students"}</b><p class="hint">${exS.exh.active ? "Untick to close the journals for a while." : "Tick the box to let students in with their codes."}</p></div><label class="exsw"><input type="checkbox" ${exS.exh.active ? "checked" : ""} onchange="exS.exh.active=this.checked;exSaveExh();render();toast(this.checked?'Journals are open ✓':'Journals closed')"> Open</label></div>`;
-  return vis + `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👧 Students (${K.length})</div>${K.length ? `<button class="btn small ghost" onclick="exPrintCodes()">🖨️ Print code cards</button>` : ""}</div>
+  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👧 Students (${K.length})</div>${K.length ? `<button class="btn small ghost" onclick="exPrintCodes()">🖨️ Print code cards</button>` : ""}</div>
     <p class="hint" style="margin-bottom:10px">Each student has their own code. They type it on the WonderNest home page (box "Exhibition journal"), or scan the QR code on their card. It opens their exhibition journal and the Wonder Library only.</p>
     ${K.length ? `<table class="tbl"><tr><th>Student</th><th>Code</th><th>Journal</th>${admin ? "<th></th>" : ""}</tr>${K.map(k => { const n = exS.entries.filter(e => e.student_id === k.id).length;
       return `<tr><td><b>${esc(k.first_name)}</b></td><td><code class="kcode">${esc(kidCode(c, k))}</code></td><td>${n ? `<button class="link" onclick="exS.kid='${k.id}';render()">${n} entr${n === 1 ? "y" : "ies"}</button>` : `<span class="hint">Nothing yet</span>`}</td>${admin ? `<td style="text-align:right"><button class="link danger" onclick="exRemoveKid('${k.id}')">Remove</button></td>` : ""}</tr>`; }).join("")}</table>` : `<div class="empty">👧<br><br>No students yet.${admin ? " Add them below." : " Your PYP coordinator will add them."}</div>`}
