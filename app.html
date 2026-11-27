@@ -406,6 +406,13 @@
   .wkview{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:12px 0}
   .wkview>button:not(.btn){padding:9px 14px;border-radius:12px;font-weight:700;font-size:14px;color:var(--muted);background:#fff;border:1px solid var(--line)}
   .wkview>button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .dsc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .dsc-col{border:2px solid var(--c);border-radius:16px;overflow:hidden;background:#fff;padding:0 12px 12px}
+  .dsc-h{background:var(--c);color:#fff;margin:0 -12px 8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:baseline}
+  .dsc-h b{font-family:"Fredoka",sans-serif;font-size:17px}.dsc-h span{font-size:12px;font-weight:700;opacity:.9}
+  .dsc-col label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:8px 0 4px}
+  .dsc-col textarea{min-height:56px;font-size:14px}
+  @media (max-width:900px){.dsc-grid{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -4081,7 +4088,7 @@ function wheelHTML(i){
       <div class="whl-wheel">${wheelSVG(i + 1)}</div>
       <div class="whl-col">${[0, 1, 2].map(k => wheelCard(w, k)).join("")}</div></div>
     <div class="whl-foot">
-      <div><span class="whl-lab" style="background:#f5b921;color:#1b2540">Success criteria</span><div class="whl-sc">${[["Must", "#5fb548", sc.must], ["Could", "#3b86e0", sc.could], ["Extend", "#9b6bd6", sc.extend]].map(([l, c, v]) => `<div><span class="whl-lab" style="background:${c}">${l}:</span><div>${v ? esc(v) : `<span class="whl-empty">Add in details below</span>`}</div></div>`).join("")}</div></div>
+      <div><span class="whl-lab" style="background:#f5b921;color:#1b2540">Success criteria</span><div class="whl-sc">${DIFF.map(([k, l, who, c]) => { const v = sc[k], t = (x.tasks || {})[k]; return `<div><span class="whl-lab" style="background:${c}">${l}:</span><div>${v ? esc(v) : `<span class="whl-empty">Add below</span>`}</div>${t ? `<div style="margin-top:4px;color:#475066"><b>Task:</b> ${esc(t)}</div>` : ""}</div>`; }).join("")}</div></div>
       <div><span class="whl-lab" style="background:#2fb0c2">${esc(settings.conceptLabel || "Specified concept")}:</span><div>${esc(concept) || "–"}</div><span class="whl-lab" style="background:#9b6bd6;margin-top:8px">ATL skills:</span><div>${esc(atl) || "–"}</div></div>
       <div><span class="whl-lab" style="background:#e0507e">Inquiry question:</span><div>${esc(q) || "–"}</div>${subs.length ? `<span class="whl-lab" style="background:#3b86e0;margin-top:8px">Subjects:</span><div>${subs.map(esc).join(", ")}</div>` : ""}</div>
       <div><span class="whl-lab" style="background:#1f4fb0">Assessment for learning:</span><div>${x.assess ? esc(x.assess) : `<span class="whl-empty">Add in details below</span>`}</div><span class="whl-lab" style="background:#5fb548;margin-top:8px">Resources:</span><div>${x.res ? esc(x.res) : `<span class="whl-empty">Add in details below</span>`}</div></div>
@@ -4091,8 +4098,8 @@ function wheelHTML(i){
 function wheelDetails(i){
   const w = unit.weeks[i], x = w.extra = w.extra || {}, sc = x.sc = x.sc || {}, tm = x.time = x.time || {};
   const inp = (path, val, ph) => `<input type="text" value="${esc(val || "")}" placeholder="${esc(ph)}" oninput="wheelSet(${i},'${path}',this.value)">`;
-  return `<div class="card" style="margin-top:14px"><div class="label">✏️ Details for the cycle view (week ${i + 1})</div><p class="hint" style="margin-bottom:10px">The stage boxes come from your weekly plan. Add these extra details to complete the poster. They are saved with the unit.</p>
-    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:10px">${[["sc.must", sc.must, "Must: I can…"], ["sc.could", sc.could, "Could: I can…"], ["sc.extend", sc.extend, "Extend: I can…"]].map(([p, v, h]) => `<div><label>${h.split(":")[0]}</label>${inp(p, v, h)}</div>`).join("")}</div>
+  return `<div class="card" style="margin-top:14px"><div class="label">✏️ Details for the cycle view (week ${i + 1})</div><p class="hint" style="margin-bottom:10px">The stage boxes come from your weekly plan, and the success criteria from the card above. Add these extra details to complete the poster. They are saved with the unit.</p>
+    
     <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px"><div><label>Inquiry question</label>${inp("question", x.question, "How can we…?")}</div><div><label>Assessment for learning</label>${inp("assess", x.assess, "Questioning, observation, exit tickets…")}</div><div><label>Resources</label>${inp("res", x.res, "Books, objects, websites…")}</div></div>
     <label style="margin-top:10px;display:block">When each stage happens (optional)</label><div class="grid2" style="grid-template-columns:repeat(3,1fr);gap:8px">${CYCLE.map(([ph, ic]) => `<div><small class="hint">${ic} ${ph}</small>${inp("time." + ph, tm[ph], "e.g. Sunday or Day 1–2")}</div>`).join("")}</div></div>`;
 }
@@ -4102,8 +4109,8 @@ const _stepWeeksBase = stepWeeks;
 stepWeeks = function(){
   const html = _stepWeeksBase(), W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
   const tog = `<div class="wkview"><button class="${wkS.view !== "wheel" ? "on" : ""}" onclick="wkS.view='plan';render()">📝 Plan the week</button><button class="${wkS.view === "wheel" ? "on" : ""}" onclick="wkS.view='wheel';render()">🎡 Cycle view</button>${wkS.view === "wheel" ? `<button class="btn small ghost" style="margin-left:auto" onclick="wheelPrint(${i})">🖨️ Print or save as PDF</button>` : ""}</div>`;
-  if(wkS.view !== "wheel") return html.replace('<div class="cyclegrid">', tog + '<div class="cyclegrid">');
-  return html.replace('<div class="cyclegrid">', tog + wheelHTML(i) + wheelDetails(i) + '<div class="cyclegrid" style="display:none">');
+  if(wkS.view !== "wheel") return html.replace('<div class="cyclegrid">', tog + '<div class="cyclegrid">').replace('<div class="actions"><button class="link" onclick="wkCopyPrev', diffCard(i) + '<div class="actions"><button class="link" onclick="wkCopyPrev');
+  return html.replace('<div class="cyclegrid">', tog + wheelHTML(i) + diffCard(i) + wheelDetails(i) + '<div class="cyclegrid" style="display:none">');
 };
 
 
@@ -4118,7 +4125,33 @@ function cycleView(){
   return top + `<div class="card"><div class="actions" style="margin-top:0;align-items:flex-end"><div><label style="display:block">Unit</label>${pick || `<b>${esc(unit.centralIdea || "Current unit")}</b>`}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="view='builder';goStep(7)">📝 Plan this week</button><button class="btn" onclick="wheelPrint(${i})">🖨️ Print or save as PDF</button></div></div>
     <div class="wktabs" style="margin-top:12px">${W.map((x, k) => `<button class="${k === i ? "on" : ""}" onclick="wkS.week=${k};render()">Week ${k + 1}${Object.values(x.cells || {}).some(v => v && v.trim()) ? " ✓" : ""}</button>`).join("")}</div></div>
-    ${wheelHTML(i)}${wheelDetails(i)}`;
+    ${wheelHTML(i)}${diffCard(i)}${wheelDetails(i)}`;
+}
+
+/* ---------- Differentiated success criteria (Must / Could / Extend) for each week ---------- */
+const DIFF = [["must","Must","All learners","#5fb548"],["could","Could","Most learners","#3b86e0"],["extend","Extend","Some learners","#9b6bd6"]];
+function diffCard(i){
+  const x = unit.weeks[i].extra = unit.weeks[i].extra || {}, sc = x.sc = x.sc || {}, tk = x.tasks = x.tasks || {};
+  return `<div class="card dsc"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🎯 Differentiated success criteria · week ${i + 1}</div><button class="btn small ghost" onclick="diffSuggest(${i})" title="Fills the empty boxes only">✨ Suggest</button></div>
+    <p class="hint" style="margin:4px 0 10px">Three levels so every child is supported and challenged. Write each success criterion as "I can…", then the task children working at that level do.</p>
+    <div class="dsc-grid">${DIFF.map(([k, l, who, c]) => `<div class="dsc-col" style="--c:${c}"><div class="dsc-h"><b>${l}</b><span>${who}</span></div>
+      <label>Success criterion</label><textarea oninput="wheelSet(${i},'sc.${k}',this.value)" placeholder="I can…">${esc(sc[k] || "")}</textarea>
+      <label>Differentiated task</label><textarea oninput="wheelSet(${i},'tasks.${k}',this.value)" placeholder="What children at this level do…" style="min-height:84px">${esc(tk[k] || "")}</textarea></div>`).join("")}</div></div>`;
+}
+async function diffSuggest(i){
+  const w = unit.weeks[i], x = w.extra = w.extra || {}, line = w.line ? (unit.lines[w.line - 1] || {}) : {};
+  loading(true, "Writing success criteria for week " + (i + 1) + "…");
+  try{
+    const r = await ai("diff_sc", unit, { week: i + 1, lineText: line.text || "", focus: w.focus || "", plan: CYCLE.map(([ph]) => ph + ": " + ((w.cells || {})[ph] || "")).join("\n").slice(0, 2500), subjects: Object.entries(w.subj || {}).map(([k, v]) => k + ": " + v).slice(0, 10) });
+    x.sc = x.sc || {}; x.tasks = x.tasks || {};
+    DIFF.forEach(([k]) => { const o = r[k] || {}; if(o.criterion && !(x.sc[k] || "").trim()) x.sc[k] = o.criterion; if(o.task && !(x.tasks[k] || "").trim()) x.tasks[k] = o.task; });
+    saveCurrent(); toast("Success criteria added ✓ Change anything you like");
+  }catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+function diffDocHTML(w){
+  const x = w.extra || {}, sc = x.sc || {}, tk = x.tasks || {};
+  if(!DIFF.some(([k]) => (sc[k] || tk[k] || "").trim())) return "";
+  return `<h2>Differentiated success criteria</h2><table><tr><th style="width:16%">Level</th><th>Success criterion</th><th>Differentiated task</th></tr>${DIFF.map(([k, l, who]) => `<tr><td><b>${l}</b><br><i>${who}</i></td><td>${esc(sc[k] || "")}</td><td>${esc(tk[k] || "")}</td></tr>`).join("")}</table>`;
 }
 /* Download the weekly plan as a Word file (landscape): this week or all weeks. */
 function weekPageHTML(w, k){
@@ -4142,6 +4175,8 @@ function downloadWeeks(which){
   a.href = URL.createObjectURL(blob); a.download = "Weekly plan - " + (t ? t.name : "unit") + (which === "all" ? " - all weeks" : " - week " + (which+1)) + ".doc";
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+const _weekPageBase = weekPageHTML;
+weekPageHTML = function(w, k){ return _weekPageBase(w, k) + diffDocHTML(w); };
 function weeksWordHTML(){
   if(!(unit.weeks||[]).some(w => Object.values(w.cells||{}).some(v => v && v.trim()))) return "";
   const subs = wkSubs();
