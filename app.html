@@ -4704,7 +4704,10 @@ function uWeekCard(k, sel){
   const items = String((w.cells || {})[ph] || "").split("\n").map(s => s.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean), tags = (w.tags || {})[ph] || [];
   return `<div class="whl-card uw-card ${k === sel ? "on" : ""}" style="--c:${c}" onclick="wkS.week=${k};render()"><h4>Week ${k + 1}: ${esc(ph)} ${phaseIc(ph)}</h4><div class="in">
     ${w.focus ? `<div class="whl-time">🎯 ${esc(w.focus)}</div>` : ""}
-    ${items.length ? `<ul>${items.slice(0, 3).map(s => `<li>${esc(s)}</li>`).join("")}${items.length > 3 ? `<li class="whl-empty">and ${items.length - 3} more…</li>` : ""}</ul>` : `<div class="whl-empty">Nothing planned yet.</div>`}
+    ${(() => { const subs = (typeof wkSubs === "function" ? wkSubs() : []).filter(x => String((w.subj || {})[x] || "").trim());
+      const main = x => { const t = String(w.subj[x]).split("\n").map(l => l.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean)[0] || ""; return t.length > 95 ? t.slice(0, 94).trim() + "…" : t; };
+      return subs.length ? `<div class="uw-subs">${subs.map(x => `<div><b style="color:${subCol(x)}">${esc(x)}:</b> ${esc(main(x))}</div>`).join("")}</div>` : ""; })()}
+    ${items.length ? `<ul>${items.slice(0, 2).map(s => `<li>${esc(s)}</li>`).join("")}${items.length > 2 ? `<li class="whl-empty">and ${items.length - 2} more…</li>` : ""}</ul>` : (Object.values(w.subj || {}).some(v => String(v || "").trim()) ? "" : `<div class="whl-empty">Nothing planned yet.</div>`)}
     ${(x.sc || {}).must ? `<div style="margin-top:5px"><b style="color:#5fb548">Must:</b> ${esc(x.sc.must)}</div>` : ""}
     ${tags.length ? `<div class="whl-tags">${tags.map(s => `<span style="color:${subCol(s)}">${esc(s)}</span>`).join("")}</div>` : ""}</div></div>`;
 }
@@ -4718,6 +4721,7 @@ function uWheelHTML(sel){
     <div class="whl-body"><div class="whl-col">${left.map(k => uWeekCard(k, sel)).join("")}</div><div class="whl-wheel">${uWheelSVG(sel)}</div><div class="whl-col">${right.map(k => uWeekCard(k, sel)).join("")}</div></div>
     <div class="whl-banner">Inquiry is not simply a sequence of activities. It is a process through which students question, explore, construct understanding, make connections and apply their learning.</div></div>`;
 }
+function uSetSubj(k, sub, v){ const w = unit.weeks[k]; w.subj = w.subj || {}; w.subj[sub] = v; saveCurrent(); clearTimeout(window._uwT); window._uwT = setTimeout(() => { const el = $("#whl"); if(el){ const d = document.createElement("div"); d.innerHTML = uWheelHTML(k); el.replaceWith(d.firstElementChild); } }, 500); }
 function uSetPhase(k, ph){ unit.weeks[k].phase = ph; saveCurrent(); render(); }
 function uSetCell(k, v){ const w = unit.weeks[k], ph = phaseOfWeek(k, unit.weeks.length); w.cells = w.cells || {}; w.cells[ph] = v; saveCurrent(); clearTimeout(window._uwT); window._uwT = setTimeout(() => { const el = $("#whl"); if(el){ const d = document.createElement("div"); d.innerHTML = uWheelHTML(k); el.replaceWith(d.firstElementChild); } }, 400); }
 function uWeekEditor(k){
@@ -4728,6 +4732,8 @@ function uWeekEditor(k){
     ${line ? `<p style="margin:6px 0"><b style="color:var(--navy)">Line of inquiry ${esc(String(w.line))}:</b> ${esc(line.text || "")}${line.concept ? ` <span class="tag">${esc(line.concept)}</span>` : ""}</p>` : ""}
     <div class="grid2" style="grid-template-columns:1fr 2fr;gap:12px;margin-top:8px"><div><label>Focus this week</label><input type="text" value="${esc(w.focus || "")}" placeholder="e.g. What is a system?" oninput="unit.weeks[${k}].focus=this.value;saveCurrent()"></div>
       <div><label>${phaseIc(ph)} Learning experiences this week (one per line)</label><textarea style="min-height:96px" oninput="uSetCell(${k},this.value)" placeholder="What children do in this ${ph.toLowerCase()} week…">${esc((w.cells || {})[ph] || "")}</textarea></div></div>
+    ${(() => { const subs = typeof wkSubs === "function" ? wkSubs() : []; if(!subs.length) return `<p class="hint" style="margin-top:10px">📚 Add the subjects in step 6 of the unit builder to plan what each subject teaches this week.</p>`;
+      return `<div class="label" style="margin-top:14px">📚 What each subject teaches this week · main points</div><div class="uw-subgrid">${subs.map(x => `<div style="--sc:${subCol(x)}"><label style="color:${subCol(x)}">${esc(x)}</label><textarea placeholder="Main points for ${esc(x)} this week…" oninput="uSetSubj(${k},'${esc(x).replace(/'/g, "\\'")}',this.value)">${esc((w.subj || {})[x] || "")}</textarea></div>`).join("")}</div>`; })()}
     ${others.length ? `<details style="margin-top:8px"><summary class="hint" style="cursor:pointer">Also in this week's plan from before: ${others.map(esc).join(", ")}</summary>${others.map(p => `<p style="margin-top:6px"><b>${phaseIc(p)} ${esc(p)}:</b> ${esc(w.cells[p]).replace(/\n/g, "<br>")}</p>`).join("")}</details>` : ""}</div>`;
 }
 cycleView = function(){
@@ -4742,12 +4748,13 @@ cycleView = function(){
     ${uWheelHTML(i)}${uWeekEditor(i)}${diffCard(i)}${wheelDetails(i).replace(/<label style="margin-top:10px;display:block">When each stage happens[\s\S]*<\/div><\/div>$/, "</div>")}`;
 };
 function uWheelPrint(){ printWin("Inquiry cycle - " + (unit.centralIdea || "unit"), uWheelHTML(null), WHEEL_CSS + UW_CSS + "@page{size:A4 landscape;margin:8mm}body{margin:0}"); }
-const UW_CSS = `.uw-card{cursor:pointer;transition:.15s}.uw-card:hover{transform:translateY(-2px)}.uw-card.on{box-shadow:0 0 0 3px #f5b921}`;
+const UW_CSS = `.uw-subs{margin:4px 0 6px;display:flex;flex-direction:column;gap:3px}.uw-subs>div{line-height:1.35}.uw-card{cursor:pointer;transition:.15s}.uw-card:hover{transform:translateY(-2px)}.uw-card.on{box-shadow:0 0 0 3px #f5b921}`;
 (function(){ const st = document.createElement("style"); st.textContent = UW_CSS + `
   .uw-ed{border-left:6px solid var(--c)}.uw-edh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
   .uw-edh small{color:var(--muted);font-weight:700}.uw-edh h3{font-family:"Fredoka",sans-serif;color:var(--c);font-size:22px}
   .uw-edh label{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:13px;color:var(--muted)}.uw-edh select{min-width:220px}
-  .uw-s:hover path{filter:brightness(1.07)}`; document.head.appendChild(st); })();
+  .uw-s:hover path{filter:brightness(1.07)}
+  .uw-subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.uw-subgrid>div{border-left:4px solid var(--sc);padding-left:10px}.uw-subgrid label{font-weight:800;font-size:13.5px}.uw-subgrid textarea{min-height:64px;font-size:13.5px}`; document.head.appendChild(st); })();
 
 
 /* =====================================================================
