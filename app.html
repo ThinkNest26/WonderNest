@@ -5027,7 +5027,7 @@ function weekSubjText(w, s){
 }
 wkSubjText = function(w, obj){ w.subj = w.subj || {}; Object.entries(obj || {}).forEach(([key, t]) => { if(!t) return; const subs = wkSubs(); let s = subs.find(x => x === key) || subs.find(x => subjMatch(key, x)); if(s && !(w.subj[s] || "").trim()) w.subj[s] = Array.isArray(t) ? t.join("\n") : String(t); }); };
 const _uWeekCardWS = uWeekCard;
-uWeekCard = function(k, sel){ const w = unit.weeks[k], keep = w.subj; w.subj = Object.assign({}, keep); (unit.subjects || []).forEach(x => { const t = weekSubjText(Object.assign({}, w, { subj: keep }), x.subject); if(t) w.subj[x.subject] = t; }); try{ return _uWeekCardWS(k, sel); } finally{ w.subj = keep; } };
+uWeekCard = function(k, sel){ const w = unit.weeks[k], keep = w.subj; w.subj = Object.assign({}, keep); (unit.subjects || []).forEach(x => { const t = weekSubjText(Object.assign({}, w, { subj: keep }), x.subject); if(t) w.subj[x.subject] = t; else if(subRank(x.subject) < 3) w.subj[x.subject] = "@@MISS@@"; }); try{ return _uWeekCardWS(k, sel).replace(/(<b style="color:[^"]*">[^<]*<\/b>) @@MISS@@/g, '<span class="uw-miss">$1 not planned yet</span>'); } finally{ w.subj = keep; } };
 async function weekSubjFill(k){
   if(!(unit.subjects || []).length) return toast("Add subjects in step 6 first");
   const w = unit.weeks[k]; loading(true, "Writing the subject points for week " + (k + 1) + "…");
@@ -5097,6 +5097,26 @@ async function parentPage(word){
 const _cycleParent = cycleView;
 cycleView = function(){ return _cycleParent().replace('<button class="btn" onclick="uWheelPrint()">🖨️ Print or save as PDF</button>', `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="parentPage(false)">👪 Parent page</button><button class="btn ghost" onclick="parentPage(true)">⬇️ Parent page (Word)</button><button class="btn" onclick="uWheelPrint()">🖨️ Print or save as PDF</button></div>`); };
 (function(){ const st = document.createElement("style"); st.textContent = `.rwi{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff7dc;border:1px solid #f5d27a;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:13.5px}.rwi em{font-style:normal;color:#1d7a4e;font-weight:800;white-space:nowrap}`; document.head.appendChild(st); })();
+
+
+/* English, Maths and Science on every week: show gaps and fill them in one click */
+const coreSubs = () => subOrder((unit.subjects || []).map(x => x.subject)).filter(x => subRank(x) < 3);
+const coreMissing = () => (unit.weeks || []).some(w => coreSubs().some(x => !weekSubjText(w, x).trim()));
+async function fillCoreAll(){
+  const core = coreSubs(); if(!core.length) return toast("Add English, Maths or Science in step 6 first");
+  loading(true, "Planning English, Maths and Science for every week… about a minute");
+  try{
+    const subsTxt = core.map(x => { const y = unit.subjects.find(z => z.subject === x) || {}; return x + ": " + (y.topics || "").slice(0, 400); });
+    const r = await ai("weekly_all", unit, Object.assign(wkCtx(), { subjects: subsTxt, weeks: unit.weeks.length, lineTexts: (unit.lines || []).map(l => l.text), weekLines: unit.weeks.map(w => Number(w.line) || 0),
+      note: "Only the subjects listed matter here. For EVERY week give a short main point for EACH listed subject in the subjects object, using the subject names exactly as listed (before the colon), and spread each subject's focus across the weeks." }));
+    let n = 0; (r.weeks || []).slice(0, unit.weeks.length).forEach((x, k) => { const w = unit.weeks[k], b = JSON.stringify(w.subj || {}); wkSubjText(w, x.subjects); if(JSON.stringify(w.subj) !== b) n++; });
+    saveCurrent(); toast(n ? "Filled the empty boxes in " + n + " week" + (n > 1 ? "s" : "") + " ✓" : "Nothing new came back. Try again.");
+  }catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+const _cycleCore = cycleView;
+cycleView = function(){ const h = _cycleCore(); if(!coreSubs().length || !coreMissing()) return h;
+  return h.replace('<div class="whl" id="whl">', `<div class="card uw-fill"><span>📚 Some weeks have no plan yet for <b>${coreSubs().map(esc).join(", ")}</b>.</span><button class="btn small" onclick="fillCoreAll()">✨ Fill them for every week</button></div><div class="whl" id="whl">`); };
+(function(){ const st = document.createElement("style"); st.textContent = `.uw-miss{color:#98a2b3;font-style:italic}.uw-miss b{font-style:normal;opacity:.7}.uw-fill{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fff7dc;border-color:#f5d27a}`; document.head.appendChild(st); })();
 
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
