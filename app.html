@@ -368,6 +368,41 @@
   .btn.ghost:hover{background:var(--sky)}
   textarea,input[type=text],select{border-radius:14px}
   textarea:focus,input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(59,130,224,.13)}
+  /* ===== Uploaded programme of inquiry ===== */
+  .pu-drop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2.5px dashed #b9cff3;border-radius:22px;padding:34px 20px;background:linear-gradient(180deg,#f5f9ff,#fffdf6);cursor:pointer;transition:.2s}
+  .pu-drop:hover,.pu-drop.on{border-color:var(--blue);background:#eef5ff}
+  .pu-drop img{width:84px}.pu-drop b{font-family:"Fredoka",sans-serif;font-size:21px;color:var(--navy)}.pu-drop>span{color:var(--muted);font-size:14px}
+  .pu-types{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}.pu-types i{font-style:normal;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;color:var(--navy)}
+  .pu-tips{padding-left:20px;font-size:14px;line-height:1.6;color:var(--ink)}
+  .pu-busy{display:flex;align-items:center;gap:14px;font-size:16px;color:var(--navy)}.pu-busy img{width:60px;animation:puBob 1.2s ease-in-out infinite}
+  @keyframes puBob{50%{transform:translateY(-8px)}}
+  .pu-review{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#fff7dc;border:1.5px solid #f5d77a;border-radius:18px;padding:14px 18px;margin-bottom:16px}
+  .pu-review > div > b{display:block;color:#6b4e00;font-size:16px;margin-bottom:2px}.pu-review span{font-size:13.5px;color:#6b4e00}
+  .pu-tabs{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:14px}
+  .pu-tabs button{padding:9px 14px;border-radius:10px;font-weight:700;font-size:14px;color:var(--muted)}.pu-tabs button.on{background:var(--navy);color:#fff}
+  .pu-scroll{overflow-x:auto;border-radius:20px;box-shadow:0 6px 18px rgba(31,79,176,.06);background:#fff;border:1px solid var(--line)}
+  .pu-grid{border-collapse:separate;border-spacing:0;min-width:1100px;width:100%}
+  .pu-grid thead th{position:sticky;top:0;background:linear-gradient(180deg,#1f4fb0,#2b5fc4);color:#fff;font-family:"Fredoka",sans-serif;font-weight:600;font-size:14px;padding:12px 10px;text-align:left;vertical-align:bottom}
+  .pu-grid thead th span{display:block;font-size:22px;margin-bottom:2px}
+  .pu-grid thead th:first-child{border-top-left-radius:20px}.pu-grid thead th:last-child{border-top-right-radius:20px}
+  .pu-grid th.pu-gh{width:96px}
+  .pu-grid th.pu-gr{background:#fff7dc;color:#6b4e00;font-family:"Fredoka",sans-serif;font-size:16px;text-align:left;padding:12px;vertical-align:top;border-bottom:1px solid #f5e3a8}
+  .pu-grid td{vertical-align:top;padding:10px;border-bottom:1px solid var(--line);border-left:1px solid #f0f3f9;min-width:170px}
+  .pu-grid td.pu-gap{background:#fbfcff}
+  .pu-card{position:relative;background:#f5f9ff;border:1px solid #dfe9fb;border-radius:14px;padding:11px 12px;margin-bottom:8px;font-size:12.8px;line-height:1.45}
+  .pu-edit{position:absolute;top:6px;right:6px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:2px 6px;font-size:12px}
+  .pu-title{font-family:"Fredoka",sans-serif;font-weight:600;color:#6b4e00;font-size:13.5px;margin-bottom:3px;padding-right:22px}
+  .pu-ci{font-weight:800;color:var(--navy);font-size:13.5px;padding-right:20px}
+  .pu-lab{font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--blue);margin:8px 0 3px}
+  .pu-loi{padding-left:16px;margin:0}.pu-loi li{margin:2px 0}
+  .pu-k,.pu-r,.pu-a{display:inline-block;font-size:11px;font-weight:800;border-radius:7px;padding:2px 7px;margin:2px 3px 2px 0}
+  .pu-k{background:#fff1c2;color:#6b4e00}.pu-r{background:#e6efff;color:var(--navy)}.pu-a{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .pu-small{font-size:12px;color:var(--muted)}
+  .pu-gtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .pu-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .pu-col{background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px;box-shadow:0 6px 18px rgba(31,79,176,.05)}
+  .pu-colh{font-family:"Fredoka",sans-serif;font-weight:600;color:var(--navy);font-size:15px;margin-bottom:8px;display:flex;gap:8px;align-items:center}.pu-colh span{font-size:22px}
+  .pu-col .pu-card{font-size:14px}.pu-col .pu-ci{font-size:15px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -510,6 +545,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
     <button class="nav" data-view="poi">📚 Programme of inquiry</button>
+    <button class="nav" data-view="poiup">📥 Our uploaded POI</button>
     <button class="nav" data-view="concepts">💡 Concepts</button>
     <button class="nav" data-view="library">🧠 Routines & organisers</button>
     <button class="nav" data-view="wlib">🔎 Wonder Library</button>
@@ -700,6 +736,7 @@ function render(){
   else if(view === "concepts") m.innerHTML = conceptsView();
   else if(view === "basics") m.innerHTML = basicsView();
   else if(view === "poi") m.innerHTML = poiView();
+  else if(view === "poiup") m.innerHTML = poiUploadView();
   else if(view === "progress") m.innerHTML = progressView();
   else if(view === "week") m.innerHTML = weekView();
   else if(view === "attention") m.innerHTML = attentionView();
@@ -3292,6 +3329,195 @@ async function tmRestore(id){ const v = tm.versions.find(x => x.id === id); if(!
 /* =====================================================================
    PROGRAMME OF INQUIRY
    ===================================================================== */
+
+/* =====================================================================
+   UPLOADED PROGRAMME OF INQUIRY: upload Word / PDF / photo, show it in
+   WonderNest's design, save it for the whole school (schools.settings.poiUpload)
+   ===================================================================== */
+const poiU = { draft: null, file: "", busy: "", err: "", mode: "grid", grade: "", edit: null };
+const POI_THEME_MATCH = [["who",/who\s*we\s*are/i],["where",/where\s*we\s*are|place\s*and\s*time/i],["express",/express/i],["works",/how\s*the\s*world\s*works/i],["organize",/organi[sz]e/i],["planet",/sharing\s*the\s*planet/i]];
+const POI_FIELDS = [["centralIdea",/^central\s*idea/i],["lines",/^lines?\s*of\s*inquiry|^loi\b/i],["keyConcepts",/^(key|specified)\s*concepts?|^concepts?\b/i],["relatedConcepts",/^related\s*concepts?/i],["atl",/^(approaches\s*to\s*learning|atls?\b|atl\s*skills?)/i],["learnerProfile",/^(learner\s*profile|lp\b|attributes)/i],["sdgs",/^(sdgs?\b|sustainable\s*development|global\s*goals?)/i],["subjects",/^(subjects?|subject\s*focus|disciplines?|subject\s*links)/i],["title",/^(title|unit\s*title|unit\s*name)/i],["timing",/^(timing|duration|weeks?|term|dates?)/i],["action",/^action/i],["summative",/^(summative|sat\b|assessment)/i]];
+const poiTheme = t => { for(const [id, re] of POI_THEME_MATCH) if(re.test(t)) return id; return ""; };
+const poiGrade = t => { const s = String(t || "").replace(/\s+/g, " ").trim(); let m;
+  if(/pre[\s-]*k|pre[\s-]*kg|nursery|fs1/i.test(s)) return "Pre-K";
+  if((m = s.match(/\bk(?:g|indergarten)?\s*-?\s*([12])\b/i))) return "KG" + m[1];
+  if((m = s.match(/\b(?:grade|gr\.?|g)\s*-?\s*(\d{1,2})\b/i))) return "Grade " + m[1];
+  if((m = s.match(/\byear\s*(\d{1,2})\b/i))) return "Year " + m[1];
+  return ""; };
+const poiList = v => String(v || "").split(/\n|;|•|·|(?:,\s*)(?![^()]*\))/).map(x => x.replace(/^[\s\-–—*▪◦●○\d.)]+(?=\S)/, "").trim()).filter(x => x && x.length > 1);
+function poiParseCell(lines){
+  const u = { theme: "", title: "", centralIdea: "", lines: [], keyConcepts: [], relatedConcepts: [], atl: [], learnerProfile: [], sdgs: [], subjects: [], timing: "", action: "", summative: "", other: [] };
+  let cur = null; const raw = {};
+  lines.map(l => l.replace(/ /g, " ").trim()).filter(Boolean).forEach(l => {
+    const th = poiTheme(l); if(th && l.length < 60 && !u.theme && !cur){ u.theme = th; return; }
+    const f = POI_FIELDS.find(([, re]) => re.test(l));
+    if(f && (/:/.test(l.slice(0, 40)) || l.length <= 26)){ cur = f[0]; const rest = l.replace(/^[^:–-]*[:–-]\s*/, ""); if(rest !== l && rest) (raw[cur] = raw[cur] || []).push(rest); else if(!/^[^:]*:\s*$/.test(l) && l.length > 40 && cur === "centralIdea") (raw[cur] = raw[cur] || []).push(l.replace(f[1], "").trim()); return; }
+    if(cur) (raw[cur] = raw[cur] || []).push(l); else u.other.push(l);
+  });
+  if(!raw.centralIdea && u.other.length){ const i = u.other.findIndex(x => /inquiry into|people|we |our |can |are |is /i.test(x) && x.length > 25); if(i >= 0) raw.centralIdea = u.other.splice(i, 1); }
+  if(!raw.lines && u.other.length > 1){ raw.lines = u.other.splice(0); }
+  ["title","centralIdea","timing","action","summative"].forEach(k => { if(raw[k]) u[k] = raw[k].join(" ").trim(); });
+  ["lines","keyConcepts","relatedConcepts","atl","learnerProfile","subjects"].forEach(k => { if(raw[k]) u[k] = k === "lines" ? raw[k].map(x => x.replace(/^[\s\-–—*•▪◦●○\d.)]+/, "").trim()).filter(Boolean) : poiList(raw[k].join("\n")); });
+  if(raw.sdgs) u.sdgs = [...new Set((raw.sdgs.join(" ").match(/\d{1,2}/g) || []).map(Number).filter(n => n >= 1 && n <= 17))];
+  return u;
+}
+const poiEmpty = u => !u.centralIdea && !u.lines.length && !u.title && !u.other.length;
+function poiTableGrid(tbl){
+  const grid = []; [...tbl.rows].forEach((tr, r) => { grid[r] = grid[r] || []; let c = 0;
+    [...tr.cells].forEach(td => { while(grid[r][c] !== undefined) c++; const cs = +td.colSpan || 1, rs = +td.rowSpan || 1;
+      const ls = [...td.querySelectorAll("p,li")].filter(p => !(p.tagName === "P" && p.closest("li"))).map(p => (p.tagName === "LI" ? "• " : "") + p.textContent.replace(/\s+/g, " ").trim()).filter(x => x && x !== "•"); const lines = ls.length ? ls : td.textContent.split("\n").map(x => x.replace(/\s+/g, " ").trim());
+      for(let i = 0; i < rs; i++) for(let j = 0; j < cs; j++){ grid[r + i] = grid[r + i] || []; grid[r + i][c + j] = i || j ? null : lines; } c += cs; }); });
+  return grid.map(row => row.map(x => x || []));
+}
+function poiFromHTML(html){
+  const doc = new DOMParser().parseFromString(html, "text/html"), out = {};
+  const add = (g, u) => { if(!g || poiEmpty(u)) return; (out[g] = out[g] || []).push(u); };
+  let lastGrade = "";
+  [...doc.body.children].forEach(el => {
+    if(el.tagName !== "TABLE"){ const g = poiGrade(el.textContent); if(g && el.textContent.length < 80) lastGrade = g; return; }
+    const G = poiTableGrid(el); if(!G.length) return;
+    const txt = c => (c || []).join(" ").trim();
+    const headThemes = (G[0] || []).map(c => poiTheme(txt(c))), colThemes = G.map(r => poiTheme(txt(r[0])));
+    const rowGrades = G.map(r => poiGrade(txt(r[0]))), headGrades = (G[0] || []).map(c => poiGrade(txt(c)));
+    const rowFields = G.map(r => (POI_FIELDS.find(([, re]) => re.test(txt(r[0]))) || [])[0]);
+    if(headThemes.filter(Boolean).length >= 2){
+      if(rowFields.filter(Boolean).length >= 2){ /* columns = themes, rows = fields (one grade per table) */
+        const g = rowGrades.find(Boolean) || poiGrade(txt(G[0][0])) || lastGrade;
+        headThemes.forEach((th, c) => { if(!th) return; const lines = []; G.slice(1).forEach((r, i) => { if(rowFields[i + 1]) lines.push(txt(r[0]) + ":", ...(r[c] || [])); else if(!rowGrades[i + 1]) lines.push(...(r[c] || [])); });
+          const u = poiParseCell(lines); u.theme = th; add(g, u); });
+      } else G.slice(1).forEach((r, i) => { /* rows = grades, columns = themes */
+        const g = rowGrades[i + 1] || lastGrade; headThemes.forEach((th, c) => { if(!th) return; const u = poiParseCell(r[c] || []); u.theme = th; add(g, u); }); });
+    } else if(colThemes.filter(Boolean).length >= 2 && headGrades.filter(Boolean).length){ /* rows = themes, columns = grades */
+      G.slice(1).forEach(r => { const th = poiTheme(txt(r[0])); if(!th) return; headGrades.forEach((g, c) => { if(!g || !c) return; const u = poiParseCell(r[c] || []); u.theme = th; add(g, u); }); });
+    } else { /* any other table: each cell that names a theme becomes a unit */
+      G.forEach((r, i) => r.forEach((c, j) => { const th = poiTheme(txt(c).slice(0, 80)); if(!th) return; const u = poiParseCell(c); u.theme = th; add(rowGrades[i] || headGrades[j] || lastGrade, u); }));
+    }
+  });
+  const order = g => { const i = GRADES.findIndex(x => x[0] === g); return i < 0 ? 50 + (parseInt(String(g).replace(/\D/g, "")) || 0) : i; };
+  return Object.keys(out).sort((a, b) => order(a) - order(b)).map(g => ({ grade: g, units: out[g] }));
+}
+function poiLoadScript(src){ return new Promise((ok, no) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("Could not load the Word reader. Check your internet and try again.")); document.head.appendChild(s); }); }
+const poiB64 = file => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = no; r.readAsDataURL(file); });
+function poiShrink(file){ return new Promise(ok => { const img = new Image(); img.onload = () => { const k = Math.min(1, 2200 / Math.max(img.width, img.height)); const c = document.createElement("canvas"); c.width = img.width * k; c.height = img.height * k; c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL("image/jpeg", .88).split(",")[1]); }; img.onerror = () => ok(null); img.src = URL.createObjectURL(file); }); }
+async function poiUpload(file){
+  if(!file) return; poiU.err = ""; poiU.file = file.name; poiU.busy = "Reading " + file.name + "…"; render();
+  try{
+    let grades = [];
+    if(/\.docx$/i.test(file.name)){
+      await poiLoadScript("https://cdn.jsdelivr.net/npm/mammoth@1/mammoth.browser.min.js");
+      const r = await window.mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+      grades = poiFromHTML(r.value);
+      if(!grades.length) throw new Error("I couldn't find a programme of inquiry table in this Word file. Make sure the grades and the six themes are in a table, or try uploading it as a PDF.");
+    } else if(/\.doc$/i.test(file.name)){
+      throw new Error("This is an older Word file (.doc). Please open it in Word and choose File → Save As → Word Document (.docx), then upload it again.");
+    } else if(/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name) || /^image\//.test(file.type)){
+      if(file.size > 20 * 1024 * 1024) throw new Error("This file is bigger than 20 MB. Please upload a smaller file.");
+      const isImg = /^image\//.test(file.type), data = isImg ? await poiShrink(file) : await poiB64(file);
+      if(!data) throw new Error("I couldn't open this picture. Try a JPG or PNG.");
+      poiU.busy = "WonderNest's AI is reading your programme of inquiry… this can take up to a minute."; render();
+      const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task: "poi_extract", unit: {}, file: { name: file.name, type: isImg ? "image/jpeg" : "application/pdf", data } }) });
+      const d = await res.json().catch(() => ({}));
+      if(!res.ok || !d.grades) throw new Error(d.error ? "The AI could not read this file yet (" + d.error + "). Word files work straight away." : "The AI could not read this file just now. Word files work straight away.");
+      grades = d.grades.map(g => ({ grade: poiGrade(g.grade) || g.grade, units: (g.units || []).map(u => Object.assign({ theme: "", title: "", centralIdea: "", lines: [], keyConcepts: [], relatedConcepts: [], atl: [], learnerProfile: [], sdgs: [], subjects: [], timing: "", action: "", summative: "", other: [] }, u, { theme: poiTheme(u.theme || "") || u.theme })) }));
+    } else throw new Error("Please upload a Word file (.docx), a PDF or a photo (JPG or PNG).");
+    poiU.draft = { title: "Programme of inquiry", year: poiYear(), grades, file: file.name, uploadedAt: new Date().toISOString(), uploadedBy: (tc.user && tc.user.email) || "" };
+    poiU.grade = (grades[0] || {}).grade || "";
+  }catch(e){ poiU.err = e.message || "Something went wrong. Please try again."; }
+  poiU.busy = ""; render();
+}
+function poiYear(){ const d = new Date(), y = d.getFullYear(), m = d.getMonth(); return m >= 7 ? `${y}–${y + 1}` : `${y - 1}–${y}`; }
+const poiSaved = () => settings.poiUpload || null;
+async function poiSave(){
+  const p = poiU.draft; if(!p) return;
+  settings.poiUpload = p; store.set("wn_settings", settings);
+  if(db && sch.school){
+    if(!schoolAdmin()){ toast("Saved on this device. Ask your school admin to upload it so everyone can see it."); }
+    else { const { error: e } = await db.from("schools").update({ settings }).eq("id", sch.school.id); if(e) toast("Saved on this device only: " + tcErr(e)); else toast("Programme of inquiry saved for your whole school ✓"); }
+  } else toast("Saved on this device ✓");
+  poiU.draft = null; render();
+}
+async function poiRemove(){
+  if(!confirm("Remove the uploaded programme of inquiry for the whole school?")) return;
+  delete settings.poiUpload; store.set("wn_settings", settings);
+  if(db && sch.school && schoolAdmin()) await db.from("schools").update({ settings }).eq("id", sch.school.id);
+  render();
+}
+const POI_ORDER = ["who","where","express","works","organize","planet"].map(id => THEMES.find(t => t.id === id));
+const poiTh = id => THEMES.find(t => t.id === id) || { ic: "📌", name: "Other" };
+function poiUnitCard(u, gi, ui, editable){
+  const tags = (arr, cls) => (arr || []).map(x => `<span class="${cls}">${esc(x)}</span>`).join("");
+  return `<div class="pu-card">
+    ${editable ? `<button class="pu-edit" title="Edit" onclick="poiU.edit=[${gi},${ui}];render()">✏️</button>` : ""}
+    ${u.title ? `<div class="pu-title">${esc(u.title)}</div>` : ""}
+    ${u.centralIdea ? `<div class="pu-ci">${esc(u.centralIdea)}</div>` : ""}
+    ${u.lines.length ? `<div class="pu-lab">Lines of inquiry</div><ul class="pu-loi">${u.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}
+    ${u.keyConcepts.length ? `<div class="pu-lab">${esc(settings.conceptLabel || "Specified concepts")}</div><div>${tags(u.keyConcepts, "pu-k")}</div>` : ""}
+    ${u.relatedConcepts.length ? `<div class="pu-lab">Related concepts</div><div>${tags(u.relatedConcepts, "pu-r")}</div>` : ""}
+    ${u.atl.length ? `<div class="pu-lab">ATL</div><div>${tags(u.atl, "pu-a")}</div>` : ""}
+    ${u.learnerProfile.length ? `<div class="pu-lab">Learner profile</div><div>${tags(u.learnerProfile, "pu-a")}</div>` : ""}
+    ${u.subjects.length ? `<div class="pu-lab">Subjects</div><div>${tags(u.subjects, "pu-r")}</div>` : ""}
+    ${u.sdgs.length ? `<div class="pu-lab">SDGs</div><div>${u.sdgs.map(n => sdgBadge(Number(n))).join("")}</div>` : ""}
+    ${u.timing ? `<div class="pu-lab">Timing</div><div class="pu-small">${esc(u.timing)}</div>` : ""}
+    ${u.other.length ? `<div class="pu-small" style="margin-top:6px">${u.other.map(esc).join("<br>")}</div>` : ""}
+  </div>`;
+}
+function poiUploadView(){
+  const saved = poiSaved(), p = poiU.draft || saved, editable = !!poiU.draft;
+  const top = `<div class="top"><div><div class="crumb">WonderNest${sch.school ? " · " + esc(sch.school.name) : ""}</div><h1>📥 Our programme of inquiry</h1></div>
+    ${p && !poiU.draft ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="poiPrint()">🖨️ Print</button><button class="btn ghost" onclick="poiWordUp()">⬇️ Word</button><label class="btn">📥 Upload a new version<input type="file" accept=".docx,.pdf,image/*" hidden onchange="poiUpload(this.files[0])"></label></div>` : ""}</div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  const drop = `<label class="pu-drop" ondragover="event.preventDefault();this.classList.add('on')" ondragleave="this.classList.remove('on')" ondrop="event.preventDefault();this.classList.remove('on');poiUpload(event.dataTransfer.files[0])">
+      <img src="wondernest-mark.png" alt=""><b>Upload your programme of inquiry</b><span>Drag your file here, or click to choose it</span><span class="pu-types"><i>📄 Word (.docx)</i><i>📕 PDF</i><i>📷 Photo or screenshot</i></span>
+      <input type="file" accept=".docx,.pdf,image/*" hidden onchange="poiUpload(this.files[0])"></label>`;
+  if(poiU.busy) return top + `<div class="card pu-busy"><img src="wondernest-mark.png" alt=""><b>${esc(poiU.busy)}</b></div>`;
+  const errBox = poiU.err ? `<div class="err">⚠️ ${esc(poiU.err)}</div>` : "";
+  if(!p) return top + errBox + `<div class="card"><p class="hint" style="margin-bottom:12px">Upload the programme of inquiry your school already has. WonderNest reads it and shows it here in the WonderNest design, so every teacher can see the whole programme at a glance. Word files are read exactly as written. PDFs and photos are read by WonderNest's AI, so please check them before saving.</p>${drop}</div>
+    <div class="card"><div class="label">Tips for the best result</div><ul class="pu-tips"><li>Keep the grades and the six transdisciplinary themes in one table (grades down the side, themes across the top, or the other way round).</li><li>Label each part, for example <b>Central idea:</b>, <b>Lines of inquiry:</b>, <b>Specified concepts:</b>.</li><li>Photos: take the picture straight on, in good light, with the whole table showing.</li></ul></div>`;
+  const G = p.grades || [], total = G.reduce((a, g) => a + g.units.length, 0);
+  if(!G.find(g => g.grade === poiU.grade)) poiU.grade = (G[0] || {}).grade || "";
+  const head = poiU.draft ? `<div class="pu-review"><div><b>👀 Check your programme of inquiry</b><span>I found ${G.length} grade${G.length === 1 ? "" : "s"} and ${total} unit${total === 1 ? "" : "s"} in <b>${esc(poiU.draft.file)}</b>. Tap ✏️ on any unit to fix it, then save it for your school.</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="poiU.draft=null;poiU.err='';render()">Cancel</button><button class="btn" onclick="poiSave()">💾 Save for our school</button></div></div>`
+    : `<p class="hint" style="margin:-8px 0 14px">${esc(p.year || "")} · from <b>${esc(p.file || "an uploaded file")}</b>${p.uploadedAt ? " · uploaded " + new Date(p.uploadedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""}${schoolAdmin() || !sch.school ? ` · <button class="link" style="color:var(--coral)" onclick="poiRemove()">Remove</button>` : ""}</p>`;
+  const tabs = `<div class="pu-tabs"><button class="${poiU.mode === "grid" ? "on" : ""}" onclick="poiU.mode='grid';render()">🗂️ Whole programme</button><button class="${poiU.mode === "grade" ? "on" : ""}" onclick="poiU.mode='grade';render()">🎒 By grade</button></div>`;
+  const usedThemes = POI_ORDER.filter(t => G.some(g => g.units.some(u => u.theme === t.id)));
+  const other = G.some(g => g.units.some(u => !THEMES.find(t => t.id === u.theme)));
+  const cols = other ? [...usedThemes, { id: "", ic: "📌", name: "Other" }] : POI_ORDER;
+  let body;
+  if(poiU.mode === "grid"){
+    body = `<div class="pu-scroll"><table class="pu-grid"><thead><tr><th class="pu-gh">Grade</th>${cols.map(t => `<th><span>${t.ic}</span>${esc(t.name)}</th>`).join("")}</tr></thead><tbody>
+      ${G.map((g, gi) => `<tr><th class="pu-gr">${esc(g.grade)}</th>${cols.map(t => { const us = g.units.map((u, ui) => [u, ui]).filter(([u]) => t.id ? u.theme === t.id : !THEMES.find(x => x.id === u.theme)); return `<td class="${us.length ? "" : "pu-gap"}">${us.map(([u, ui]) => poiUnitCard(u, gi, ui, editable)).join("") || "<span class='hint'>–</span>"}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
+  } else {
+    const gi = G.findIndex(g => g.grade === poiU.grade), g = G[gi] || { units: [] };
+    g.units.sort((a, b) => POI_ORDER.findIndex(t => t.id === a.theme) - POI_ORDER.findIndex(t => t.id === b.theme));
+    body = `<div class="pu-gtabs">${G.map(x => `<button class="chip ${x.grade === poiU.grade ? "on" : ""}" onclick="poiU.grade='${esc(x.grade)}';render()">${esc(x.grade)}</button>`).join("")}</div>
+      <div class="pu-cards">${g.units.map((u, ui) => { const t = poiTh(u.theme); return `<div class="pu-col"><div class="pu-colh"><span>${t.ic}</span>${esc(t.name)}</div>${poiUnitCard(u, gi, ui, editable)}</div>`; }).join("")}</div>`;
+  }
+  return top + errBox + head + tabs + body + (poiU.edit ? poiEditor() : "");
+}
+function poiEditor(){
+  const [gi, ui] = poiU.edit, u = poiU.draft.grades[gi].units[ui], ta = (k, v, h) => `<label class="label" style="margin-top:10px">${k}</label><textarea id="pe_${h}" style="min-height:${h === "lines" ? 90 : 54}px">${esc(v)}</textarea>`;
+  return `<div class="modal-bg" onclick="if(event.target===this){poiU.edit=null;render()}"><div class="modal" style="width:min(640px,96vw)">
+    <h2 style="color:var(--navy);margin-bottom:6px">✏️ Edit unit</h2>
+    <div class="grid2" style="grid-template-columns:1fr 1fr;gap:10px"><div><label class="label">Grade</label><input type="text" id="pe_grade" style="width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px" value="${esc(poiU.draft.grades[gi].grade)}"></div>
+      <div><label class="label">Theme</label><select id="pe_theme">${POI_ORDER.map(t => `<option value="${t.id}" ${u.theme === t.id ? "selected" : ""}>${t.ic} ${esc(t.name)}</option>`).join("")}</select></div></div>
+    ${ta("Unit title (optional)", u.title, "title")}${ta("Central idea", u.centralIdea, "centralIdea")}${ta("Lines of inquiry (one per line)", u.lines.join("\n"), "lines")}
+    ${ta(esc(settings.conceptLabel || "Specified concepts") + " (comma separated)", u.keyConcepts.join(", "), "keyConcepts")}${ta("Related concepts", u.relatedConcepts.join(", "), "relatedConcepts")}
+    ${ta("ATL skills", u.atl.join(", "), "atl")}${ta("Learner profile", u.learnerProfile.join(", "), "learnerProfile")}${ta("Subjects", u.subjects.join(", "), "subjects")}${ta("SDG numbers", u.sdgs.join(", "), "sdgs")}${ta("Timing", u.timing, "timing")}${ta("Other notes", u.other.join("\n"), "other")}
+    <div class="actions"><button class="link danger" onclick="poiDelUnit()">Delete this unit</button><div style="display:flex;gap:8px"><button class="btn ghost" onclick="poiU.edit=null;render()">Cancel</button><button class="btn" onclick="poiApplyEdit()">Done</button></div></div></div></div>`;
+}
+function poiApplyEdit(){
+  const [gi, ui] = poiU.edit, P = poiU.draft, u = P.grades[gi].units[ui], v = id => ($("#pe_" + id) || {}).value || "";
+  Object.assign(u, { theme: v("theme"), title: v("title").trim(), centralIdea: v("centralIdea").trim(), lines: v("lines").split("\n").map(x => x.trim()).filter(Boolean), keyConcepts: poiList(v("keyConcepts")), relatedConcepts: poiList(v("relatedConcepts")), atl: poiList(v("atl")), learnerProfile: poiList(v("learnerProfile")), subjects: poiList(v("subjects")), sdgs: (v("sdgs").match(/\d{1,2}/g) || []).map(Number).filter(n => n >= 1 && n <= 17), timing: v("timing").trim(), other: v("other").split("\n").map(x => x.trim()).filter(Boolean) });
+  const g = v("grade").trim();
+  if(g && g !== P.grades[gi].grade){ P.grades[gi].units.splice(ui, 1); let tg = P.grades.find(x => x.grade === g); if(!tg){ tg = { grade: g, units: [] }; P.grades.push(tg); } tg.units.push(u); P.grades = P.grades.filter(x => x.units.length); }
+  poiU.edit = null; render();
+}
+function poiDelUnit(){ if(!confirm("Delete this unit from the upload?")) return; const [gi, ui] = poiU.edit; poiU.draft.grades[gi].units.splice(ui, 1); poiU.draft.grades = poiU.draft.grades.filter(x => x.units.length); poiU.edit = null; render(); }
+function poiDocHTML(p){
+  const cell = u => [u.title && `<b>${esc(u.title)}</b>`, u.centralIdea && `<p><b>Central idea:</b> ${esc(u.centralIdea)}</p>`, u.lines.length && `<p><b>Lines of inquiry:</b></p><ul>${u.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>`, u.keyConcepts.length && `<p><b>${esc(settings.conceptLabel || "Specified concepts")}:</b> ${esc(u.keyConcepts.join(", "))}</p>`, u.relatedConcepts.length && `<p><b>Related concepts:</b> ${esc(u.relatedConcepts.join(", "))}</p>`, u.atl.length && `<p><b>ATL:</b> ${esc(u.atl.join(", "))}</p>`, u.learnerProfile.length && `<p><b>Learner profile:</b> ${esc(u.learnerProfile.join(", "))}</p>`, u.subjects.length && `<p><b>Subjects:</b> ${esc(u.subjects.join(", "))}</p>`, u.sdgs.length && `<p><b>SDGs:</b> ${u.sdgs.join(", ")}</p>`, u.timing && `<p><b>Timing:</b> ${esc(u.timing)}</p>`].filter(Boolean).join("");
+  return `<h1>Programme of inquiry ${esc(p.year || "")}</h1><p>${esc(settings.school || "")}</p><table><tr><th>Grade</th>${POI_ORDER.map(t => `<th>${esc(t.name)}</th>`).join("")}</tr>${(p.grades || []).map(g => `<tr><td><b>${esc(g.grade)}</b></td>${POI_ORDER.map(t => `<td>${g.units.filter(u => u.theme === t.id).map(cell).join("<hr>")}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+function poiPrint(){ const p = poiSaved(); if(p) printWin("Programme of inquiry", poiDocHTML(p), "@page{size:A3 landscape}table{border-collapse:collapse;font-size:8.5pt}td,th{border:1px solid #ccd;padding:5px;vertical-align:top}th{background:#1f4fb0;color:#fff}"); }
+function poiWordUp(){ const p = poiSaved(); if(p) wordDownload("Programme of inquiry - " + (settings.school || "WonderNest"), poiDocHTML(p)); }
+
 const poiS = { units: null };
 async function poiLoad(){ const { data } = await db.from("units").select("id, data, grade, theme, in_poi, owner").eq("in_poi", true); poiS.units = (data || []).map(r => Object.assign({}, r.data, { id: r.id })); render(); }
 function poiView(){
