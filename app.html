@@ -4940,8 +4940,8 @@ uWheelPrint = function(){ printWin("Inquiry cycle - " + (unit.centralIdea || "un
    OBJECTIVES BANK: National Curriculum English, Maths and Science (KG2 to Grade 5)
    ===================================================================== */
 const obS = { open: false, sub: "", target: "unit", week: 0, grade: "", strand: "", q: "", sel: [], unitOnly: false };
-const obSubj = name => { const r = subRank(name); return r === 0 ? "English" : r === 1 ? "Maths" : r === 2 ? "Science" : ""; };
-const obList = (grade, s) => ((window.NC_BANK || {})[grade] || {})[s] || [];
+let obSubj = name => { const r = subRank(name); return r === 0 ? "English" : r === 1 ? "Maths" : r === 2 ? "Science" : ""; };
+let obList = (grade, s) => ((window.NC_BANK || {})[grade] || {})[s] || [];
 const obLines = t => String(t || "").split("\n").map(x => x.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean);
 const obUnitChosen = sub => { const x = (unit.subjects || []).find(y => y.subject === sub); return x ? obLines(x.topics) : []; };
 function obOpen(sub, target, week){
@@ -5001,6 +5001,102 @@ uWeekEditor = function(k){
   .ob-item{display:flex;gap:10px;align-items:flex-start;padding:8px 4px;border-bottom:1px dashed var(--line);cursor:pointer}.ob-item input{width:18px;height:18px;margin-top:2px;flex:none}
   .ob-item b{font-weight:600;display:block;line-height:1.4}.ob-item small{display:block;color:var(--muted);margin-top:2px}.ob-item em{font-style:normal;color:#1d7a4e;font-size:12px;font-weight:800}.ob-item.done{opacity:.7}
   .ob-item:hover{background:#f5f9ff}`; document.head.appendChild(st); })();
+
+
+/* =====================================================================
+   MORE BANKS (Art/STEAM, Music), RWI stages, robust week subjects, parent page
+   ===================================================================== */
+obSubj = name => { const t = String(name).toLowerCase(), r = subRank(name); return r === 0 ? "English" : r === 1 ? "Maths" : r === 2 ? "Science" : /^(art|steam|design|d&t)/.test(t) ? "Art" : /^music/.test(t) ? "Music" : ""; };
+obList = (grade, s) => ((s === "Art" || s === "Music") ? ((window.NC_BANK_EXTRA || {})[s] || {})[grade] : ((window.NC_BANK || {})[grade] || {})[s]) || [];
+const obGrades = s => Object.keys(((s === "Art" || s === "Music") ? (window.NC_BANK_EXTRA || {})[s] : window.NC_BANK) || {});
+const _obModalBase = obModal;
+obModal = function(){ const s = obSubj(obS.sub), gs = obGrades(s); if(!gs.includes(obS.grade)) obS.grade = gs.includes(unit.grade) ? unit.grade : gs[0];
+  let h = _obModalBase(); const opts = Object.keys(window.NC_BANK || {}).map(g => `<option ${g === obS.grade ? "selected" : ""}>${esc(g)}</option>`).join("");
+  h = h.replace(opts, gs.map(g => `<option ${g === obS.grade ? "selected" : ""}>${esc(g)}</option>`).join(""));
+  if(s === "Art" || s === "Music") h = h.replace("National Curriculum for England · ", "National Curriculum for England (" + (s === "Art" ? "Art and design, Design and technology" : "Music") + ") · ");
+  return h; };
+
+/* week subjects: match "English" to "English Genre…", "Maths" to "Mathematics", and fall back to tagged activities */
+function subjMatch(key, s){ const k = String(key).toLowerCase().replace(/[:\s]+$/, "").trim(), t = String(s).toLowerCase().trim(); if(!k) return false;
+  if(k === t || t.startsWith(k) || k.startsWith(t)) return true; const g = { english: 0, literacy: 0, maths: 1, math: 1, mathematics: 1, numeracy: 1, science: 2 }; return g[k] !== undefined && g[k] === subRank(s) && subRank(s) < 3 && ((unit.subjects || []).find(y => subRank(y.subject) === subRank(s)) || {}).subject === s; }
+function weekSubjText(w, s){
+  const S = w.subj || {}; if(String(S[s] || "").trim()) return String(S[s]);
+  const k = Object.keys(S).find(x => x !== s && String(S[x] || "").trim() && !(unit.subjects || []).some(y => y.subject === x) && subjMatch(x, s)); if(k) return String(S[k]);
+  const lines = []; CYCLE.forEach(([ph]) => { if(((w.tags || {})[ph] || []).includes(s)) String((w.cells || {})[ph] || "").split("\n").map(l => l.trim()).filter(Boolean).slice(0, 1).forEach(l => lines.push(l)); });
+  return lines.join("\n");
+}
+wkSubjText = function(w, obj){ w.subj = w.subj || {}; Object.entries(obj || {}).forEach(([key, t]) => { if(!t) return; const subs = wkSubs(); let s = subs.find(x => x === key) || subs.find(x => subjMatch(key, x)); if(s && !(w.subj[s] || "").trim()) w.subj[s] = Array.isArray(t) ? t.join("\n") : String(t); }); };
+const _uWeekCardWS = uWeekCard;
+uWeekCard = function(k, sel){ const w = unit.weeks[k], keep = w.subj; w.subj = Object.assign({}, keep); (unit.subjects || []).forEach(x => { const t = weekSubjText(Object.assign({}, w, { subj: keep }), x.subject); if(t) w.subj[x.subject] = t; }); try{ return _uWeekCardWS(k, sel); } finally{ w.subj = keep; } };
+async function weekSubjFill(k){
+  if(!(unit.subjects || []).length) return toast("Add subjects in step 6 first");
+  const w = unit.weeks[k]; loading(true, "Writing the subject points for week " + (k + 1) + "…");
+  try{ const c = wkCtx(); const r = await ai("weekly_cycle", unit, Object.assign(c, { week: k + 1, weeks: unit.weeks.length, lineNo: w.line, lineText: w.line ? (unit.lines[w.line - 1] || {}).text : "", focus: w.focus, existing: w.cells, phaseThisWeek: phaseOfWeek(k, unit.weeks.length), tdForLine: c.tdExperiences.filter(e => Number(e.line) === Number(w.line)) }));
+    const before = JSON.stringify(w.subj || {}); wkSubjText(w, r.subjects); saveCurrent(); toast(before === JSON.stringify(w.subj) ? "No new subject points came back. Try again." : "Subject points added ✓"); }
+  catch(e){ error = e.message; } finally{ loading(false); render(); }
+}
+const _uWeekEdWS = uWeekEditor;
+uWeekEditor = function(k){ const w = unit.weeks[k]; w.subj = w.subj || {}; (unit.subjects || []).forEach(x => { if(!String(w.subj[x.subject] || "").trim()){ const t = weekSubjText(w, x.subject); if(t && Object.keys(w.subj).some(key => key !== x.subject && subjMatch(key, x.subject))) w.subj[x.subject] = t; } });
+  return _uWeekEdWS(k).replace('📚 What each subject teaches this week · main points</div>', `📚 What each subject teaches this week · main points <button class="link" style="margin-left:10px;text-transform:none;letter-spacing:0" onclick="weekSubjFill(${k})">✨ Suggest</button></div>`); };
+
+/* Read Write Inc. stage in English planning (Pre-K to Grade 2) */
+const _stepSubjRWI = stepSubjects;
+stepSubjects = function(){
+  let h = _stepSubjRWI(); const st = (window.RWI_STAGES || {})[unit.grade]; if(!st) return h;
+  const i = (unit.subjects || []).findIndex(x => subRank(x.subject) === 0); if(i < 0) return h;
+  const x = unit.subjects[i], has = obLines(x.topics).includes(st), id = `id="tdtop${i}"`;
+  return h.replace(id, `${id} data-rwi="1"`).replace(new RegExp(`(<textarea ${id} data-rwi="1")`), `<div class="rwi"><span>📖 <b>${esc(unit.grade)} phonics:</b> ${esc(st.replace(/^Read Write Inc\.( Comprehension)?: /, ""))}</span>${has ? `<em>✓ added</em>` : `<button class="link" onclick="rwiAdd(${i})">＋ Add</button>`}</div>$1`);
+};
+function rwiAdd(i){ const x = unit.subjects[i], st = RWI_STAGES[unit.grade]; x.topics = [...obLines(x.topics), st].join("\n"); saveCurrent(); render(); toast("Phonics stage added ✓"); }
+
+/* Inspire me picks from the bank for English, Maths, Science, Art and Music */
+tdFocusIdeas = async function(i){
+  tdObj(); const x = unit.subjects[i]; if(!x) return; if(!(unit.centralIdea || "").trim()) return toast("Choose a central idea first");
+  const s = obSubj(x.subject), bank = s ? obList(unit.grade, s).map(o => (o[0] ? o[0] + " | " : "") + o[1]) : [];
+  loading(true, "Finding " + x.subject + " ideas for this unit…");
+  try{ const d = await ai("subject_focus", unit, { subject: x.subject, already: (x.topics || "").slice(0, 600), lines: (unit.lines || []).map(l => l.text).filter(Boolean), bank: bank.slice(0, 80) });
+    const ideas = (d.ideas || []).filter(v => v && v.topic).map(v => Object.assign(v, { topic: String(v.topic).replace(/^[^|]*\|\s*/, "") })).slice(0, 8);
+    if(!ideas.length) throw new Error("No ideas came back. Please try again.");
+    x.ideas = ideas; saveCurrent(); }
+  catch(e){ error = /unknown task/i.test(e.message || "") ? "Subject ideas need a small update to the WonderNest AI. Please ask your WonderNest administrator to update the AI worker." : e.message; }
+  finally{ loading(false); render(); }
+};
+
+/* Parent page for a unit, in the style of the school's Parent Guide */
+async function parentPage(word){
+  if(!(unit.centralIdea || "").trim()) return toast("Choose a central idea first");
+  const t = themeOf(unit.theme), K = (unit.kud || {}), subs = unit.subjects || [];
+  if(!unit.parent || !unit.parent.learn){
+    loading(true, "Writing the parent page…");
+    try{ unit.parent = await ai("parent_page", unit, { linesFull: (unit.lines || []).map((l, i) => `Line ${i + 1}: ${l.text}`), subjects: subs.map(s => s.subject + ": " + obLines(s.topics).slice(0, 4).join("; ")), kud: K, relatedConcepts: unit.relatedConcepts || [], learnerProfile: unit.learnerProfile || [] }); saveCurrent(); }
+    catch(e){ unit.parent = { learn: [K.integration, K.understandings].filter(Boolean).join("\n\n"), talk: "", tryTogether: "", explore: "" }; if(!/unknown task/i.test(e.message || "")) toast(e.message); }
+    finally{ loading(false); }
+  }
+  const P = unit.parent || {}, row = (a, b, c, d) => c !== undefined ? `<tr><th>${a}</th><td>${b || "–"}</td><th>${c}</th><td>${d || "–"}</td></tr>` : `<tr><th>${a}</th><td colspan="3">${b || "–"}</td></tr>`;
+  const focus = rx => { const f = subs.filter(s => rx.test(s.subject)).map(s => { const L = obLines(s.topics); return L.find(l => !/^Read Write Inc/.test(l)) || L[0] || ""; }).filter(Boolean); return f.map(esc).join(" · "); };
+  const others = subs.filter(s => subRank(s.subject) === 3 && !/^(art|steam|design|arabic)/i.test(s.subject) && obLines(s.topics)[0]);
+  const atl = [...new Set((unit.atl || []).map(a => String(a).split(" · ")[0]))].join(" · ");
+  const html = `<div class="pgp"><div class="pgp-h"><span>${esc(t ? t.ic : "")}</span><div><small>${esc([settings.school, gradeLabel(unit)].filter(Boolean).join(" · "))}</small><h1>${esc(t ? t.name : "Unit of inquiry")}</h1></div></div>
+    <h2>This unit at a glance</h2><table class="pgp-t">
+    ${row("Central idea", `<b>${esc(unit.centralIdea)}</b>`)}
+    ${row("Lines of inquiry", (unit.lines || []).map((l, i) => `${i + 1}. ${esc(l.text)}`).join("<br>"))}
+    ${row(esc(settings.conceptLabel || "Specified concepts"), esc((unit.keyConcepts || []).join(" · ")), "Related concepts", esc((unit.relatedConcepts || []).join(" · ")))}
+    ${row("ATL skills", esc(atl), "Learner profile", esc((unit.learnerProfile || []).join(" · ")))}
+    ${row("English", focus(/^(english|spag|phonics|reading|writing|literacy)/i), "Maths", focus(/^(math|numeracy)/i))}
+    ${row("Science", focus(/^science/i), "Art / STEAM", focus(/^(art|steam|design)/i))}
+    ${subs.some(s => /^arabic/i.test(s.subject)) ? row("Arabic", focus(/^arabic/i)) : ""}
+    ${others.map(s => row(esc(s.subject), esc(obLines(s.topics)[0]))).join("")}</table>
+    <h2>What your child will learn</h2>${String(P.learn || "").split(/\n\s*\n|\n/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join("") || `<p class="hint">Write the KUD on the Inquiry cycle page, or ask your administrator to update the AI worker.</p>`}
+    ${P.talk || P.tryTogether || P.explore ? `<div class="pgp-home"><h3>LEARNING AT HOME</h3>${P.talk ? `<p><b>Talk about:</b> ${esc(P.talk)}</p>` : ""}${P.tryTogether ? `<p><b>Try together:</b> ${esc(P.tryTogether)}</p>` : ""}${P.explore ? `<p><b>Explore:</b> ${esc(P.explore)}</p>` : ""}</div>` : ""}</div>`;
+  const css = `body{font-family:Arial,sans-serif;color:#1b2540}.pgp-h{display:flex;gap:14px;align-items:center;background:#1f4fb0;color:#fff;border-radius:14px;padding:12px 18px}.pgp-h span{font-size:38px}.pgp-h small{font-weight:700}.pgp-h h1{margin:2px 0 0;color:#fff;font-size:26px}
+    h2{color:#1f4fb0;font-size:17px;margin:16px 0 8px}.pgp-t{width:100%;border-collapse:collapse;font-size:12.5px}.pgp-t th{background:#eef4ff;color:#1f4fb0;text-align:left;width:15%;padding:7px;border:1px solid #d9e2f1;vertical-align:top}.pgp-t td{padding:7px;border:1px solid #d9e2f1;vertical-align:top}
+    p{font-size:13.5px;line-height:1.55}.pgp-home{background:#fff7dc;border:2px solid #f5d27a;border-radius:14px;padding:10px 16px;margin-top:12px}.pgp-home h3{margin:0 0 4px;color:#8a6400;font-size:14px;letter-spacing:.06em}`;
+  if(word) wordDownload("Parent page - " + (t ? t.name : "unit") + " - " + (unit.grade || ""), `<style>${css}</style>` + html); else printWin("Parent page", html, "@page{size:A4;margin:12mm}" + css);
+  render();
+}
+const _cycleParent = cycleView;
+cycleView = function(){ return _cycleParent().replace('<button class="btn" onclick="uWheelPrint()">🖨️ Print or save as PDF</button>', `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="parentPage(false)">👪 Parent page</button><button class="btn ghost" onclick="parentPage(true)">⬇️ Parent page (Word)</button><button class="btn" onclick="uWheelPrint()">🖨️ Print or save as PDF</button></div>`); };
+(function(){ const st = document.createElement("style"); st.textContent = `.rwi{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff7dc;border:1px solid #f5d27a;border-radius:12px;padding:8px 12px;margin:6px 0;font-size:13.5px}.rwi em{font-style:normal;color:#1d7a4e;font-weight:800;white-space:nowrap}`; document.head.appendChild(st); })();
 
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
