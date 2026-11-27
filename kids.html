@@ -7,6 +7,7 @@
 <title>My Wonder Nest</title>
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
+<script src="wonder-library.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -365,6 +366,57 @@ const SDG_STORIES = [
   h1,h2,h3,.sect,.big-title{font-family:"Fredoka","Nunito",sans-serif !important}
   .head h1{font-weight:700}
   .birdwrap .hat{top:-12% !important;left:58% !important;transform:translateX(-30%) !important}
+</style>
+
+<style>
+  /* ===== Wonder Library (calm blue + soft yellow) ===== */
+  .wl-intro{display:flex;gap:12px;align-items:center;background:#EAF3FF !important}
+  .wl-intro img{width:64px;flex-shrink:0}
+  .wl-intro p{color:#23479a;font-size:15px;line-height:1.45}
+  .wl-search{width:100%;border:2px solid #D6E7FF;border-radius:18px;padding:14px 16px;font-size:17px;background:#fff;margin-bottom:4px}
+  .wl-themes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .wl-th{background:#fff;border:2px solid #D6E7FF;border-radius:18px;padding:12px 8px;font-weight:800;font-size:14px;color:#23479a;line-height:1.25;text-align:center}
+  .wl-th span{display:block;font-size:28px;margin-bottom:4px}
+  .wl-th.on{background:#FFF5D6;border-color:#F8E3A3;color:#6B4E00}
+  .wl-chips{display:flex;gap:8px;flex-wrap:wrap}
+  .wl-chip{background:#fff;border:2px solid #D6E7FF;border-radius:999px;padding:8px 14px;font-weight:800;font-size:14.5px;color:#23479a;display:inline-flex;gap:6px;align-items:center}
+  .wl-chip.on{background:#23479a;border-color:#23479a;color:#fff}
+  .wl-num{font-style:normal;width:24px;height:24px;border-radius:50%;background:#D6E7FF;color:#23479a;display:inline-grid;place-items:center;font-size:12px;font-weight:900}
+  .wl-chip.on .wl-num{background:#fff}
+  .wl-clear{font-size:13px;font-weight:800;color:#6B4E00;background:#FFF5D6;border-radius:999px;padding:4px 10px;margin-left:6px}
+  .wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:6px}
+  .wl-card{background:#fff;border:2px solid #D6E7FF;border-radius:20px;overflow:hidden;text-align:left;padding:0;display:block}
+  .wl-pic{height:110px;display:grid;place-items:center;font-size:54px;position:relative}
+  .wl-pic.b,.wl-hero.b{background:linear-gradient(160deg,#EAF3FF,#D6E7FF)}
+  .wl-pic.y,.wl-hero.y{background:linear-gradient(160deg,#FFF5D6,#F8E3A3)}
+  .wl-pin{position:absolute;left:10px;bottom:8px;background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;color:#23479a}
+  .wl-cb{padding:11px 13px 13px}
+  .wl-cb b{display:block;font-size:16.5px;color:#23479a;line-height:1.25}
+  .wl-cb small{display:block;margin-top:6px;font-weight:700;color:var(--muted);font-size:12.5px}
+  .wl-mini{font-style:normal;background:#EAF3FF;border-radius:8px;padding:2px 7px;color:#23479a;font-weight:800;font-size:12px;display:inline-flex;gap:5px;align-items:center;margin:2px 4px 2px 0}
+  .wl-hero{height:170px;border-radius:24px;display:grid;place-items:center;font-size:90px;position:relative;margin-bottom:14px}
+  .wl-title{font-size:26px !important;color:#23479a;line-height:1.2;margin-bottom:8px}
+  .wl-meta{margin-bottom:10px}
+  .wl-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px}
+  .wl-tools .btn{padding:11px 16px;font-size:16px}
+  .wl-seg{display:inline-flex;background:#fff;border:2px solid #D6E7FF;border-radius:14px;padding:3px}
+  .wl-seg button{padding:8px 12px;border-radius:10px;font-weight:800;font-size:14px;color:var(--muted)}
+  .wl-seg button.on{background:#23479a;color:#fff}
+  .wl-text p{font-size:19px;line-height:1.75;margin-bottom:12px}
+  .wl-text.g12 p{font-size:21px;line-height:1.8}
+  [dir=rtl] .wl-text p{font-size:21px}
+  .wl-w{background:#FFF5D6;color:inherit;border-radius:6px;padding:0 3px;border-bottom:2px dotted #e0b640;cursor:pointer}
+  .wl-tip{font-size:13.5px;color:var(--muted);font-weight:700;margin-top:6px}
+  .wl-box.y{background:#FFF5D6 !important}
+  .wl-box p{font-size:15.5px;line-height:1.55;margin-bottom:6px}
+  .wl-wbtn{background:#fff;border:2px solid #F8E3A3;border-radius:10px;padding:2px 9px;font-weight:900;color:#6B4E00;margin-right:4px}
+  .wl-h3{font-size:16px;color:#23479a;margin:12px 0 6px}
+  .wl-refs{padding-left:20px}
+  .wl-refs li{margin:5px 0;font-size:14.5px}
+  .wl-refs a{color:#1f4fb0;font-weight:800;word-break:break-word}
+  .wl-step{display:flex;gap:10px;align-items:flex-start;margin-top:10px}
+  .wl-stepn{width:30px;height:30px;border-radius:50%;background:#FFF5D6;border:2px solid #F8E3A3;color:#6B4E00;display:grid;place-items:center;font-weight:900;flex-shrink:0;margin-top:2px}
+  @media (max-width:520px){ .wl-themes{grid-template-columns:repeat(2,1fr)} .wl-grid{grid-template-columns:1fr 1fr} .wl-pic{height:90px;font-size:44px} }
 </style>
 </head>
 <body>
@@ -1569,6 +1621,102 @@ addEntry = async function(kind, title, content){ const n = (me.current_unit || {
 
 if(typeof KCONCEPTS !== "undefined") KCONCEPTS.forEach((c, i) => c.c = i % 2 ? "#3E8A64" : "#4A74A8");
 BUBBLE_COLOURS.splice(0, BUBBLE_COLOURS.length, "#E3EDF8","#E2F1E8","#E3EDF8","#E2F1E8","#E3EDF8","#E2F1E8");
+
+/* =====================================================================
+   WONDER LIBRARY: true stories for Grades 1-5 (English and Arabic),
+   linked to the transdisciplinary themes and the SDGs, with references
+   ===================================================================== */
+const WL = window.WONDER_LIBRARY || [];
+const WL_THEMES = [["who","🪞","Who we are"],["place","🗺️","Where we are in place and time"],["express","🎨","How we express ourselves"],["works","⚙️","How the world works"],["organise","🏙️","How we organise ourselves"],["planet","🌍","Sharing the planet"]];
+const WL_THEMES_AR = {who:"من نحن",place:"أين نحن في المكان والزمان",express:"كيف نعبّر عن أنفسنا",works:"كيف يعمل العالم",organise:"كيف ننظّم أنفسنا",planet:"مشاركة الكوكب"};
+const WL_REGIONS = [["Africa","🌍"],["Asia","🌏"],["Europe","🌍"],["Americas","🌎"],["Oceania","🌏"],["Space","🚀"],["World","🌐"]];
+const WL_SDG_AR = ["القضاء على الفقر","القضاء على الجوع","الصحة الجيدة","التعليم الجيد","المساواة بين الجنسين","المياه النظيفة","الطاقة النظيفة","العمل اللائق","الصناعة والابتكار","الحدّ من عدم المساواة","مدن مستدامة","الاستهلاك المسؤول","العمل المناخي","الحياة تحت الماء","الحياة في البرّ","السلام والعدل","الشراكات"];
+let wlF = { theme: "", region: "", sdg: 0, q: "" }, wlOpen = null, wlLang = "en", wlLvl = null, wlPinned = [], wlSdgAll = false;
+const wlTheme = k => WL_THEMES.find(t => t[0] === k) || ["", "📚", ""];
+function wlDefaultLvl(){
+  const g = String((me && (me.grade || (me.current_unit || {}).ageBand)) || "");
+  if(/kg|pre/i.test(g)) return "g12";
+  const m = g.match(/(\d)/); return m && +m[1] >= 3 ? "g35" : "g12";
+}
+async function goLibrary(){
+  wlOpen = null; if(!wlLvl) wlLvl = wlDefaultLvl();
+  try{ const { data } = await db.from("class_sdg_stories").select("story_key").eq("class_id", me.class_id); wlPinned = (data || []).map(r => r.story_key).filter(k => /^wl:/.test(k)).map(k => k.slice(3)); }catch(e){ wlPinned = []; }
+  go("wlib");
+}
+function wlList(){
+  let l = WL.filter(s => (!wlF.theme || s.theme === wlF.theme) && (!wlF.region || s.region === wlF.region) && (!wlF.sdg || s.sdgs.includes(wlF.sdg)));
+  if(wlF.q){ const q = wlF.q.toLowerCase(); l = l.filter(s => [s.title.en, s.title.ar, s.place.en, s.place.ar, s.g12.en.join(" "), s.g12.ar.join(" ")].join(" ").toLowerCase().includes(q)); }
+  return l;
+}
+const wlCard = s => `<button class="wl-card" onclick="wlOpen='${s.id}';go('wstory')"><div class="wl-pic ${s.tone==="y"?"y":"b"}">${esc(s.emoji)}<span class="wl-pin">📍 ${esc(s.place.en)}</span></div><div class="wl-cb"><b>${esc(s.title.en)}</b><small>${esc(s.year)} · ${s.sdgs.map(n => `<i class="wl-mini">SDG ${n}</i>`).join(" ")}</small></div></button>`;
+function wlRenderList(){ const el = $("#wlGrid"); if(!el) return; const l = wlList(); el.innerHTML = l.map(wlCard).join("") || `<div class="card center" style="grid-column:1/-1">No stories match. Try another choice!</div>`; const c = $("#wlCount"); if(c) c.textContent = l.length + (l.length === 1 ? " story" : " stories"); }
+NEW_SCREENS.wlib = function(){
+  const pinned = WL.filter(s => wlPinned.includes(s.id));
+  const sdgs = wlSdgAll ? SDG_NAMES.map((n, i) => i + 1) : [6, 7, 13, 14, 15];
+  setTimeout(wlRenderList, 0);
+  return khead("Wonder Library 🔎", "True stories from around the world", "var(--blue)") + `<div class="body">
+    <div class="card wl-intro"><img src="wondernest-mark.png" alt=""><p><b>Read real stories. Ask big questions. Find out more.</b><br>Every story here really happened.</p></div>
+    <input class="wl-search" placeholder="🔍 Search for a story, a place or a word…" value="${esc(wlF.q)}" oninput="wlF.q=this.value;wlRenderList()">
+    ${pinned.length ? `<h3 class="sect">⭐ From my teacher</h3><div class="wl-grid">${pinned.map(wlCard).join("")}</div>` : ""}
+    <h3 class="sect">🧭 Choose a theme</h3>
+    <div class="wl-themes">${WL_THEMES.map(t => `<button class="wl-th ${wlF.theme===t[0]?"on":""}" onclick="wlF.theme=wlF.theme==='${t[0]}'?'':'${t[0]}';draw()"><span>${t[1]}</span>${t[2]}</button>`).join("")}</div>
+    <h3 class="sect">📍 Where in the world?</h3>
+    <div class="wl-chips"><button class="wl-chip ${!wlF.region?"on":""}" onclick="wlF.region='';draw()">🌐 Everywhere</button>${WL_REGIONS.filter(r => r[0] !== "World").map(r => `<button class="wl-chip ${wlF.region===r[0]?"on":""}" onclick="wlF.region='${r[0]}';draw()">${r[1]} ${r[0] === "Americas" ? "The Americas" : r[0]}</button>`).join("")}</div>
+    <h3 class="sect">🎯 Global Goals</h3>
+    <div class="wl-chips">${sdgs.map(n => `<button class="wl-chip ${wlF.sdg===n?"on":""}" onclick="wlF.sdg=wlF.sdg===${n}?0:${n};draw()"><i class="wl-num">${n}</i>${esc(SDG_NAMES[n-1])}</button>`).join("")}<button class="wl-chip" onclick="wlSdgAll=!wlSdgAll;draw()">${wlSdgAll ? "Fewer ‹" : "All 17 ›"}</button></div>
+    <h3 class="sect">📚 Stories <small id="wlCount" style="font-size:14px;color:var(--muted)"></small>${wlF.theme||wlF.region||wlF.sdg||wlF.q ? ` <button class="wl-clear" onclick="wlF={theme:'',region:'',sdg:0,q:''};draw()">Clear choices ✕</button>` : ""}</h3>
+    <div class="wl-grid" id="wlGrid"></div></div>`;
+};
+function wlMark(text, words, lang){
+  let h = esc(text);
+  (words || []).forEach((w, i) => { const t = lang === "ar" ? w.ar : w.en; if(!t) return;
+    const re = lang === "ar" ? new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "") : new RegExp("\\b(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")\\b", "i");
+    h = h.replace(re, m => `<mark class="wl-w" onclick="wlWord(${i})">${m}</mark>`); });
+  return h;
+}
+function wlWord(i){ const s = WL.find(x => x.id === wlOpen), w = s.words[i]; const t = wlLang === "ar" ? `${w.ar}: ${w.arM}` : `${w.en}: ${w.enM}`; toast(t); speakLong(t); }
+function wlRead(){ const s = WL.find(x => x.id === wlOpen); speakLong([s.title[wlLang]].concat(s[wlLvl][wlLang]).join(". ")); }
+NEW_SCREENS.wstory = function(){
+  const s = WL.find(x => x.id === wlOpen); if(!s) return go("wlib");
+  if(!wlLvl) wlLvl = wlDefaultLvl();
+  const L = wlLang, ar = L === "ar", th = wlTheme(s.theme), paras = s[wlLvl][L];
+  return khead(esc(th[1] + " " + (ar ? WL_THEMES_AR[s.theme] : th[2])), "Wonder Library", "var(--blue)", "wlib", "‹ Library") + `<div class="body">
+    <div class="wl-hero ${s.tone==="y"?"y":"b"}">${esc(s.emoji)}<span class="wl-pin">📍 ${esc(s.place[L])} · ${esc(s.year)}</span></div>
+    <div class="card" ${ar ? 'dir="rtl"' : ""}>
+      <h2 class="wl-title">${esc(s.title[L])}</h2>
+      <div class="wl-meta">${s.sdgs.map(n => `<span class="wl-mini">${sdgB(n)} ${esc(ar ? WL_SDG_AR[n-1] : SDG_NAMES[n-1])}</span>`).join("")}</div>
+      <div class="wl-tools" dir="ltr">
+        <button class="btn" onclick="wlRead()">🔊 ${ar ? "اقرأ لي" : "Read it to me"}</button>
+        <span class="wl-seg"><button class="${!ar?"on":""}" onclick="speechSynthesis.cancel();wlLang='en';draw()">English</button><button class="${ar?"on":""}" onclick="speechSynthesis.cancel();wlLang='ar';draw()">العربية</button></span>
+        <span class="wl-seg"><button class="${wlLvl==="g12"?"on":""}" onclick="wlLvl='g12';draw()">${ar ? "الصفان ١–٢" : "Grades 1–2"}</button><button class="${wlLvl==="g35"?"on":""}" onclick="wlLvl='g35';draw()">${ar ? "الصفوف ٣–٥" : "Grades 3–5"}</button></span>
+      </div>
+      <div class="wl-text ${wlLvl}">${paras.map(p => `<p>${wlMark(p, s.words, L)}</p>`).join("")}</div>
+      <p class="wl-tip">${ar ? "💡 اضغط على الكلمات الملوّنة لتعرف معناها." : "💡 Tap the coloured words to hear what they mean."}</p>
+    </div>
+    <div class="card wl-box y" ${ar ? 'dir="rtl"' : ""}><h2>📖 ${ar ? "كلمات مهمة" : "Words to know"}</h2>${s.words.map((w, i) => `<p><button class="wl-wbtn" onclick="wlWord(${i})">${esc(ar ? w.ar : w.en)}</button> ${esc(ar ? w.arM : w.enM)}</p>`).join("")}</div>
+    <div class="card wl-box" ${ar ? 'dir="rtl"' : ""}><h2>🔎 ${ar ? "كيف نعرف أن هذا حدث؟" : "How do we know?"}</h2><p>${esc(s.know[L])}</p>
+      <h3 class="wl-h3">📎 ${ar ? "المراجع" : "References"}</h3>
+      <ol class="wl-refs" dir="ltr">${s.sources.map(r => `<li><a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t)}</a></li>`).join("")}</ol>
+      <p class="wl-tip">${ar ? "👨‍👩‍👧 اطلب من شخص بالغ أن يكون معك قبل أن تفتح موقعًا على الإنترنت." : "👨‍👩‍👧 Ask a grown-up to be with you before you open a website."}</p></div>
+    <div class="card"><h2>🧭 My research path</h2><p class="wl-tip" style="margin-top:0">Think like a researcher. Fill in as many steps as you like.</p>
+      ${[["wlK","💭","What I already know","I already know that…"],["wlF2","🔍","What I found out","In the story, I found out that…"],["wlS","❓","What I still wonder","I still wonder…"],["wlA","🧑‍🔬","Who could I ask, or where could I look?","I could ask… / I could look in…"]].map(([id, ic, lb, ph], i) => `<div class="wl-step"><div class="wl-stepn">${i+1}</div><div style="flex:1"><p class="lbl">${ic} ${lb}</p><div class="mic-row">${micBtn(id)}<textarea id="${id}" placeholder="${ph}" style="min-height:56px"></textarea></div></div></div>`).join("")}
+      <button class="btn wide" style="margin-top:10px" onclick="wlSaveResearch()">💾 Save my research notes</button></div>
+    <div class="card"><h2>🫙 This story makes me wonder…</h2>
+      ${s.wonder[L].map(q => `<button class="chipk" ${ar ? 'dir="rtl"' : ""} onclick="$('#wlW').value=${esc(JSON.stringify(q))};$('#wlW').focus()">${esc(q)}</button>`).join("")}
+      <div class="mic-row" style="margin-top:10px">${micBtn("wlW")}<textarea id="wlW" placeholder="I wonder…" style="min-height:60px"></textarea></div>
+      <button class="btn leaf wide" style="margin-top:10px" onclick="wlWonder()">Add to my wonder wall</button></div></div>`;
+};
+async function wlWonder(){ const t = $("#wlW").value.trim(); if(!t) return toast("Write or say your wonder!"); const s = WL.find(x => x.id === wlOpen); if(await addEntry("wonder", t.slice(0, 80), { text: t, from: "Wonder Library: " + s.title.en })) go("wstory"); }
+async function wlSaveResearch(){
+  const s = WL.find(x => x.id === wlOpen), v = id => ($("#" + id) || {}).value ? $("#" + id).value.trim() : "";
+  const c = { story: s.id, storyTitle: s.title.en, know: v("wlK"), found: v("wlF2"), wonder: v("wlS"), ask: v("wlA") };
+  if(!c.know && !c.found && !c.wonder && !c.ask) return toast("Fill in at least one step first!");
+  c.text = [c.know && "I already know: " + c.know, c.found && "I found out: " + c.found, c.wonder && "I still wonder: " + c.wonder, c.ask && "I could ask: " + c.ask].filter(Boolean).join("\n");
+  if(await addEntry("research", s.title.en, c)) go("wstory");
+}
+const _homeWL = NEW_SCREENS.home;
+NEW_SCREENS.home = function(){ return _homeWL().replace('<h3 class="sect">📚 Learn</h3>', '<h3 class="sect">📚 Learn</h3><div class="tiles">' + tileW("🔎", "Wonder Library<small style=\"display:block;font-size:13px;font-weight:700;opacity:.8\">True stories from around the world</small>", "#EAF3FF", "goLibrary()", true) + '</div>'); };
+
 start();
 </script>
 </body>

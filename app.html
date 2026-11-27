@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion for teachers and children.">
+<script src="wonder-library.js"></script>
 <style>
   :root{
     --navy:#14325c; --blue:#2f6fd6; --sky:#e8f1ff; --sun:#ffc83d; --coral:#ff7a59;
@@ -511,6 +512,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="poi">📚 Programme of inquiry</button>
     <button class="nav" data-view="concepts">💡 Concepts</button>
     <button class="nav" data-view="library">🧠 Routines & organisers</button>
+    <button class="nav" data-view="wlib">🔎 Wonder Library</button>
     <button class="nav" data-view="sdg">🌍 SDG stories</button>
     <button class="nav" data-view="stories">📚 Story library</button>
     <div class="navg">Teach & assess</div>
@@ -694,6 +696,7 @@ function render(){
   else if(view === "inquiry") m.innerHTML = oiView();
   else if(view === "stories") m.innerHTML = storiesView();
   else if(view === "sdg") m.innerHTML = sdgView();
+  else if(view === "wlib") m.innerHTML = wlView();
   else if(view === "concepts") m.innerHTML = conceptsView();
   else if(view === "basics") m.innerHTML = basicsView();
   else if(view === "poi") m.innerHTML = poiView();
@@ -1081,7 +1084,7 @@ function classesView(){
   const nameOf = id => (tc.students.find(s=>s.id===id)||{}).first_name || "";
   if(tc.kid){
     const k = tc.students.find(s=>s.id===tc.kid); const mine = tc.entries.filter(e=>e.student_id===tc.kid);
-    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["atl","🧩 Skill quests"],["story","📖 Stories"],["reflection","🌱 How I've grown"],["lp","🌟 Learner profile"],["action","🧱 Action"],["concept","💡 Big ideas"]];
+    const kinds = [["wonder","💭 Wonders"],["routine","🧠 Thinking routines"],["atl","🧩 Skill quests"],["story","📖 Stories"],["reflection","🌱 How I've grown"],["lp","🌟 Learner profile"],["action","🧱 Action"],["concept","💡 Big ideas"],["research","🔎 Research notes"]];
     return top(`${esc(k.picture)} ${esc(k.first_name)}'s Wonder Nest`) + `<div class="crumb" style="margin:-14px 0 16px"><button class="link" onclick="tc.kid=null;render()">‹ Back to ${esc(c.name)}</button></div>
       <div class="grid2"><div>${kinds.slice(0,2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div><div>${kinds.slice(2).map(([kd,l])=>kindCard(mine,kd,l)).join("")}</div></div>`;
   }
@@ -1115,8 +1118,8 @@ Sara"></textarea>
 }
 function kindCard(list, kind, label){
   const items = list.filter(e=>e.kind===kind);
-  const body = e => kind==="wonder" ? esc(e.content.text) : kind==="lp" ? `🌟 ${esc(e.content.attr)}: ${esc(e.content.text)}` : kind==="action" ? `🧱 ${esc(e.content.text)}` : kind==="concept" ? esc([e.content.concept, e.content.usedTo && ("I used to think: " + e.content.usedTo), e.content.nowThink && ("Now I think: " + e.content.nowThink), e.content.lens].filter(Boolean).join("\n")) : kind==="routine" && e.content.answers ? e.content.answers.map(x => `${esc(x.label)}: ${esc(x.text)}`).join("\n") : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : kind==="atl" ? (e.content.type==="quiz" ? `${esc(e.content.skill)}: quiz ${e.content.score}/${e.content.total}` : `${esc(e.content.skill)}: ${esc(e.content.starter)} ${esc(e.content.text)}`) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
-  return `<div class="card"><div class="label">${label} (${items.length})</div>${items.map(e=>`<div class="entry"><button class="link danger del" title="Delete" onclick="tDelEntry('${e.id}')">✕</button>${kind==="story"?`<h4>${esc(e.title)}</h4>`:""}<p>${body(e)}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.unit_label ? " · " + esc(e.unit_label) : ""}</small></div>`).join("") || `<div class="hint">Nothing yet.</div>`}</div>`;
+  const body = e => kind==="research" ? esc(e.content.text || "") : kind==="wonder" ? esc(e.content.text) : kind==="lp" ? `🌟 ${esc(e.content.attr)}: ${esc(e.content.text)}` : kind==="action" ? `🧱 ${esc(e.content.text)}` : kind==="concept" ? esc([e.content.concept, e.content.usedTo && ("I used to think: " + e.content.usedTo), e.content.nowThink && ("Now I think: " + e.content.nowThink), e.content.lens].filter(Boolean).join("\n")) : kind==="routine" && e.content.answers ? e.content.answers.map(x => `${esc(x.label)}: ${esc(x.text)}`).join("\n") : kind==="routine" ? `👀 ${esc(e.content.see)}\n💡 ${esc(e.content.think)}\n❓ ${esc(e.content.wonder)}` : kind==="story" ? esc(e.content.text) : kind==="atl" ? (e.content.type==="quiz" ? `${esc(e.content.skill)}: quiz ${e.content.score}/${e.content.total}` : `${esc(e.content.skill)}: ${esc(e.content.starter)} ${esc(e.content.text)}`) : `I used to think: ${esc(e.content.before)}\nNow I think: ${esc(e.content.now)}`;
+  return `<div class="card"><div class="label">${label} (${items.length})</div>${items.map(e=>`<div class="entry"><button class="link danger del" title="Delete" onclick="tDelEntry('${e.id}')">✕</button>${kind==="story"||kind==="research"?`<h4>${esc(e.title)}</h4>`:""}<p>${body(e)}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.unit_label ? " · " + esc(e.unit_label) : ""}</small></div>`).join("") || `<div class="hint">Nothing yet.</div>`}</div>`;
 }
 async function tAuth(){
   error = ""; tc.msg = "";
@@ -2587,6 +2590,79 @@ function oiFamLetters(){
 /* =====================================================================
    SDG REAL-LIFE STORIES
    ===================================================================== */
+
+/* =====================================================================
+   WONDER LIBRARY (teacher view): true stories, Grades 1-5, EN/AR,
+   two reading levels, references, pin to a class
+   ===================================================================== */
+const WL = window.WONDER_LIBRARY || [];
+const WL_THEMES = [["who","🪞","Who we are"],["place","🗺️","Where we are in place and time"],["express","🎨","How we express ourselves"],["works","⚙️","How the world works"],["organise","🏙️","How we organise ourselves"],["planet","🌍","Sharing the planet"]];
+const WL_REGIONS = ["Africa","Asia","Europe","Americas","Oceania","Space","World"];
+const wlT = { theme: "", region: "", sdg: 0, q: "", open: null, lvl: "g12", lang: "en", classes: null, shared: {} };
+async function wlLoad(){
+  const c = await db.from("classes").select("id, name, grade").order("created_at");
+  wlT.classes = c.data || []; wlT.shared = {};
+  const ids = wlT.classes.map(x => x.id);
+  if(ids.length){ const cs = await db.from("class_sdg_stories").select("*").in("class_id", ids); (cs.data || []).filter(r => /^wl:/.test(r.story_key)).forEach(r => (wlT.shared[r.story_key.slice(3)] = wlT.shared[r.story_key.slice(3)] || []).push(r.class_id)); }
+  render();
+}
+function wlList(){
+  let l = WL.filter(s => (!wlT.theme || s.theme === wlT.theme) && (!wlT.region || s.region === wlT.region) && (!wlT.sdg || s.sdgs.includes(wlT.sdg)));
+  if(wlT.q){ const q = wlT.q.toLowerCase(); l = l.filter(s => [s.title.en, s.title.ar, s.place.en, s.g35.en.join(" ")].join(" ").toLowerCase().includes(q)); }
+  return l;
+}
+function wlView(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🔎 Wonder Library</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(db && tc.user && wlT.classes === null){ wlLoad(); }
+  const uTheme = (WL_THEMES.find(t => unit && unit.theme && String(unit.theme).toLowerCase().includes(t[2].toLowerCase().slice(0, 12))) || [])[0];
+  const list = wlList();
+  return top + `<div class="card"><p class="hint" style="margin-bottom:10px">${WL.length} true stories for Grades 1–5, linked to the six transdisciplinary themes and the SDGs. Each story has two reading levels (Grades 1–2 and 3–5), English and Arabic, words to know, wonder questions, a research path and the references we checked. Every child can open the Wonder Library from their Wonder Nest. Pin a story to a class and it appears under "From my teacher".</p>
+    <div class="label">Theme</div>
+    <div class="chips"><button class="chip ${!wlT.theme?"on":""}" onclick="wlT.theme='';render()">All themes</button>${WL_THEMES.map(t => `<button class="chip ${wlT.theme===t[0]?"on":""}" onclick="wlT.theme='${t[0]}';render()">${t[1]} ${t[2]}${uTheme===t[0]?" ⭐":""}</button>`).join("")}</div>
+    <div class="label">Global Goals</div>
+    <div class="sdgchips"><button class="chip ${!wlT.sdg?"on":""}" onclick="wlT.sdg=0;render()">All goals</button>${SDGS.map(g => `<button class="sdgchip ${wlT.sdg===g[0]?"on":""}" style="--c:${g[2]}" title="${esc(g[1])}" onclick="wlT.sdg=${g[0]};render()">${g[0]}</button>`).join("")}</div>
+    <div class="actions" style="margin-top:10px"><select style="max-width:220px" onchange="wlT.region=this.value;render()"><option value="">🌐 Everywhere</option>${WL_REGIONS.map(r => `<option ${wlT.region===r?"selected":""}>${r}</option>`).join("")}</select>
+      <input id="wlQ" placeholder="Search: water, Mars, trees, music…" value="${esc(wlT.q)}" oninput="wlT.q=this.value;clearTimeout(window._wq);window._wq=setTimeout(()=>{render();const i=$('#wlQ');i.focus();i.setSelectionRange(i.value.length,i.value.length)},300)" style="max-width:340px">
+      <span class="hint">${list.length} ${list.length === 1 ? "story" : "stories"}</span></div></div>
+  <div class="storygrid">${list.map(s => { const t = WL_THEMES.find(x => x[0] === s.theme); const pins = (wlT.shared[s.id] || []).length; return `<button class="storycard" onclick="wlT.open='${s.id}';render()"><span class="semoji">${esc(s.emoji)}</span><b>${esc(s.title.en)}</b><span class="hint">${esc(t[1])} ${esc(t[2])}<br>📍 ${esc(s.place.en)} · ${esc(s.year)}</span><span>${s.sdgs.map(sdgBadge).join("")}${pins ? ` <span class="tag">📌 ${pins} ${pins === 1 ? "class" : "classes"}</span>` : ""}</span></button>`; }).join("") || `<div class="card hint">No stories match these choices.</div>`}</div>
+  ${wlT.open ? wlReader() : ""}`;
+}
+function wlReader(){
+  const s = WL.find(x => x.id === wlT.open); if(!s) return "";
+  const t = WL_THEMES.find(x => x[0] === s.theme), ar = wlT.lang === "ar", L = wlT.lang, sharedTo = wlT.shared[s.id] || [];
+  const seg = (k, v, lab) => `<button class="btn small ${wlT[k]===v?"":"ghost"}" onclick="speechSynthesis.cancel();wlT.${k}='${v}';render()">${lab}</button>`;
+  return `<div class="modal-bg" onclick="if(event.target===this){speechSynthesis.cancel();wlT.open=null;render()}"><div class="modal" style="width:min(820px,96vw)">
+    <div class="actions" style="margin-top:0"><div>${s.sdgs.map(sdgBadge).join("")} <span class="tag">${esc(t[1])} ${esc(t[2])}</span> <span class="tag">Concepts: ${esc(s.concepts.join(", "))}</span></div><button class="btn small" onclick="speechSynthesis.cancel();wlT.open=null;render()">Close</button></div>
+    <h2 style="color:var(--navy);margin:8px 0 2px" ${ar?'dir="rtl"':""}>${esc(s.emoji)} ${esc(s.title[L])}</h2><p class="hint" ${ar?'dir="rtl"':""}>📍 ${esc(s.place[L])} · ${esc(s.year)}</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">${seg("lvl","g12","Grades 1–2")}${seg("lvl","g35","Grades 3–5")}<span style="width:10px"></span>${seg("lang","en","English")}${seg("lang","ar","العربية")}</div>
+    <div class="storytext" ${ar?'dir="rtl" style="font-size:18px"':""}>${s[wlT.lvl][L].map(p => `<p>${esc(p)}</p>`).join("")}</div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr" ${ar?'dir="rtl"':""}><div><div class="label">📖 ${ar ? "كلمات مهمة" : "Words to know"}</div><ul>${s.words.map(w => `<li><b>${esc(ar ? w.ar : w.en)}</b>: ${esc(ar ? w.arM : w.enM)}</li>`).join("")}</ul></div>
+      <div><div class="label">💭 ${ar ? "أسئلة للتساؤل" : "Wonder questions"}</div><ul>${s.wonder[L].map(q => `<li>${esc(q)}</li>`).join("")}</ul></div></div>
+    <div class="label" style="margin-top:10px">🔎 How do we know?</div><p ${ar?'dir="rtl"':""}>${esc(s.know[L])}</p>
+    <div class="label" style="margin-top:12px">📎 References</div><ol style="padding-left:20px">${s.sources.map(r => `<li style="margin:4px 0"><a class="blink" href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t)}</a></li>`).join("")}</ol>
+    <div class="actions"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small ghost" onclick="wlSpeak()">🔊 Read aloud</button><button class="btn small ghost" onclick="wlPrint()">🖨️ Print</button><button class="btn small ghost" onclick="wlWord()">⬇️ Word</button></div></div>
+    <div class="card" style="margin:12px 0 0;background:var(--bg)"><div class="label">📌 Pin for a class</div><p class="hint" style="margin-bottom:6px">Pinned stories appear at the top of the class's Wonder Library under "From my teacher".</p>${!tc.user ? `<p class="hint">Sign in to pin stories for your classes.</p>` : (wlT.classes || []).length ? wlT.classes.map(c => `<label style="display:flex;gap:8px;align-items:center;margin:4px 0;font-weight:700"><input type="checkbox" style="width:auto" ${sharedTo.includes(c.id)?"checked":""} onchange="wlPin('${c.id}',this.checked)"> ${esc(c.name)} · ${esc(c.grade||"")}</label>`).join("") : `<p class="hint">Create a class in 🌱 Classes & portfolios first.</p>`}</div>
+  </div></div>`;
+}
+async function wlPin(classId, on){
+  const key = "wl:" + wlT.open, id = wlT.open;
+  const r = on ? await db.from("class_sdg_stories").insert({ class_id: classId, story_key: key }) : await db.from("class_sdg_stories").delete().eq("class_id", classId).eq("story_key", key);
+  if(r.error){ error = tcErr(r.error); return render(); }
+  const a = wlT.shared[id] = wlT.shared[id] || []; if(on) a.push(classId); else wlT.shared[id] = a.filter(x => x !== classId);
+  toast(on ? "Pinned for the class ✓" : "Unpinned"); render();
+}
+function wlSpeak(){ const s = WL.find(x => x.id === wlT.open); speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance([s.title[wlT.lang]].concat(s[wlT.lvl][wlT.lang]).join(". ")); u.lang = wlT.lang === "ar" ? "ar-AE" : "en-GB"; u.rate = .92; speechSynthesis.speak(u); }
+function wlDocHTML(s){
+  const lv = { g12: "Grades 1–2", g35: "Grades 3–5" };
+  const part = (L, k) => `<h2>${L === "ar" ? "نص القصة" : "The story"} (${lv[k]})</h2><div ${L === "ar" ? 'dir="rtl"' : ""}>${s[k][L].map(p => `<p>${esc(p)}</p>`).join("")}</div>`;
+  return `<h1>${esc(s.title.en)}</h1><p dir="rtl"><b>${esc(s.title.ar)}</b></p><p><i>${esc(s.place.en)} · ${esc(s.year)} · SDG ${s.sdgs.join(", ")} · ${esc(WL_THEMES.find(x => x[0] === s.theme)[2])}</i></p>
+    ${part("en", wlT.lvl)}<h2>Words to know</h2><ul>${s.words.map(w => `<li><b>${esc(w.en)}</b>: ${esc(w.enM)}</li>`).join("")}</ul><h2>Wonder questions</h2><ul>${s.wonder.en.map(q => `<li>${esc(q)}</li>`).join("")}</ul><h2>How do we know?</h2><p>${esc(s.know.en)}</p>
+    ${part("ar", wlT.lvl)}
+    <h2>References</h2><ol>${s.sources.map(r => `<li>${esc(r.t)}: ${esc(r.u)}</li>`).join("")}</ol><p><i>From the WonderNest Wonder Library. Retold for children in WonderNest's own words.</i></p>`;
+}
+function wlPrint(){ const s = WL.find(x => x.id === wlT.open); printWin(s.title.en, wlDocHTML(s), "p{font-size:15pt}"); }
+function wlWord(){ const s = WL.find(x => x.id === wlT.open); wordDownload("WonderNest Wonder Library - " + s.title.en, wlDocHTML(s)); }
+
 const sdgS = { filter: 0, unitOnly: false, q: "", mine: null, open: null, edit: null, shareKey: null, classes: null, shared: {} };
 async function sdgLoad(){
   const [m, c] = await Promise.all([db.from("sdg_stories").select("*").order("created_at", { ascending: false }), db.from("classes").select("id, name, grade").order("created_at")]);
@@ -3483,7 +3559,7 @@ step2 = _usWrap(step2); step3 = _usWrap(step3); step4 = _usWrap(step4); step5 = 
    PROGRESS OVER TIME: class, child and whole school
    ===================================================================== */
 const PG_COL = ["#2f6fd6","#3bb07a","#ff7a59","#8a6cf0","#f59e0b","#0ea5e9","#be123c","#0f766e","#b45309","#6b4fd8"];
-const KIND_NAMES = { wonder:"Wonders", routine:"Thinking routines", story:"Stories", reflection:"Reflections", lp:"Learner profile", action:"Actions", concept:"Big ideas", journal:"Exhibition journal", atl:"Skill quests", passion:"Passions", criteria:"Success criteria ideas", sum_self:"Self-assessments", sum_peer:"Peer assessments", exh_self:"Exhibition self-assessment", exh_reflect:"Exhibition reflection" };
+const KIND_NAMES = { research:"Research notes", wonder:"Wonders", routine:"Thinking routines", story:"Stories", reflection:"Reflections", lp:"Learner profile", action:"Actions", concept:"Big ideas", journal:"Exhibition journal", atl:"Skill quests", passion:"Passions", criteria:"Success criteria ideas", sum_self:"Self-assessments", sum_peer:"Peer assessments", exh_self:"Exhibition self-assessment", exh_reflect:"Exhibition reflection" };
 const pgS = { tab: "class", classes: null, cls: null, data: null, kid: null, school: null };
 const monthOf = d => String(d || "").slice(0, 7);
 const monthName = m => { const [y, mo] = m.split("-"); return new Date(+y, +mo - 1, 1).toLocaleDateString("en-GB", { month: "short", year: "2-digit" }); };
