@@ -548,8 +548,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
     <button class="nav" data-view="cycle">🎡 Inquiry cycle</button>
-    <button class="nav" data-view="poi">📚 Programme of inquiry</button>
-    <button class="nav" data-view="poiup">📥 Our uploaded POI</button>
+    <button class="nav" data-view="poiup">📚 Programme of inquiry</button>
     <button class="nav" data-view="concepts">💡 Concepts</button>
     <button class="nav" data-view="library">🧠 Routines & organisers</button>
     <button class="nav" data-view="wlib">🔎 Wonder Library</button>
@@ -739,7 +738,7 @@ function render(){
   else if(view === "wlib") m.innerHTML = wlView();
   else if(view === "concepts") m.innerHTML = conceptsView();
   else if(view === "basics") m.innerHTML = basicsView();
-  else if(view === "poi") m.innerHTML = poiView();
+  else if(view === "poi"){ view = "poiup"; m.innerHTML = poiUploadView(); }
   else if(view === "cycle") m.innerHTML = cycleView();
   else if(view === "poiup") m.innerHTML = poiUploadView();
   else if(view === "progress") m.innerHTML = progressView();
@@ -3317,8 +3316,6 @@ function teamModal(){
     <div class="grid2" style="grid-template-columns:1fr 1fr"><div>
       <div class="label">Planning team</div>${owner ? (tm.members.filter(x => x.user_id !== tc.user.id).map(x=>`<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin:4px 0"><input type="checkbox" style="width:auto" ${(tm.row.collaborators||[]).includes(x.user_id)?"checked":""} onchange="tmCollab('${x.user_id}',this.checked)"> ${esc(x.email||"Teacher")}</label>`).join("") || `<p class="hint">Colleagues appear here once they join your school with the school code.</p>`)
         : `<p>Owner: ${esc(who(tm.row.owner))}</p><p class="hint">You can edit this unit. Only the owner changes the team.</p>`}
-      <label style="display:flex;gap:8px;align-items:center;font-weight:800;margin-top:12px"><input type="checkbox" style="width:auto" ${unit.inPoi?"checked":""} onchange="unit.inPoi=this.checked;saveUnit()"> 📚 Part of our programme of inquiry</label>
-      <p class="hint">Units in the programme of inquiry appear on the school POI grid for all teachers.</p>
       <div class="label" style="margin-top:14px">🕘 History (last 30 saves)</div>${tm.versions.slice(0,10).map(v=>`<div class="hist">Version ${v.version} · ${new Date(v.saved_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · ${esc(who(v.saved_by))} · <button class="link" onclick="tmRestore('${v.id}')">Restore</button></div>`).join("") || `<p class="hint">Older versions appear here after the next save.</p>`}</div>
     <div><div class="label">💬 Comments</div><div class="cmts">${tm.comments.map(c=>`<div class="cmt"><b>${esc(c.author_email||"Teacher")}</b> <small class="hint">${new Date(c.created_at).toLocaleDateString("en-GB")}</small><p>${esc(c.text)}</p></div>`).join("") || `<p class="hint">No comments yet.</p>`}</div>
       <textarea id="tmC" placeholder="Leave a comment for your team" style="min-height:60px;margin-top:8px"></textarea><button class="btn small" style="margin-top:6px" onclick="tmComment()">Post</button></div></div></div></div>`;
@@ -3404,8 +3401,21 @@ function poiFromHTML(html){
 function poiLoadScript(src){ return new Promise((ok, no) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("Could not load the Word reader. Check your internet and try again.")); document.head.appendChild(s); }); }
 const poiB64 = file => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = no; r.readAsDataURL(file); });
 function poiShrink(file){ return new Promise(ok => { const img = new Image(); img.onload = () => { const k = Math.min(1, 2200 / Math.max(img.width, img.height)); const c = document.createElement("canvas"); c.width = img.width * k; c.height = img.height * k; c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL("image/jpeg", .88).split(",")[1]); }; img.onerror = () => ok(null); img.src = URL.createObjectURL(file); }); }
+function poiClock(){ const s = Math.round((Date.now() - (poiU.t0 || Date.now())) / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+function poiTick(){ const el = $("#poiTimer"); if(el) el.textContent = poiClock(); }
+function poiStop(){ poiU.stopped = true; (poiU.ctrls || []).forEach(c => c.abort()); }
+async function poiCall(task, unitObj, file){
+  const ctrl = new AbortController(); (poiU.ctrls = poiU.ctrls || []).push(ctrl); const to = setTimeout(() => ctrl.abort(), 240000);
+  try{
+    const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task, unit: unitObj, file }), signal: ctrl.signal });
+    const d = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(d.error === "Unknown task." ? "The AI helper needs its update first (worker.js). Word files work straight away." : (d.error || "The AI could not read this file just now. Word files work straight away."));
+    return d;
+  }catch(e){ if(e.name === "AbortError") throw new Error(poiU.stopped ? "STOPPED" : "This took too long, so I stopped it. Please try again, or upload the Word version, which is read straight away."); throw e; }
+  finally{ clearTimeout(to); }
+}
 async function poiUpload(file){
-  if(!file) return; poiU.err = ""; poiU.file = file.name; poiU.busy = "Reading " + file.name + "…"; render();
+  if(!file) return; poiU.err = ""; poiU.prog = ""; poiU.file = file.name; poiU.busy = "Reading " + file.name + "…"; render();
   try{
     let grades = [];
     if(/\.docx$/i.test(file.name)){
@@ -3419,16 +3429,28 @@ async function poiUpload(file){
       if(file.size > 20 * 1024 * 1024) throw new Error("This file is bigger than 20 MB. Please upload a smaller file.");
       const isImg = /^image\//.test(file.type), data = isImg ? await poiShrink(file) : await poiB64(file);
       if(!data) throw new Error("I couldn't open this picture. Try a JPG or PNG.");
-      poiU.busy = "WonderNest's AI is reading your programme of inquiry… this can take up to a minute."; render();
-      const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task: "poi_extract", unit: {}, file: { name: file.name, type: isImg ? "image/jpeg" : "application/pdf", data } }) });
-      const d = await res.json().catch(() => ({}));
-      if(!res.ok || !d.grades) throw new Error(d.error ? "The AI could not read this file yet (" + d.error + "). Word files work straight away." : "The AI could not read this file just now. Word files work straight away.");
-      grades = d.grades.map(g => ({ grade: poiGrade(g.grade) || g.grade, units: (g.units || []).map(u => Object.assign({ theme: "", title: "", centralIdea: "", lines: [], keyConcepts: [], relatedConcepts: [], atl: [], learnerProfile: [], sdgs: [], subjects: [], timing: "", action: "", summative: "", other: [] }, u, { theme: poiTheme(u.theme || "") || u.theme })) }));
+      const pf = { name: file.name, type: isImg ? "image/jpeg" : "application/pdf", data };
+      poiU.ctrls = []; poiU.stopped = false; poiU.t0 = Date.now(); poiU.prog = ""; clearInterval(poiU.tick); poiU.tick = setInterval(poiTick, 1000);
+      poiU.busy = "Step 1 of 2: finding the grades in your programme of inquiry…"; render();
+      const o = await poiCall("poi_outline", {}, pf);
+      let names = [...new Set((o.grades || []).map(x => String(x).trim()).filter(Boolean))].slice(0, 16);
+      const parts = []; if(!names.length) parts.push([]); else for(let k = 0; k < names.length; k += 2) parts.push(names.slice(k, k + 2));
+      let done = 0; poiU.prog = `0 of ${parts.length} part${parts.length === 1 ? "" : "s"} done`;
+      poiU.busy = names.length ? `Step 2 of 2: reading ${names.length} grades (${names.join(", ")}) in ${parts.length} parts at the same time…` : "Step 2 of 2: reading your programme of inquiry…"; render();
+      const res = await Promise.allSettled(parts.map(pt => poiCall("poi_extract", pt.length ? { onlyGrades: pt } : {}, pf).then(d => { done++; poiU.prog = `${done} of ${parts.length} part${parts.length === 1 ? "" : "s"} done`; const el = $("#poiProg"); if(el) el.textContent = poiU.prog; return d; })));
+      if(poiU.stopped) throw new Error("STOPPED");
+      const ok = res.filter(r => r.status === "fulfilled").map(r => r.value), bad = res.map((r, k) => r.status === "rejected" ? parts[k] : null).filter(Boolean);
+      if(!ok.length) throw res[0].reason;
+      const merged = {}; ok.flatMap(d => d.grades || []).forEach(g => { const k = poiGrade(g.grade) || String(g.grade || "").trim() || "Grade"; (merged[k] = merged[k] || []).push(...(g.units || [])); });
+      grades = Object.keys(merged).map(g => ({ grade: g, units: merged[g].map(u => Object.assign({ theme: "", title: "", centralIdea: "", lines: [], keyConcepts: [], relatedConcepts: [], atl: [], learnerProfile: [], sdgs: [], subjects: [], timing: "", action: "", summative: "", other: [] }, u, { theme: poiTheme(u.theme || "") || u.theme, lines: [].concat(u.lines || []), keyConcepts: [].concat(u.keyConcepts || []), relatedConcepts: [].concat(u.relatedConcepts || []), atl: [].concat(u.atl || []), learnerProfile: [].concat(u.learnerProfile || []), subjects: [].concat(u.subjects || []), sdgs: [].concat(u.sdgs || []).map(Number).filter(n => n >= 1 && n <= 17), other: [].concat(u.other || []) })) }));
+      const order = g => { const i = GRADES.findIndex(x => x[0] === g); return i < 0 ? 50 + (parseInt(String(g).replace(/\D/g, "")) || 0) : i; };
+      grades.sort((a, b) => order(a.grade) - order(b.grade));
+      if(bad.length) poiU.err = "Some grades could not be read this time (" + bad.flat().join(", ") + "). Check the rest, or upload again to try those grades.";
     } else throw new Error("Please upload a Word file (.docx), a PDF or a photo (JPG or PNG).");
     poiU.draft = { title: "Programme of inquiry", year: poiYear(), grades, file: file.name, uploadedAt: new Date().toISOString(), uploadedBy: (tc.user && tc.user.email) || "" };
     poiU.grade = (grades[0] || {}).grade || "";
-  }catch(e){ poiU.err = e.message || "Something went wrong. Please try again."; }
-  poiU.busy = ""; render();
+  }catch(e){ poiU.err = e.message === "STOPPED" ? "Stopped. You can upload again whenever you like." : (e.message || "Something went wrong. Please try again."); }
+  clearInterval(poiU.tick); poiU.t0 = null; poiU.busy = ""; render();
 }
 function poiYear(){ const d = new Date(), y = d.getFullYear(), m = d.getMonth(); return m >= 7 ? `${y}–${y + 1}` : `${y - 1}–${y}`; }
 const poiSaved = () => settings.poiUpload || null;
@@ -3468,12 +3490,12 @@ function poiUnitCard(u, gi, ui, editable){
 }
 function poiUploadView(){
   const saved = poiSaved(), p = poiU.draft || saved, editable = !!poiU.draft;
-  const top = `<div class="top"><div><div class="crumb">WonderNest${sch.school ? " · " + esc(sch.school.name) : ""}</div><h1>📥 Our programme of inquiry</h1></div>
+  const top = `<div class="top"><div><div class="crumb">WonderNest${sch.school ? " · " + esc(sch.school.name) : ""}</div><h1>📚 Our programme of inquiry</h1></div>
     ${p && !poiU.draft ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="poiPrint()">🖨️ Print</button><button class="btn ghost" onclick="poiWordUp()">⬇️ Word</button><label class="btn">📥 Upload a new version<input type="file" accept=".docx,.pdf,image/*" hidden onchange="poiUpload(this.files[0])"></label></div>` : ""}</div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
   const drop = `<label class="pu-drop" ondragover="event.preventDefault();this.classList.add('on')" ondragleave="this.classList.remove('on')" ondrop="event.preventDefault();this.classList.remove('on');poiUpload(event.dataTransfer.files[0])">
       <img src="wondernest-mark.png" alt=""><b>Upload your programme of inquiry</b><span>Drag your file here, or click to choose it</span><span class="pu-types"><i>📄 Word (.docx)</i><i>📕 PDF</i><i>📷 Photo or screenshot</i></span>
       <input type="file" accept=".docx,.pdf,image/*" hidden onchange="poiUpload(this.files[0])"></label>`;
-  if(poiU.busy) return top + `<div class="card pu-busy"><img src="wondernest-mark.png" alt=""><b>${esc(poiU.busy)}</b></div>`;
+  if(poiU.busy) return top + `<div class="card pu-busy"><img src="wondernest-mark.png" alt=""><div style="flex:1"><b>${esc(poiU.busy)}</b>${poiU.t0 ? `<div class="hint" style="margin-top:4px">⏱️ <span id="poiTimer">${poiClock()}</span>${poiU.prog ? ` · <span id="poiProg">${esc(poiU.prog)}</span>` : ""} · usually under a minute</div>` : ""}</div>${poiU.t0 ? `<button class="btn ghost" onclick="poiStop()">Stop</button>` : ""}</div>`;
   const errBox = poiU.err ? `<div class="err">⚠️ ${esc(poiU.err)}</div>` : "";
   if(!p) return top + errBox + `<div class="card"><p class="hint" style="margin-bottom:12px">Upload the programme of inquiry your school already has. WonderNest reads it and shows it here in the WonderNest design, so every teacher can see the whole programme at a glance. Word files are read exactly as written. PDFs and photos are read by WonderNest's AI, so please check them before saving.</p>${drop}</div>
     <div class="card"><div class="label">Tips for the best result</div><ul class="pu-tips"><li>Keep the grades and the six transdisciplinary themes in one table (grades down the side, themes across the top, or the other way round).</li><li>Label each part, for example <b>Central idea:</b>, <b>Lines of inquiry:</b>, <b>Specified concepts:</b>.</li><li>Photos: take the picture straight on, in good light, with the whole table showing.</li></ul></div>`;
