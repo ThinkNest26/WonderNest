@@ -7,6 +7,8 @@
 <title>My Wonder Nest</title>
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* Softer, more natural reading voice: prefer the best female voices on each device */
@@ -329,36 +331,40 @@ const SDG_STORIES = [
   .confk{min-height:100vh;background:linear-gradient(180deg,#14325c,#2f6fd6);color:#fff;display:flex;flex-direction:column}.cfkhead{display:flex;justify-content:space-between;align-items:center;padding:14px}.cfkhead button{background:rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 14px;font-size:18px}
   .cfkbody{flex:1;padding:10px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}.cfkbody h1{font-family:"Fredoka",sans-serif;font-size:30px}.cfkbody img{max-width:100%;max-height:40vh;border-radius:18px}.cfkb{font-size:21px;line-height:1.5;font-weight:700}.cfkw{background:rgba(255,255,255,.15);border-radius:14px;padding:12px;font-weight:700}
   .cfknav{display:flex;gap:10px;padding:16px}.cfknav .btn{flex:1}.cfknav .btn.ghost{background:rgba(255,255,255,.2);color:#fff;border:0}
-  /* ===== Calm theme: two pastel colours (soft blue + soft green) ===== */
-  :root{--navy:#24456F;--blue:#8DB4E2;--sky:#E3EDF8;--leaf:#8FC9A8;--coral:#8FC9A8;--lilac:#8DB4E2;--sun:#C8DBF1;--cream:#F7F9FB}
-  body{background:#F7F9FB !important}
-  .head{background:#E3EDF8 !important;color:#24456F !important}
-  .head .hi,.head h1{color:#24456F !important}
+  /* ===== Calm theme: two pastel colours (soft blue + soft yellow) ===== */
+  :root{--navy:#23479a;--blue:#8DB4E2;--sky:#EAF3FF;--leaf:#F2CC6B;--coral:#A97A00;--lilac:#8DB4E2;--sun:#D6E7FF;--cream:#F8FBFF}
+  body{background:#F8FBFF !important}
+  .head{background:#EAF3FF !important;color:#23479a !important}
+  .head .hi,.head h1{color:#23479a !important}
   .head .unit{background:#fff !important;color:#26324A !important}
-  .head .back{background:#fff !important;color:#24456F !important;border:1.5px solid #C8DBF1}
-  .tile{background:#E3EDF8 !important;color:#24456F !important;border:2px solid #C8DBF1}
-  .tile[onclick*="goAdventures"],.tile[onclick*="goGrowth"],.tile[onclick*="goActions"],.tile[onclick*="goConf"],.tile[onclick*="mybird"],.tile[onclick*="goExh"]{background:#E2F1E8 !important;color:#2D6248 !important;border-color:#C6E4D2}
-  .btn{background:#C8DBF1 !important;color:#1F3D63 !important;box-shadow:none !important}
-  .btn.leaf,.btn.wide.leaf{background:#C6E4D2 !important;color:#24533D !important}
-  .btn.ghost{background:#fff !important;color:#24456F !important;border:2px solid #C8DBF1 !important}
+  .head .back{background:#fff !important;color:#23479a !important;border:1.5px solid #D6E7FF}
+  .tile{background:#EAF3FF !important;color:#23479a !important;border:2px solid #D6E7FF}
+  .tile[onclick*="goAdventures"],.tile[onclick*="goGrowth"],.tile[onclick*="goActions"],.tile[onclick*="goConf"],.tile[onclick*="mybird"],.tile[onclick*="goExh"]{background:#FFF5D6 !important;color:#6B4E00 !important;border-color:#F8E3A3}
+  .btn{background:#D6E7FF !important;color:#1f4fb0 !important;box-shadow:none !important}
+  .btn.leaf,.btn.wide.leaf{background:#F8E3A3 !important;color:#5C4300 !important}
+  .btn.ghost{background:#fff !important;color:#23479a !important;border:2px solid #D6E7FF !important}
   .btn:disabled{opacity:.5}
-  .mic{background:#C6E4D2 !important;box-shadow:0 0 0 7px #E2F1E8 !important}
-  .speak{background:#E3EDF8 !important}
+  .mic{background:#F8E3A3 !important;box-shadow:0 0 0 7px #FFF5D6 !important}
+  .speak{background:#EAF3FF !important}
   .card{box-shadow:0 1px 3px rgba(36,69,111,.08) !important}
-  .unitnow{background:#E3EDF8 !important}
+  .unitnow{background:#EAF3FF !important}
   .unpath .on span{background:#fff !important;box-shadow:0 0 0 4px #8DB4E2 !important}
-  .unpath .done span{background:#E2F1E8 !important}
-  .cfitem.on{border-color:#8DB4E2 !important;background:#E3EDF8 !important}
-  .confk{background:#E3EDF8 !important;color:#24456F !important}
-  .cfkhead button{background:#fff !important;color:#24456F !important}
-  .cfknav .btn.ghost{background:#fff !important;color:#24456F !important}
+  .unpath .done span{background:#FFF5D6 !important}
+  .cfitem.on{border-color:#8DB4E2 !important;background:#EAF3FF !important}
+  .confk{background:#EAF3FF !important;color:#23479a !important}
+  .cfkhead button{background:#fff !important;color:#23479a !important}
+  .cfknav .btn.ghost{background:#fff !important;color:#23479a !important}
   .cfkw{background:#fff !important}
-  .bbar i{background:#8FC9A8 !important}
-  .featherfly{color:#2D6248 !important}
-  textarea,input.title{border-color:#C8DBF1 !important;background:#fff !important}
-  .stat{background:#E3EDF8 !important;color:#24456F !important}.stat:nth-child(even){background:#E2F1E8 !important;color:#2D6248 !important}
+  .bbar i{background:#F2CC6B !important}
+  .featherfly{color:#6B4E00 !important}
+  textarea,input.title{border-color:#D6E7FF !important;background:#fff !important}
+  .stat{background:#EAF3FF !important;color:#23479a !important}.stat:nth-child(even){background:#FFF5D6 !important;color:#6B4E00 !important}
   .ccard{background:#fff !important}
 
+  /* new style: rounded headings and new bird */
+  h1,h2,h3,.sect,.big-title{font-family:"Fredoka","Nunito",sans-serif !important}
+  .head h1{font-weight:700}
+  .birdwrap .hat{top:-12% !important;left:58% !important;transform:translateX(-30%) !important}
 </style>
 </head>
 <body>
@@ -558,13 +564,13 @@ function draw(){
       <div class="card"><h2>🌰 What do you wonder?<button class="speak" onclick="speak('What do you wonder about? Write or say your question.')">🔊</button></h2>
         <div class="mic-row">${micBtn("w1")}<textarea id="w1" placeholder="I wonder…">${esc(q.data.wonder||"")}</textarea></div>${langSwitch()}
         ${aiOn() ? `<button class="btn wide ghost" style="margin-top:10px" onclick="askCoach()">🐦 Help me make my question stronger</button>` : ""}
-        ${coach ? `<div class="birdsays"><img src="bird.png" alt=""><div><b>${esc(coach.praise||"")}</b>${(coach.tips||[]).map(t=>`<p>💡 ${esc(t)}</p>`).join("")}</div></div>` : ""}</div>
+        ${coach ? `<div class="birdsays"><img src="wondernest-mark.png" alt=""><div><b>${esc(coach.praise||"")}</b>${(coach.tips||[]).map(t=>`<p>💡 ${esc(t)}</p>`).join("")}</div></div>` : ""}</div>
       ${myW.length ? `<div class="card"><h2>From my wonder wall</h2><div class="wall">${myW.slice(0,12).map((w,i)=>`<button class="bub" style="background:${BUBBLE_COLOURS[i%6]}" onclick="$('#w1').value=${esc(JSON.stringify(w.content.text))}">${esc(w.content.text)}</button>`).join("")}</div></div>` : ""}
       <button class="btn wide leaf" onclick="coach=null;finishStop(1,{wonder:$('#w1').value.trim()}, 'Write or say your wonder first!')">🌱 Plant my seed</button></div>`; }
 
   if(screen === "s2"){ const q = curInq(), tw = twigs(q);
     return app.innerHTML = stopHead(2) + `<div class="body">
-      <div class="card center"><div class="nestscene"><img src="bird.png" class="birdfly" alt=""><div class="nest">${tw.slice(0,12).map((t,i)=>`<span class="twig" style="--a:${(i*47)%60-30}deg;--x:${(i%6)*18-45}px;--y:${Math.floor(i/6)*-12}px"></span>`).join("")}</div></div>
+      <div class="card center"><div class="nestscene"><img src="wondernest-mark.png" class="birdfly" alt=""><div class="nest">${tw.slice(0,12).map((t,i)=>`<span class="twig" style="--a:${(i*47)%60-30}deg;--x:${(i%6)*18-45}px;--y:${Math.floor(i/6)*-12}px"></span>`).join("")}</div></div>
         <p style="font-weight:800;color:var(--navy);font-size:16px">${tw.length ? `${tw.length} twig${tw.length===1?"":"s"} in your nest!` : "Fly out and find twigs for your nest!"}</p>
         <p style="font-size:13.5px;color:var(--muted);font-weight:700">Every clue you find is a twig.</p></div>
       <div class="card"><h2>🐦 Add a twig<button class="speak" onclick="speak('What did you find out? You can write, talk, take a photo, count, test or interview.')">🔊</button></h2>
@@ -592,12 +598,12 @@ function draw(){
           <button class="btn wide" style="margin-top:8px" onclick="addInterview()">🪵 Add twig</button></div>` : ""}
         ${nbMode === "read" ? `<div style="margin-top:12px"><p class="lbl">📖 Paste or type the hard text you found</p><textarea id="rdText" style="min-height:100px"></textarea>
           <button class="btn wide" style="margin-top:8px;background:#0ea5e9" onclick="readHelp()">🐦 Make it easier to read</button>
-          ${readOut ? `<div class="birdsays"><img src="bird.png" alt=""><div><p style="font-size:16px">${esc(readOut.simple||"")}</p>${(readOut.words||[]).map(w=>`<p>🔤 <b>${esc(w.word)}</b>: ${esc(w.meaning)}</p>`).join("")}<button class="btn" style="margin-top:8px;padding:9px 14px;font-size:14px" onclick="speak(${esc(JSON.stringify(readOut.simple||""))})">🔊 Read it to me</button></div></div>` : ""}</div>` : ""}
+          ${readOut ? `<div class="birdsays"><img src="wondernest-mark.png" alt=""><div><p style="font-size:16px">${esc(readOut.simple||"")}</p>${(readOut.words||[]).map(w=>`<p>🔤 <b>${esc(w.word)}</b>: ${esc(w.meaning)}</p>`).join("")}<button class="btn" style="margin-top:8px;padding:9px 14px;font-size:14px" onclick="speak(${esc(JSON.stringify(readOut.simple||""))})">🔊 Read it to me</button></div></div>` : ""}</div>` : ""}
       </div>
       ${experts.length ? `<div class="card"><h2>🧑‍🔬 Ask an expert</h2>
         <div class="wall" style="margin-bottom:10px">${experts.map(x=>`<button class="bub" style="background:${(q.data.expertIds||[]).includes(x.id)?"#e6f7ec":"#f6f2ff"};border:2px solid ${(q.data.expertIds||[]).includes(x.id)?"var(--leaf)":"transparent"}" onclick="toggleExpert('${x.id}')">${esc(x.emoji)} ${esc(x.name)} · ${esc(x.topic)}</button>`).join("")}</div>
         <div class="mic-row">${micBtn("expQ", true)}<textarea id="expQ" style="min-height:56px" placeholder="My question for the expert…" onblur="saveExpQ()">${esc(q.data.expertQ||"")}</textarea></div></div>` : ""}
-      ${aiOn() ? `<button class="btn wide ghost" onclick="askNudge()">🐦 I'm stuck! Help me think</button>${nudge ? `<div class="birdsays"><img src="bird.png" alt=""><div><p style="font-size:16px">${esc(nudge)}</p></div></div>` : ""}` : ""}
+      ${aiOn() ? `<button class="btn wide ghost" onclick="askNudge()">🐦 I'm stuck! Help me think</button>${nudge ? `<div class="birdsays"><img src="wondernest-mark.png" alt=""><div><p style="font-size:16px">${esc(nudge)}</p></div></div>` : ""}` : ""}
       ${tw.length ? `<div class="card" style="margin-top:14px"><h2>🪵 My twigs (${tw.length})</h2>${tw.map((e,i)=>nbItem(e,i,true)).join("")}</div>` : ""}
       <button class="btn wide leaf" style="margin-top:14px" onclick="nudge=null;readOut=null;finishStop(2,{}, '', d => (d.notebook||[]).length >= 2 ? '' : 'Find at least 2 twigs first!')">🪺 My nest is ready!</button></div>`; }
 
@@ -1101,7 +1107,7 @@ async function planInterview(){
 }
 function ivPlanBox(){
   if(!ivPlan) return "";
-  return `<div class="birdsays"><img src="bird.png" alt=""><div>${(ivPlan.tips||[]).map(t=>`<p>💡 ${esc(t)}</p>`).join("")}${(ivPlan.starters||[]).length?`<p style="margin-top:6px"><b>Question starters (tap one):</b></p>${ivPlan.starters.map(s=>`<button class="chipk" onclick="$('#ivQ').value=${esc(JSON.stringify(s))};$('#ivQ').focus()">${esc(s)}</button>`).join("")}`:""}</div></div>`;
+  return `<div class="birdsays"><img src="wondernest-mark.png" alt=""><div>${(ivPlan.tips||[]).map(t=>`<p>💡 ${esc(t)}</p>`).join("")}${(ivPlan.starters||[]).length?`<p style="margin-top:6px"><b>Question starters (tap one):</b></p>${ivPlan.starters.map(s=>`<button class="chipk" onclick="$('#ivQ').value=${esc(JSON.stringify(s))};$('#ivQ').focus()">${esc(s)}</button>`).join("")}`:""}</div></div>`;
 }
 
 const NEW_SCREENS = {
@@ -1144,7 +1150,7 @@ const NEW_SCREENS = {
       <div class="card"><h2>🌍 Issues that connect to my passions</h2><p style="font-weight:700;color:var(--muted);margin-bottom:8px">An issue is a problem in the world that people are trying to solve.</p>
         ${[0,1,2].map(i=>`<div style="margin-bottom:10px"><input class="title" id="is${i}" placeholder="Issue ${i+1}" value="${esc(((c.issues||[])[i]||{}).text||"")}"><select id="isg${i}" class="title" style="margin-top:6px"><option value="">Which goal? (SDG)</option>${SDG_NAMES.map((n,k)=>`<option value="${k+1}" ${Number(((c.issues||[])[i]||{}).sdg)===k+1?"selected":""}>${k+1}. ${n}</option>`).join("")}</select></div>`).join("")}
         ${aiOn() ? `<button class="btn ghost wide" onclick="askIssue()">🐦 Help me find an issue</button>` : ""}
-        ${issueHelp ? `<div class="birdsays"><img src="bird.png" alt=""><div>${(issueHelp.questions||[]).map(q=>`<p>❓ ${esc(q)}</p>`).join("")}</div></div>` : ""}</div>
+        ${issueHelp ? `<div class="birdsays"><img src="wondernest-mark.png" alt=""><div>${(issueHelp.questions||[]).map(q=>`<p>❓ ${esc(q)}</p>`).join("")}</div></div>` : ""}</div>
       <div class="card"><h2>💭 Why does this matter to me?</h2><div class="mic-row">${micBtn("paW")}<textarea id="paW">${esc(c.why||"")}</textarea></div></div>
       <button class="btn wide leaf" onclick="savePassion()">💾 Save my passions</button></div>`; },
   ejournal(){ const j = entries.filter(e => e.kind === "journal");
@@ -1162,7 +1168,7 @@ const NEW_SCREENS = {
         <p class="lbl">🔎 Lines of inquiry</p>${[0,1,2].map(i=>`<input class="title" id="gL${i}" value="${esc((d.lines||[])[i]||"")}" placeholder="Line ${i+1}" style="margin-bottom:6px">`).join("")}
         <button class="btn wide" onclick="saveGroupPart('idea')">💾 Save</button>
         ${aiOn() ? `<button class="btn ghost wide" style="margin-top:8px" onclick="askPersp()">🐦 Show me another point of view</button>` : ""}
-        ${persp ? `<div class="birdsays"><img src="bird.png" alt=""><div>${(persp.perspectives||[]).map(p=>`<p>👀 <b>${esc(p.who)}:</b> ${esc(p.question)}</p>`).join("")}</div></div>` : ""}</div>
+        ${persp ? `<div class="birdsays"><img src="wondernest-mark.png" alt=""><div>${(persp.perspectives||[]).map(p=>`<p>👀 <b>${esc(p.who)}:</b> ${esc(p.question)}</p>`).join("")}</div></div>` : ""}</div>
       <div class="card"><h2>❓ Our research questions</h2>${(d.questions||[]).map((q,i)=>`<div class="item" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(typeof q==="string"?q:q.text)}</span><button class="x" onclick="delGroupItem('questions',${i})">✕</button></div>`).join("")}
         <div class="mic-row">${micBtn("gQ", true)}<input class="title" id="gQ" placeholder="How… Why… What if…"></div><button class="btn ghost wide" style="margin-top:8px" onclick="addGroupItem('questions')">＋ Add question</button></div>
       <div class="card"><h2>📚 Our sources</h2>${(d.sources||[]).map((s,i)=>`<div class="item"><b>📎 ${esc(s.title)}</b>${s.where?` · ${esc(s.where)}`:""}<br>${esc(s.learned||"")}<button class="x" style="float:right" onclick="delGroupItem('sources',${i})">✕</button></div>`).join("")}
@@ -1472,7 +1478,7 @@ function birdSVG(level, size){
 }
 function birdHTML(size, showNest = true){
   const p = birdPrefs(), f = feathers(), lv = nestLevel(f), col = BIRD_COLOURS[p.colour] || BIRD_COLOURS[0], hat = BIRD_HATS[p.hat] || BIRD_HATS[0];
-  return `<div class="mybird" style="width:${size}px"><div class="birdwrap"><img src="bird.png" alt="My bird" style="width:${size*0.62}px;filter:hue-rotate(${col[1]}deg) saturate(1.1)">${hat[1]?`<span class="hat" style="font-size:${size*0.16}px">${hat[1]}</span>`:""}</div>${showNest ? birdSVG(lv, size) : ""}</div>`;
+  return `<div class="mybird" style="width:${size}px"><div class="birdwrap"><img src="wondernest-mark.png" alt="My bird" style="width:${size*0.62}px;filter:hue-rotate(${col[1]}deg) saturate(1.1)">${hat[1]?`<span class="hat" style="font-size:${size*0.16}px">${hat[1]}</span>`:""}</div>${showNest ? birdSVG(lv, size) : ""}</div>`;
 }
 function birdCard(){
   const f = feathers(), lv = nestLevel(f), next = NEST_LEVELS[lv + 1], prev = NEST_LEVELS[lv], pct = next ? Math.round((f - prev) / (next - prev) * 100) : 100;
@@ -1484,7 +1490,7 @@ NEW_SCREENS.mybird = function(){
   const counts = {}; entries.forEach(e => { if(FEATHERS[e.kind]) counts[e.kind] = (counts[e.kind] || 0) + 1; });
   return khead("My bird 🐦", "Every bit of learning adds feathers", "linear-gradient(135deg,#2f6fd6,#8a6cf0)") + `<div class="body">
     <div class="card center">${birdHTML(240)}<p style="font-family:Fredoka,sans-serif;font-size:24px;color:var(--navy);margin-top:6px">${NEST_NAMES[lv]}</p><p style="font-weight:900;color:var(--coral)">🪶 ${f} feathers · Nest level ${lv + 1}</p></div>
-    <div class="card"><h2>🎨 My bird's colour</h2><div class="pick">${BIRD_COLOURS.map((c,i)=>{ const open = lv >= c[2]; return `<button class="pk ${p.colour===i?"on":""}" ${open?`onclick="setBird('colour',${i})"`:"disabled"}><img src="bird.png" style="filter:hue-rotate(${c[1]}deg)${open?"":" grayscale(1) opacity(.4)"}"><small>${open?esc(c[0]):"🔒 Level "+(c[2]+1)}</small></button>`; }).join("")}</div></div>
+    <div class="card"><h2>🎨 My bird's colour</h2><div class="pick">${BIRD_COLOURS.map((c,i)=>{ const open = lv >= c[2]; return `<button class="pk ${p.colour===i?"on":""}" ${open?`onclick="setBird('colour',${i})"`:"disabled"}><img src="wondernest-mark.png" style="filter:hue-rotate(${c[1]}deg)${open?"":" grayscale(1) opacity(.4)"}"><small>${open?esc(c[0]):"🔒 Level "+(c[2]+1)}</small></button>`; }).join("")}</div></div>
     <div class="card"><h2>🎩 Something to wear</h2><div class="pick">${BIRD_HATS.map((h,i)=>{ const open = lv >= h[2]; return `<button class="pk ${p.hat===i?"on":""}" ${open?`onclick="setBird('hat',${i})"`:"disabled"}><span style="font-size:30px">${h[1]||"🚫"}</span><small>${open?esc(h[0]):"🔒 Level "+(h[2]+1)}</small></button>`; }).join("")}</div></div>
     <div class="card"><h2>🪶 How to earn feathers</h2>${[["wonder","💭 A wonder",1],["routine","🧠 A thinking routine",2],["story","📖 A story",3],["concept","💡 Big ideas thinking",2],["lp","🌟 Learner profile",2],["action","🧱 Taking action",3],["journal","📓 A journal entry",2]].map(([k,l,n])=>`<div class="earn"><span>${l}</span><b>+${n}</b><small>${counts[k]||0} done</small></div>`).join("")}<div class="earn"><span>🌱 Each step in my Wonder Garden</span><b>+2</b></div></div></div>`;
 };

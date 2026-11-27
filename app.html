@@ -6,6 +6,8 @@
 <title>WonderNest · Unit builder</title>
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion for teachers and children.">
 <style>
   :root{
@@ -340,6 +342,31 @@
 .loisel{display:flex;flex-direction:column;gap:3px}.loiauto{font-size:11.5px;color:var(--muted);font-weight:700;min-height:14px}
 .tdfocush{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdfocush .link{font-weight:800;white-space:nowrap}.tdideas{margin-top:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:#fbfcff}.tdideash{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px;font-size:13.5px;color:var(--navy)}.tdidea{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:5px 0}.tdidea .chip{margin:0}
 .wkdl{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin:6px 0 4px}
+
+  /* ===== New WonderNest style: Look closer. Wonder more. ===== */
+  :root{--navy:#1f4fb0;--blue:#3b82e0;--sky:#eaf3ff;--sun:#f5b921;--ink:#1b2540;--muted:#5b6782;--line:#e3e9f4;--bg:#f5f9ff}
+  body{font-family:"DM Sans","Nunito","Segoe UI",Arial,sans-serif;background:radial-gradient(900px 420px at 100% 0,#fff4d6 0,transparent 60%),#f5f9ff}
+  h1,h2,h3,.f{font-family:"Fredoka","Nunito",sans-serif}
+  h1{font-weight:700;font-size:30px;letter-spacing:-.2px}
+  h2,h3{font-weight:600}
+  .side{background:linear-gradient(180deg,#1f4fb0 0,#163c8a 100%)}
+  .logo > div:last-child{font-family:"Fredoka",sans-serif;font-weight:700}
+  .nav.on{background:rgba(255,255,255,.16);box-shadow:inset 3px 0 0 var(--sun)}
+  .card{border-radius:22px;border-color:var(--line);box-shadow:0 6px 18px rgba(31,79,176,.05)}
+  .label{color:var(--blue);letter-spacing:1.4px}
+  .step{border-radius:14px}
+  .step.now{box-shadow:0 0 0 3px rgba(59,130,224,.15)}
+  .step.done b{background:var(--sun);color:#1b2540}
+  .theme{border-radius:18px}
+  .theme:hover{border-color:#cfe0fb}
+  .theme.sel{border-color:var(--sun);background:#fffaea}
+  .theme.sel:after{background:var(--sun);color:#1b2540}
+  .btn{background:var(--navy);border-radius:14px;font-weight:700;box-shadow:0 6px 14px rgba(31,79,176,.18)}
+  .btn:hover{background:var(--blue);filter:none}
+  .btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--navy);box-shadow:none}
+  .btn.ghost:hover{background:var(--sky)}
+  textarea,input[type=text],select{border-radius:14px}
+  textarea:focus,input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(59,130,224,.13)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>

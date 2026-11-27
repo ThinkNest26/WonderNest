@@ -7,9 +7,9 @@
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{--navy:#14325c;--blue:#2f6fd6;--coral:#ff7a59;--leaf:#3bb07a;--sun:#ffc83d;--muted:#667085;--cream:#fff8ec}
+  :root{--navy:#1f4fb0;--blue:#3b82e0;--coral:#e3a50d;--leaf:#3bb07a;--sun:#f5b921;--muted:#667085;--cream:#fff8ec}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Nunito",system-ui,sans-serif;background:linear-gradient(180deg,#fff3d6,#e8f1ff);min-height:100vh;color:#1d2433}
   button{font:inherit;cursor:pointer;border:0}
@@ -17,7 +17,7 @@
   textarea{min-height:64px;resize:vertical}
   .wrap{max-width:640px;margin:auto;padding:18px}
   .head{background:linear-gradient(135deg,#2f9e6b,#7cc36b);color:#fff;border-radius:0 0 28px 28px;padding:22px 20px 26px;text-align:center}
-  .head.booth{background:linear-gradient(135deg,#14325c,#8a6cf0)}
+  .head.booth{background:linear-gradient(135deg,#1f4fb0,#8a6cf0)}
   .head img{width:64px}
   .head h1{font-family:"Fredoka";font-size:28px;margin-top:4px}
   .head p{font-weight:800;opacity:.9}
@@ -93,7 +93,7 @@ const starsForm = (id) => `<div class="card"><h2>⭐⭐ Two stars and a wish �
 function famDraw(){
   const v = V;
   if(cur){ const q = v.inquiries.find(x => x.id === cur), d = q.data || {}, s = d.share || {}, r = d.reflect || {};
-    return `<div class="head"><img src="bird.png" alt=""><h1>${esc(v.first_name)}'s wonder</h1><p>${esc(d.wonder||"")}</p></div><div class="wrap">
+    return `<div class="head"><img src="wondernest-mark.png" alt=""><h1>${esc(v.first_name)}'s wonder</h1><p>${esc(d.wonder||"")}</p></div><div class="wrap">
       ${s.format === "radio" ? `<div class="card radio"><div class="onair">● ON AIR</div><h2>🎙️ ${esc(s.title||"Radio show")}</h2>${s.audio?`<audio controls src="${s.audio}" style="width:100%;margin:8px 0"></audio>`:""}<p style="white-space:pre-wrap">${esc(s.script||"")}</p></div>`
         : s.title || s.img || s.label ? `<div class="card exhibit"><div class="plaque">🏛️ ${esc(s.title||"Exhibit")}</div>${s.img?`<img src="${s.img}">`:""}${s.label?`<div class="label">${esc(s.label)}</div>`:""}${s.activity?`<div class="touch">✋ Touch and try: ${esc(s.activity)}</div>`:""}</div>` : ""}
       ${d.board && d.board.meaning ? `<div class="card"><h2>🔍 What the clues showed</h2><p>${esc(d.board.meaning)}</p></div>` : ""}
@@ -102,14 +102,14 @@ function famDraw(){
       ${(q.notes||[]).length ? `<div class="card"><h2>💚 Messages from family</h2>${q.notes.map(n=>`<div class="note"><b>${esc(n.name||"Family")}</b><br>⭐ ${esc(n.content.star1||"")}<br>⭐ ${esc(n.content.star2||"")}<br>🪄 ${esc(n.content.wish||"")}</div>`).join("")}</div>` : ""}
       ${sent[q.id] ? `<div class="card center"><h2>💌 Sent!</h2><p>${esc(v.first_name)} will see your message in their Wonder Nest.</p></div>` : starsForm(q.id)}
       <button class="btn ghost" onclick="cur=null;draw()">‹ Back to the garden</button></div>`; }
-  return `<div class="head"><img src="bird.png" alt=""><h1>${esc(v.first_name)}'s Wonder Garden</h1><p>${esc(v.class_name)}${v.unit ? " · " + esc(v.unit) : ""}</p></div><div class="wrap">
+  return `<div class="head"><img src="wondernest-mark.png" alt=""><h1>${esc(v.first_name)}'s Wonder Garden</h1><p>${esc(v.class_name)}${v.unit ? " · " + esc(v.unit) : ""}</p></div><div class="wrap">
     <div class="card"><p>Every wonder ${esc(v.first_name)} plants is a question they chose to investigate. It grows as they collect clues, make sense of them, share what they found and reflect. 🌸 Flowers are wonders ${esc(v.first_name)} has shared: tap one to visit.</p></div>
     <div class="garden"><div class="bed">${v.inquiries.map(q => { const n = Math.min(6, q.stage || 1); return q.shared ? `<button class="plant" onclick="cur='${q.id}';draw();scrollTo(0,0)"><span>🌸</span><small>${esc((q.data.wonder||"").slice(0,40))}</small></button>` : `<div class="plant"><span>${PLANTS[n]}</span><small>${esc((q.data.wonder||"Growing…").slice(0,40))}</small></div>`; }).join("") || `<p style="font-weight:800;color:var(--navy);padding:20px">No wonders planted yet. Ask ${esc(v.first_name)} what they wonder about!</p>`}</div><div class="soil"></div></div>
     <div class="card"><h2>💬 Talk about it at home</h2><p>• What are you wondering about at the moment?<br>• How did you find your clues?<br>• What surprised you?<br>• What do you want to find out next?</p></div></div>`;
 }
 function boothDraw(){
   const v = V, b = v.booth || {};
-  return `<div class="head booth"><img src="bird.png" alt=""><h1>🏛️ ${esc(b.title || v.name)}</h1><p>${esc(v.name)} · ${esc(v.class_name)}</p><p>${(v.members||[]).map(esc).join(", ")}</p></div><div class="wrap">
+  return `<div class="head booth"><img src="wondernest-mark.png" alt=""><h1>🏛️ ${esc(b.title || v.name)}</h1><p>${esc(v.name)} · ${esc(v.class_name)}</p><p>${(v.members||[]).map(esc).join(", ")}</p></div><div class="wrap">
     ${b.img ? `<div class="card exhibit"><img src="${b.img}"></div>` : ""}
     ${v.issue ? `<div class="card"><h2>🌍 Our issue</h2><p>${esc(v.issue)}</p>${(v.sdgs||[]).map(n=>`<span class="tag" style="background:${SDGC[n]||"#2f6fd6"}">SDG ${n}</span>`).join("")}</div>` : ""}
     ${v.centralIdea ? `<div class="card"><h2>💡 Our central idea</h2><p style="font-size:18px;font-weight:800">${esc(v.centralIdea)}</p>${(v.lines||[]).filter(Boolean).length?`<p class="lbl">Our lines of inquiry</p>${v.lines.filter(Boolean).map(l=>`<p>🔎 ${esc(l)}</p>`).join("")}`:""}</div>` : ""}
@@ -118,7 +118,7 @@ function boothDraw(){
     ${sent.booth ? `<div class="card center"><h2>💌 Thank you!</h2><p>The group will read your message.</p></div>` : starsForm("booth")}</div>`;
 }
 function draw(){
-  if(!V) return $("#app").innerHTML = `<div class="wrap center" style="padding-top:80px"><img src="bird.png" style="width:80px"><h2 style="font-family:Fredoka;color:#14325c;margin-top:10px">This link isn't working</h2><p>Please check the link with the class teacher.${booth ? " The booth may not be open yet." : ""}</p></div>`;
+  if(!V) return $("#app").innerHTML = `<div class="wrap center" style="padding-top:80px"><img src="wondernest-mark.png" style="width:80px"><h2 style="font-family:Fredoka;color:#1f4fb0;margin-top:10px">This link isn't working</h2><p>Please check the link with the class teacher.${booth ? " The booth may not be open yet." : ""}</p></div>`;
   $("#app").innerHTML = (fam ? famDraw() : boothDraw()) + `<div class="foot">WonderNest · ThinkNest Education</div>`;
 }
 async function send(id){
