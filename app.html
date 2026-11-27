@@ -317,7 +317,7 @@
   .tdsub{margin-top:10px}.tdcard{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#fff}.tdcard h4{color:var(--navy);font-size:15px}
   .tdlearn{background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}.tdlearn p{margin:2px 0}
   .tdsubh{display:flex;justify-content:space-between;align-items:center;gap:10px}.tdsubh b{color:var(--navy);font-size:15px}.tdsubh select{width:auto;padding:6px 10px}
-  .tdweb{width:100%;max-width:760px;display:block;margin:8px auto;background:linear-gradient(180deg,#f7faff,#fff);border-radius:16px}
+  .tdweb{width:100%;max-width:940px;display:block;margin:8px auto;background:linear-gradient(180deg,#f7faff,#fff);border-radius:16px}
   .sigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}.sicard{border:1px solid var(--line);border-radius:14px;padding:12px 14px}.sicard h4{color:var(--navy)}.sih{font-weight:800;margin:8px 0 4px;font-size:13px}.siq{font-size:13.5px;background:var(--bg);border-radius:8px;padding:6px 9px;margin-bottom:5px}
 
   .pgstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px}.pgstat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px}.pgstat span{font-size:22px}.pgstat b{font-size:24px;color:var(--navy)}.pgstat small{color:var(--muted);font-weight:700;font-size:12px}.pgstat em{font-style:normal;color:#1d7a4e;font-size:11.5px;font-weight:800}
@@ -473,6 +473,7 @@
   .s5-grid .routine,.s5-grid .prov{margin:0;height:100%}
   .s5-card{border:1px solid var(--line);border-radius:14px;padding:4px 14px;background:#fff}.s5-card .book{border:0}
   @media (max-width:700px){.s5-grid.books,.s5-grid.two,.s5-grid.three{grid-template-columns:1fr}}
+  .tdsubh{align-items:center}.tdrm{margin-left:auto;font-size:13px;white-space:nowrap}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3745,7 +3746,7 @@ function stepSubjects(){
   tdObj(); const subs = unit.subjects, sug = unit.tdIdeas;
   return whyBox("subjects") + `<div class="card exg"><div class="label">1. Which subjects are teaching this unit, and what are they teaching?</div>
     <div class="chips">${SUBJECTS.map(s=>`<button class="chip ${subs.some(x=>x.subject===s)?"on":""}" onclick="tdToggle('${s}')">${s}</button>`).join("")}<button class="chip" onclick="const v=prompt('Subject name');if(v&&v.trim())tdToggle(v.trim())">＋ Other</button></div>
-    ${subs.map((x,i)=>`<div class="tdsub"><div class="tdsubh"><b>${esc(x.subject)}</b>${(RELATED[relKey(x.subject)]||[]).length?`<select onchange="unit.subjects[${i}].related=this.value;saveCurrent();render()"><option value="">Related concept…</option>${RELATED[relKey(x.subject)].map(r=>`<option ${x.related===r?"selected":""}>${esc(r)}</option>`).join("")}</select>`:""}</div>
+    ${subs.map((x,i)=>`<div class="tdsub"><div class="tdsubh"><b>${esc(x.subject)}</b>${(RELATED[relKey(x.subject)]||[]).length?`<select onchange="unit.subjects[${i}].related=this.value;saveCurrent();render()"><option value="">Related concept…</option>${RELATED[relKey(x.subject)].map(r=>`<option ${x.related===r?"selected":""}>${esc(r)}</option>`).join("")}</select>`:""}<button class="link danger tdrm" title="Remove this box" onclick="tdRemove(${i})">🗑 Remove</button></div>
       <div class="tdfocush"><label>Focus this unit: topics, skills or objectives</label><button class="link" onclick="tdFocusIdeas(${i})">✨ Inspire me</button></div>
       <textarea id="tdtop${i}" oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the focus (for example from Atlas)"}">${esc(x.topics||"")}</textarea>${tdFocusPanel(x,i)}</div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
     ${subs.length ? `<div class="label" style="margin-top:16px">How the integration looks</div>${tdWeb()}<div style="text-align:center"><button class="link" onclick="render()">↻ Update the picture</button></div>` : ""}
@@ -3776,19 +3777,30 @@ function tdMatrix(){
 }
 const relKey = s => ({English:"Language",Arabic:"Language",Library:"Language",Mathematics:"Mathematics",Science:"Science","Social Studies":"Social studies","Islamic Education":"Social studies","Moral Education":"Social studies",Art:"Arts",Music:"Arts",PE:"PSPE",Computing:"Science"})[s];
 function tdWeb(){
-  const subs = unit.subjects, n = subs.length, W = 760, H = 420, cx = W/2, cy = H/2, R = 165, cols = ["#2f6fd6","#3bb07a","#ff7a59","#8a6cf0","#f59e0b","#0ea5e9","#be123c","#0f766e","#b45309","#6b4fd8","#c5192d","#19486a"];
-  const wrap = (t, len) => { const w = String(t||"").split(/\s+/), out = [""]; w.forEach(x => { if((out[out.length-1] + " " + x).length > len) out.push(x); else out[out.length-1] = (out[out.length-1] + " " + x).trim(); }); return out.slice(0, 3); };
-  const nodes = subs.map((x,i) => { const a = -Math.PI/2 + i * 2*Math.PI/n; return { x: cx + R*1.35*Math.cos(a), y: cy + R*Math.sin(a), s: x, c: cols[i % cols.length] }; });
-  const links = []; (unit.tdExperiences||[]).forEach(e => { const ss = (e.subjects||[]).map(z => nodes.findIndex(q => q.s.subject === z)).filter(k => k >= 0); for(let a = 0; a < ss.length; a++) for(let b = a+1; b < ss.length; b++) links.push([ss[a], ss[b]]); });
+  const subs = unit.subjects, n = subs.length, cols = ["#2f6fd6","#3bb07a","#ff7a59","#8a6cf0","#f59e0b","#0ea5e9","#be123c","#0f766e","#b45309","#6b4fd8","#c5192d","#19486a"];
+  const cut = (t, len) => { t = String(t || ""); return t.length > len ? t.slice(0, len - 1).trim() + "…" : t; };
+  const wrap = (t, len, max) => { const w = String(t || "").replace(/\s+/g, " ").trim().split(" "), out = [""]; w.forEach(x => { if((out[out.length-1] + " " + x).trim().length > len) out.push(x); else out[out.length-1] = (out[out.length-1] + " " + x).trim(); }); const r = out.filter(Boolean); if(r.length > max){ r.length = max; r[max-1] = cut(r[max-1], len - 1) + (r[max-1].endsWith("…") ? "" : "…"); } return r.map(l => cut(l, len + 6)); };
+  const BW = 190, BH = 70, two = n > 8;
+  let W, H, cx, cy, nodes;
+  if(!two){ W = 940; H = 540; cx = W / 2; cy = H / 2; const Rx = 335, Ry = 195;
+    nodes = subs.map((x, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / Math.max(n, 1); return { x: cx + Rx * Math.cos(a), y: cy + Ry * Math.sin(a), s: x, c: cols[i % cols.length] }; }); }
+  else { const rows = Math.ceil(n / 2), gap = 14; W = 940; H = Math.max(300, rows * (BH + gap) + 40); cx = W / 2; cy = H / 2;
+    nodes = subs.map((x, i) => { const left = i < rows, k = left ? i : i - rows, rr = left ? rows : n - rows, top = cy - (rr * (BH + gap) - gap) / 2 + BH / 2;
+      return { x: left ? 20 + BW / 2 + 40 : W - 20 - BW / 2 - 40, y: top + k * (BH + gap), s: x, c: cols[i % cols.length] }; }); }
+  const links = []; (unit.tdExperiences || []).forEach(e => { const ss = (e.subjects || []).map(z => nodes.findIndex(q => q.s.subject === z)).filter(k => k >= 0); for(let a = 0; a < ss.length; a++) for(let b = a + 1; b < ss.length; b++) links.push([ss[a], ss[b]]); });
+  const core = wrap(unit.centralIdea || "Central idea", 30, 5), CH = Math.max(90, core.length * 18 + 30);
   return `<svg viewBox="0 0 ${W} ${H}" class="tdweb" role="img" aria-label="How the subjects connect to the central idea">
-    ${links.map(([a,b])=>`<line x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}" stroke="#f59e0b" stroke-width="4" stroke-dasharray="7 5"/>`).join("")}
-    ${nodes.map(p=>`<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="${p.c}" stroke-width="2.5" opacity=".45"/>`).join("")}
-    <rect x="${cx-130}" y="${cy-48}" width="260" height="96" rx="18" fill="#14325c"/>${wrap(unit.centralIdea||"Central idea", 34).map((l,i,arr)=>`<text x="${cx}" y="${cy - (arr.length-1)*9 + i*18 + 5}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">${esc(l)}</text>`).join("")}
-    ${nodes.map(p=>`<g><rect x="${p.x-88}" y="${p.y-36}" width="176" height="72" rx="14" fill="#fff" stroke="${p.c}" stroke-width="2.5"/><text x="${p.x}" y="${p.y-14}" text-anchor="middle" fill="${p.c}" font-size="13.5" font-weight="800">${esc(p.s.subject)}${p.s.related?" · "+esc(p.s.related):""}</text>${wrap(p.s.topics||"Add the focus", 30).slice(0,2).map((l,i)=>`<text x="${p.x}" y="${p.y+4+i*15}" text-anchor="middle" fill="#475467" font-size="11.5">${esc(l)}</text>`).join("")}</g>`).join("")}
-  </svg><p class="hint" style="text-align:center">Coloured lines link each subject to the central idea. Orange dashed lines appear between subjects that meet in an experience you keep.</p>`;
+    ${links.map(([a, b]) => `<line x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}" stroke="#f59e0b" stroke-width="3" stroke-dasharray="7 5" opacity=".8"/>`).join("")}
+    ${nodes.map(p => `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="${p.c}" stroke-width="2.5" opacity=".4"/>`).join("")}
+    <rect x="${cx - 135}" y="${cy - CH / 2}" width="270" height="${CH}" rx="18" fill="#14325c"/>${core.map((l, i, arr) => `<text x="${cx}" y="${cy - (arr.length - 1) * 9 + i * 18 + 5}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">${esc(l)}</text>`).join("")}
+    ${nodes.map(p => { const t = wrap(p.s.topics || "Add the focus", 30, 2); return `<g><title>${esc(p.s.subject)}${p.s.topics ? ": " + esc(p.s.topics) : ""}</title><rect x="${p.x - BW / 2}" y="${p.y - BH / 2}" width="${BW}" height="${BH}" rx="14" fill="#fff" stroke="${p.c}" stroke-width="2.5"/>
+      <text x="${p.x}" y="${p.y - 13}" text-anchor="middle" fill="${p.c}" font-size="13" font-weight="800">${esc(cut(p.s.subject + (p.s.related ? " · " + p.s.related : ""), 26))}</text>
+      ${t.map((l, i) => `<text x="${p.x}" y="${p.y + 6 + i * 15}" text-anchor="middle" fill="#475467" font-size="11">${esc(l)}</text>`).join("")}</g>`; }).join("")}
+  </svg><p class="hint" style="text-align:center">Coloured lines link each subject to the central idea. Orange dashed lines appear between subjects that meet in an experience you keep. Hover a box to read it in full.</p>`;
 }
 function tdAddQ(q){ const p = planObj(); p.teacherQs = [p.teacherQs, q].filter(Boolean).join("\n"); saveCurrent(); toast("Added to teacher questions (step 7) ✓"); }
 function tdAddAct(i, j){ const x = unit.tdIdeas.subjectIdeas[i], a = x.activities[j]; if(!unit.tdExperiences.some(e => e.title === a)) unit.tdExperiences.push({ title: a, subjects: [x.subject], how: a, subjectLearning: {}, bigIdea: x.connection || "" }); saveCurrent(); toast("Kept ✓"); render(); }
+function tdRemove(i){ const x = unit.subjects[i]; if(!x) return; if((x.topics||"").trim() && !confirm("Remove " + x.subject + " and its focus from this unit?")) return; unit.subjects.splice(i, 1); (unit.tdExperiences||[]).forEach(e => { e.subjects = (e.subjects||[]).filter(z => z !== x.subject); }); saveCurrent(); render(); toast(x.subject + " removed"); }
 function tdToggle(s){ tdObj(); const i = unit.subjects.findIndex(x => x.subject === s); if(i >= 0) unit.subjects.splice(i, 1); else unit.subjects.push({ subject: s, topics: "" }); saveCurrent(); render(); }
 function tdKeep(i){ const e = unit.tdIdeas.experiences[i]; if(!unit.tdExperiences.some(k => k.title === e.title)) unit.tdExperiences.push(JSON.parse(JSON.stringify(e))); saveCurrent(); toast("Kept ✓"); render(); }
 /* Per subject: the teacher writes her own focus, or asks for ideas from this subject's curriculum that link to the unit. */
