@@ -69,6 +69,7 @@ function codeScreen(msg){
 }
 async function open_(c){
   code = String(c || "").trim().toUpperCase(); if(!code) return codeScreen("Please type your code.");
+  if(/^[A-Z0-9]{4,8}-[A-Z0-9]{5}$/.test(code)){ const sc = code; code = ""; return codeScreen("That's a student's journal code (" + sc + "). Students type it in the Exhibition journal box. Mentor codes have 8 letters and numbers, with no dash."); }
   const m = $(".msg"); if(m) m.textContent = "Opening…";
   const r = await db.rpc("mentor_view", { p_code: code });
   if(r.error) return codeScreen("WonderNest can't connect right now. Please try again later.");
