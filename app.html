@@ -2717,7 +2717,7 @@ function wlView(){
   if(db && tc.user && wlT.classes === null){ wlLoad(); }
   const uTheme = (WL_THEMES.find(t => unit && unit.theme && String(unit.theme).toLowerCase().includes(t[2].toLowerCase().slice(0, 12))) || [])[0];
   const list = wlList();
-  return top + `<div class="card"><p class="hint" style="margin-bottom:10px">${WL.length} true stories for Grades 1–5, linked to the six transdisciplinary themes and the SDGs. Each story has two reading levels (Grades 1–2 and 3–5), English and Arabic, words to know, wonder questions, a research path and the references we checked. Every child can open the Wonder Library from their Wonder Nest. Pin a story to a class and it appears under "From my teacher".</p>
+  return top + `<div class="card"><p class="hint" style="margin-bottom:10px">${WL.length} true stories for Grades 1–5, linked to the six transdisciplinary themes and the SDGs. Each story has two reading levels (Grades 1–2 and 3–5), English and Arabic, words to know, wonder questions, a research path and the references we checked. Grade 5 students can also open it from their exhibition journal.</p>
     <div class="label">Theme</div>
     <div class="chips"><button class="chip ${!wlT.theme?"on":""}" onclick="wlT.theme='';render()">All themes</button>${WL_THEMES.map(t => `<button class="chip ${wlT.theme===t[0]?"on":""}" onclick="wlT.theme='${t[0]}';render()">${t[1]} ${t[2]}${uTheme===t[0]?" ⭐":""}</button>`).join("")}</div>
     <div class="label">Global Goals</div>
@@ -5143,6 +5143,34 @@ render = function(){
   side.insertBefore(hub, side.querySelector(".navg"));
   hub.addEventListener("click", () => { view = "week"; error = ""; hbS.classes = null; render(); });
 })();
+
+/* =====================================================================
+   NAVIGATION: logo goes to the landing page; Back button on every page
+   ===================================================================== */
+const navS = { stack: [], last: null, back: false };
+function goBack(){ const p = navS.stack.pop(); if(!p) return; navS.back = true; view = p.view; if(p.view === "builder" && p.step && unit) unit.step = p.step; error = ""; render(); window.scrollTo(0, 0); }
+const _renderNav = render;
+render = function(){
+  const cur = { view, step: view === "builder" && unit ? unit.step : null };
+  if(navS.last && !navS.back && (navS.last.view !== cur.view || navS.last.step !== cur.step)){
+    navS.stack.push(navS.last); if(navS.stack.length > 30) navS.stack.shift();
+    try{ history.pushState({ wn: navS.stack.length }, ""); }catch(e){}
+  }
+  navS.back = false; navS.last = cur;
+  _renderNav();
+  const m = $("#main"); if(!m || m.querySelector(".navbar")) return;
+  m.insertAdjacentHTML("afterbegin", `<div class="navbar">${navS.stack.length ? `<button class="navback" onclick="history.back()">‹ Back</button>` : ""}<a class="navhome" href="./">🏠 WonderNest home</a></div>`);
+};
+window.addEventListener("popstate", () => { if(navS.stack.length) goBack(); });
+(function(){
+  const logo = document.querySelector(".side .logo"); if(logo){ logo.style.cursor = "pointer"; logo.title = "Go to the WonderNest home page"; logo.addEventListener("click", () => { location.href = "./"; }); }
+  const st = document.createElement("style"); st.textContent = `
+  .navbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:-6px 0 10px}
+  .navback{background:#fff;border:1.5px solid #c9d8f3;color:var(--navy);font-weight:800;border-radius:999px;padding:6px 16px;font-size:14px;transition:.15s}.navback:hover{border-color:var(--blue);transform:translateX(-2px)}
+  .navhome{margin-left:auto;color:var(--muted);font-weight:700;font-size:13px;text-decoration:none}.navhome:hover{color:var(--navy)}
+  .side .logo{transition:.15s}.side .logo:hover{opacity:.85}`; document.head.appendChild(st);
+})();
+
 setTimeout(() => { if(tc.user && view === "builder" && !unit.centralIdea){ view = "week"; render(); } }, 1800);
 
 render();
