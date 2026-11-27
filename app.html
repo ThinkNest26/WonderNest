@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion for teachers and children.">
 <script src="wonder-library.js"></script>
+<script src="objectives.js"></script>
 <style>
   :root{
     --navy:#14325c; --blue:#2f6fd6; --sky:#e8f1ff; --sun:#ffc83d; --coral:#ff7a59;
@@ -4934,6 +4935,73 @@ uWheelPrint = function(){ printWin("Inquiry cycle - " + (unit.centralIdea || "un
   .kud-subs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.kud-subs span{border:1.5px solid;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:800;background:#fff}
   @media (max-width:1000px){.kud-row,.kud-row.three{grid-template-columns:1fr}}`; document.head.appendChild(st); })();
 
+
+/* =====================================================================
+   OBJECTIVES BANK: National Curriculum English, Maths and Science (KG2 to Grade 5)
+   ===================================================================== */
+const obS = { open: false, sub: "", target: "unit", week: 0, grade: "", strand: "", q: "", sel: [], unitOnly: false };
+const obSubj = name => { const r = subRank(name); return r === 0 ? "English" : r === 1 ? "Maths" : r === 2 ? "Science" : ""; };
+const obList = (grade, s) => ((window.NC_BANK || {})[grade] || {})[s] || [];
+const obLines = t => String(t || "").split("\n").map(x => x.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean);
+const obUnitChosen = sub => { const x = (unit.subjects || []).find(y => y.subject === sub); return x ? obLines(x.topics) : []; };
+function obOpen(sub, target, week){
+  const s = obSubj(sub); if(!s) return;
+  Object.assign(obS, { open: true, sub, target: target || "unit", week: week || 0, grade: (window.NC_BANK || {})[unit.grade] ? unit.grade : (obS.grade || "Grade 1"), strand: "", q: "", sel: [] });
+  const chosen = obUnitChosen(sub), bank = obList(obS.grade, s).map(o => o[1]);
+  obS.unitOnly = obS.target === "week" && chosen.some(c => bank.includes(c)); render();
+}
+function obToggle(o){ const i = obS.sel.indexOf(o); if(i >= 0) obS.sel.splice(i, 1); else obS.sel.push(o); const n = $("#obN"); if(n) n.textContent = obS.sel.length; const b = $("#obAdd"); if(b) b.disabled = !obS.sel.length; }
+function obAdd(){
+  if(!obS.sel.length) return;
+  if(obS.target === "unit"){ const x = (unit.subjects || []).find(y => y.subject === obS.sub); if(!x) return; const have = obLines(x.topics); x.topics = [...have, ...obS.sel.filter(o => !have.includes(o))].join("\n"); }
+  else { const w = unit.weeks[obS.week]; w.subj = w.subj || {}; const have = obLines(w.subj[obS.sub]); w.subj[obS.sub] = [...have, ...obS.sel.filter(o => !have.includes(o))].join("\n"); }
+  const n = obS.sel.length; obS.open = false; obS.sel = []; saveCurrent(); render(); toast(n + " objective" + (n > 1 ? "s" : "") + " added ✓");
+}
+function obFilter(){
+  const s = obSubj(obS.sub), q = obS.q.toLowerCase(), chosen = obUnitChosen(obS.sub);
+  return obList(obS.grade, s).filter(o => (!obS.strand || o[0] === obS.strand) && (!q || (o[1] + " " + o[2]).toLowerCase().includes(q)) && (!obS.unitOnly || chosen.includes(o[1])));
+}
+function obRenderList(){
+  const el = $("#obList"); if(!el) return; const L = obFilter(), have = obS.target === "unit" ? obUnitChosen(obS.sub) : obLines(((unit.weeks[obS.week] || {}).subj || {})[obS.sub]);
+  let last = null;
+  el.innerHTML = L.map(o => { const head = o[0] !== last ? `<div class="ob-strand">${esc(o[0])}</div>` : ""; last = o[0]; const on = have.includes(o[1]);
+    return head + `<label class="ob-item ${on ? "done" : ""}"><input type="checkbox" ${on ? "checked disabled" : obS.sel.includes(o[1]) ? "checked" : ""} onchange="obToggle(${esc(JSON.stringify(o[1]))})"><span><b>${esc(o[1])}</b>${o[2] ? `<small>e.g. ${esc(o[2])}</small>` : ""}${on ? `<em>✓ already added</em>` : ""}</span></label>`; }).join("") || `<p class="hint" style="padding:16px">No objectives match. Try another strand or search word.</p>`;
+}
+function obModal(){
+  const s = obSubj(obS.sub), all = obList(obS.grade, s), strands = [...new Set(all.map(o => o[0]))], grades = Object.keys(window.NC_BANK || {}), chosen = obUnitChosen(obS.sub);
+  setTimeout(obRenderList, 0);
+  return `<div class="modal-bg" onclick="if(event.target===this){obS.open=false;render()}"><div class="modal ob-modal">
+    <div class="np-h"><div><h2>📋 ${esc(s)} objectives</h2><p class="hint">National Curriculum for England · ${esc(obS.grade)} (${esc((window.NC_YEARS || {})[obS.grade] || "")}) · for <b>${esc(obS.sub)}</b>${obS.target === "week" ? ` · week ${obS.week + 1}` : ""}</p></div><button class="pg-x" onclick="obS.open=false;render()" title="Close">✕</button></div>
+    <div class="ob-tools"><select onchange="obS.grade=this.value;obS.strand='';obS.sel=[];render()">${grades.map(g => `<option ${g === obS.grade ? "selected" : ""}>${esc(g)}</option>`).join("")}</select>
+      <input type="text" placeholder="🔍 Search, e.g. habitats, fractions, apostrophe" value="${esc(obS.q)}" oninput="obS.q=this.value;obRenderList()">
+      ${obS.target === "week" && chosen.length ? `<label class="ob-only"><input type="checkbox" ${obS.unitOnly ? "checked" : ""} onchange="obS.unitOnly=this.checked;obRenderList()"> Only this unit's objectives</label>` : ""}</div>
+    <div class="chips" style="margin:8px 0">${["", ...strands].map(t => `<button class="chip ${obS.strand === t ? "on" : ""}" onclick="obS.strand=${esc(JSON.stringify(t))};render()">${esc(t || "All strands")}</button>`).join("")}</div>
+    <div class="ob-list" id="obList"></div>
+    <div class="actions"><span class="hint">Ticked: <b id="obN">${obS.sel.length}</b> · they are added to ${obS.target === "unit" ? "this subject's focus for the unit" : "this week's " + esc(obS.sub) + " box"}</span><button class="btn" id="obAdd" ${obS.sel.length ? "" : "disabled"} onclick="obAdd()">＋ Add the ticked objectives</button></div></div></div>`;
+}
+const _stepSubjOb = stepSubjects;
+stepSubjects = function(){
+  let h = _stepSubjOb();
+  (unit.subjects || []).forEach((x, i) => { if(!obSubj(x.subject)) return; const a = `<button class="link" onclick="tdFocusIdeas(${i})">✨ Inspire me</button>`;
+    h = h.replace(a, `<span style="display:flex;gap:14px"><button class="link" onclick="obOpen(${esc(JSON.stringify(x.subject))},'unit')">📋 Choose objectives</button>${a}</span>`); });
+  return h;
+};
+const _uWeekEdOb = uWeekEditor;
+uWeekEditor = function(k){
+  let h = _uWeekEdOb(k);
+  subOrder(typeof wkSubs === "function" ? wkSubs() : []).forEach(x => { if(!obSubj(x)) return; const lab = `<label style="color:${subCol(x)}">${esc(x)}</label>`;
+    h = h.replace(lab, `<label style="color:${subCol(x)};display:flex;justify-content:space-between;gap:6px">${esc(x)}<button class="link" style="font-size:12px" onclick="obOpen(${esc(JSON.stringify(x))},'week',${k})">📋 Objectives</button></label>`); });
+  return h;
+};
+(function(){ const st = document.createElement("style"); st.textContent = `
+  .ob-modal{width:min(900px,96vw);max-height:92vh;display:flex;flex-direction:column}.ob-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}.ob-tools select{width:auto}.ob-tools input[type=text]{flex:1;min-width:220px}
+  .ob-only{display:flex;gap:6px;align-items:center;font-weight:700;font-size:13px;white-space:nowrap}.ob-only input{width:auto}
+  .ob-list{overflow-y:auto;flex:1;min-height:200px;max-height:52vh;border:1px solid var(--line);border-radius:14px;padding:4px 10px;background:#fff}
+  .ob-strand{position:sticky;top:0;background:#fff;font-family:"Fredoka",sans-serif;color:var(--navy);font-weight:600;padding:10px 2px 4px;border-bottom:1px solid var(--line)}
+  .ob-item{display:flex;gap:10px;align-items:flex-start;padding:8px 4px;border-bottom:1px dashed var(--line);cursor:pointer}.ob-item input{width:18px;height:18px;margin-top:2px;flex:none}
+  .ob-item b{font-weight:600;display:block;line-height:1.4}.ob-item small{display:block;color:var(--muted);margin-top:2px}.ob-item em{font-style:normal;color:#1d7a4e;font-size:12px;font-weight:800}.ob-item.done{opacity:.7}
+  .ob-item:hover{background:#f5f9ff}`; document.head.appendChild(st); })();
+
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
 function teacherOnly(m){
@@ -4949,6 +5017,7 @@ render = function(){
   _renderT();
   const m = $("#main"); if(m) try{ teacherOnly(m); }catch(e){}
   if(m && npS.open && poiAllUnits().length) m.insertAdjacentHTML("beforeend", npModal());
+  if(m && obS.open) m.insertAdjacentHTML("beforeend", obModal());
 };
 
 /* ---------- sidebar: This week first ---------- */
