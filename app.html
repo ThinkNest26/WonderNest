@@ -2918,7 +2918,7 @@ function exGroupView(){
     <div class="card"><div class="label">🌱 Action plan</div>${d.action && d.action.type ? `<p><b>${esc((ACTION_TYPES.find(a=>a[0]===d.action.type)||["",""])[1])}</b></p><p>${esc(d.action.plan||"")}</p>${(d.action.steps||[]).map(s=>`<p>${s.done?"✅":"⬜"} ${esc(s.text)}</p>`).join("")}` : `<p class="hint">Not planned yet.</p>`}</div>
     <div class="card"><div class="label">🧑‍🏫 Mentor meetings</div>${(d.meetings||[]).map((m,i)=>`<div class="hist"><b>${esc(m.date)}</b> · ${esc(m.notes)}${m.next?`<br>Next steps: ${esc(m.next)}`:""}</div>`).join("") || `<p class="hint">No meetings logged.</p>`}
       <div class="grid2" style="grid-template-columns:140px 1fr;gap:8px;margin-top:8px"><input type="date" id="mt_d"><input id="mt_n" placeholder="What we talked about"></div><input id="mt_x" placeholder="Next steps" style="margin-top:6px"><button class="btn small ghost" style="margin-top:6px" onclick="exAddMeeting('${g.id}')">＋ Log meeting</button></div>
-    <div class="card"><div class="label">💌 Feedback (${fb.length})</div>${fb.map(f=>`<div class="hist">${f.author_type==="visitor"?"👪 "+esc(f.author_name||"Visitor"):"🧒 "+esc(kidName(f.author_student))}: ⭐ ${esc(f.content.star1||"")} ⭐ ${esc(f.content.star2||"")} 🪄 ${esc(f.content.wish||"")}</div>`).join("") || `<p class="hint">No feedback yet.</p>`}</div></div></div>`;
+    <div class="card"><div class="label">💌 Feedback (${fb.length})</div>${fb.map(f=>f.author_type==="mentor" ? `<div class="hist" style="border-left-color:#0f766e">🧑‍🏫 <b>${esc(f.author_name||"Mentor")}</b> · ${new Date(f.created_at).toLocaleDateString("en-GB")}${f.content.talked?`<br>${esc(f.content.talked)}`:""}${f.content.next?`<br>➡️ ${esc(f.content.next)}`:""}${f.content.star1?`<br>⭐ ${esc(f.content.star1)}`:""}${f.content.star2?` ⭐ ${esc(f.content.star2)}`:""}${f.content.wish?` 🪄 ${esc(f.content.wish)}`:""}</div>` : `<div class="hist">${f.author_type==="visitor"?"👪 "+esc(f.author_name||"Visitor"):"🧒 "+esc(kidName(f.author_student))}: ⭐ ${esc(f.content.star1||"")} ⭐ ${esc(f.content.star2||"")} 🪄 ${esc(f.content.wish||"")}</div>`).join("") || `<p class="hint">No feedback yet.</p>`}</div></div></div>`;
 }
 function exKeep(){
   const g = exS.groups.find(x => x.id === exS.group); if(!g || !$("#eg_name")) return; const d = g.data = g.data || {};
@@ -4607,6 +4607,26 @@ exKidView = function(){
     <div class="card"><div class="label">🧑‍🏫 Mentor meetings (${met.length})</div>${met.map(e => `<div class="hist"><b>${d(e)}${e.content.mentor ? " · " + esc(e.content.mentor) : ""}</b><br>${esc(e.content.talked || "")}${e.content.next ? `<br>➡️ ${esc(e.content.next)}` : ""}</div>`).join("") || `<p class="hint">Not yet.</p>`}</div></div>`;
 };
 
+
+/* ---------- mentors: each mentor gets a code for their groups' page ---------- */
+const mentorLink = m => `${SITE_URL}/mentor.html?m=${encodeURIComponent(m.code)}`;
+exMentors = function(){
+  const M = exS.mentors, noCode = M.length && M.some(m => !m.code);
+  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🧑‍🏫 Mentors (${M.length})</div>${M.length && !noCode ? `<button class="btn small ghost" onclick="exPrintMentors()">🖨️ Print mentor cards</button>` : ""}</div>
+    <p class="hint" style="margin-bottom:10px">Teachers, staff, parents or community members who guide a group. Choose each group's mentor inside the group (💡 Passions & groups → Open). Each mentor gets a code: it opens a page with <b>only their groups</b>: the group's work, each member's process journal, research notes and questions, and a place to write meeting notes. Codes work only while the exhibition is open.</p>
+    ${noCode ? `<div class="wkwarn" style="margin-bottom:10px">🔧 Mentor codes need a one-time set-up in Supabase. Ask Claude for the mentor set-up steps.</div>` : ""}
+    ${M.length ? `<table class="tbl"><tr><th>Mentor</th><th>Groups</th><th>Code</th><th></th></tr>${M.map(m => { const gs = exS.groups.filter(g => (g.mentor||"").trim().toLowerCase() === m.name.trim().toLowerCase());
+      return `<tr><td><b>${esc(m.name)}</b>${m.role ? `<br><small class="hint">${esc(m.role)}</small>` : ""}${m.contact ? `<br><small class="hint">${esc(m.contact)}</small>` : ""}</td><td>${gs.map(g => esc(g.name)).join(", ") || `<span class="hint">No group yet</span>`}</td>
+        <td>${m.code ? `<code class="kcode">${esc(m.code)}</code>` : "–"}</td><td style="text-align:right;white-space:nowrap">${m.code ? `<button class="link" onclick="exCopyMentor('${m.id}')">🔗 Copy link</button> · ` : ""}<button class="link danger" onclick="exDelMentor('${m.id}')">Remove</button></td></tr>`; }).join("")}</table>` : `<p class="hint">No mentors yet.</p>`}
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:12px"><input id="mn_n" placeholder="Name"><input id="mn_r" placeholder="Role (e.g. parent, Science teacher)"><input id="mn_c" placeholder="Contact (optional)"><button class="btn" onclick="exAddMentor()">＋ Add</button></div></div>`;
+};
+async function exCopyMentor(id){ const m = exS.mentors.find(x => x.id === id); if(!m) return; const t = `Hello ${m.name}, thank you for mentoring in our PYP Exhibition! Open your mentor page here: ${mentorLink(m)} (your code: ${m.code}). Please keep the code private.`;
+  try{ await navigator.clipboard.writeText(t); toast("Link and message copied ✓"); }catch(e){ prompt("Copy this message:", t); } }
+function exPrintMentors(){
+  const c = exS.cls; const html = `<h1>${esc(c.name)} · Mentor cards</h1><div class="grid">${exS.mentors.filter(m => m.code).map(m => { const gs = exS.groups.filter(g => (g.mentor||"").trim().toLowerCase() === m.name.trim().toLowerCase());
+    return `<div class="c"><img src="${SITE_URL}/wondernest-logo.png" class="lg" onerror="this.remove()"><b>${esc(m.name)}</b><small class="g">PYP Exhibition mentor${gs.length ? " · " + gs.map(g => esc(g.name)).join(", ") : ""}</small><div class="qr">${qrImg(mentorLink(m), 3)}</div><div class="code">${esc(m.code)}</div><small>Scan the QR code, or go to ${esc(SITE_URL.replace("https://", ""))}/mentor.html and type your code.<br>Please keep it private.</small></div>`; }).join("")}</div>`;
+  printWin(c.name + " mentor cards", html, `body{font-family:Arial,sans-serif;margin:18px}h1{font-size:17px;color:#14325c}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.c{border:2px dashed #94a3b8;border-radius:14px;padding:14px;text-align:center;break-inside:avoid}.lg{width:130px;display:block;margin:0 auto 4px}.c b{display:block;font-size:20px;color:#14325c}.g{display:block;color:#0f766e;font-weight:700;margin:2px 0 6px}.qr img{width:120px;height:120px}.code{font:700 20px monospace;letter-spacing:2px;background:#e6f5ec;border-radius:8px;padding:6px;margin:6px 0}.c small{display:block;color:#475569;font-size:11px;line-height:1.35}`);
+}
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
 function teacherOnly(m){
