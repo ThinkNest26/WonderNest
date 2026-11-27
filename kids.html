@@ -777,7 +777,7 @@ function draw(){
 
   if(screen === "stories") return app.innerHTML = head("My stories 📖", "Story studio", "var(--lilac)") + `<div class="body">
     <div class="card"><h2>Write or tell a new story <button class="speak" onclick="speak('Tell me your story. You can talk or type.')">🔊</button></h2>
-      ${u.storySpark ? `<div class="item" style="background:#ffe9e2"><p><b>✨ Idea: ${esc(u.storySpark)}</b></p></div>` : ""}
+      ${u.storySpark ? `<div class="item" style="background:#ffe9e2"><p><b>Idea: ${esc(u.storySpark)}</b></p></div>` : ""}
       <input class="title" id="s_title" placeholder="My story's title">
       <div class="mic-row" style="align-items:flex-start">${micBtn("s_text")}<textarea id="s_text" placeholder="Once upon a time…" style="min-height:160px"></textarea></div>
       ${langSwitch()}
@@ -825,7 +825,7 @@ function jarHTML(items, onSlip, opts){
 function slipCard(p, buttons){
   return `<div class="slipbg" onclick="if(event.target===this) closeSlip()"><div class="slipcard">
     <div class="slipemoji">${esc(p.emoji || "💭")}</div>
-    <div class="slipkind">${p.kind === "maker" ? "🛠️ Maker challenge" : p.kind === "wonder" ? "💭 A wonder" : "✨ Provocation"}</div>
+    <div class="slipkind">${p.kind === "maker" ? "🛠️ Maker challenge" : p.kind === "wonder" ? "💭 A wonder" : "Provocation"}</div>
     <h3>${esc(p.title)}</h3>${p.body ? `<p>${esc(p.body)}</p>` : ""}
     <div class="slipbtns">${buttons}</div></div></div>`;
 }
@@ -1480,7 +1480,7 @@ const FACES3 = [["😟","Not yet"],["🙂","Getting there"],["😄","Got it!"]];
 NEW_SCREENS.sumtask = () => { const t = me.current_unit && me.current_unit.summative; if(!t) return go("home"); const crit = t.successCriteria || [];
   return khead("Our task 🎯", esc(t.title||"Summative task"), "#b45309") + `<div class="body">
     <div class="card"><h2>🎯 ${esc(t.title||"")}<button class="speak" onclick="speak(${esc(JSON.stringify(t.childBrief||""))})">🔊</button></h2><p style="white-space:pre-wrap">${esc(t.childBrief||"")}</p>
-      ${(t.formats||[]).length?`<p class="lbl">You can show your learning as:</p>${t.formats.map(f=>`<div class="item">✨ ${esc(f)}</div>`).join("")}`:""}</div>
+      ${(t.formats||[]).length?`<p class="lbl">You can show your learning as:</p>${t.formats.map(f=>`<div class="item">${esc(f)}</div>`).join("")}`:""}</div>
     <div class="card"><h2>✅ Our success criteria</h2>${crit.map(c=>`<div class="item">✔️ ${esc(c)}</div>`).join("") || `<p>Your class will write these together.</p>`}
       <p class="lbl">💡 I think success looks like…</p><div class="mic-row">${micBtn("crS", true)}<input class="title" id="crS" placeholder="I can…"></div><button class="btn ghost wide" style="margin-top:8px" onclick="suggestCrit()">Suggest to my teacher</button></div>
     ${crit.length ? `<div class="card"><h2>🪞 How am I doing?</h2>${crit.map((c,i)=>`<p style="font-weight:800;margin:8px 0 4px">${esc(c)}</p><div class="depthrow" data-c="${esc(c)}" id="ss${i}">${FACES3.map((f,j)=>`<button onclick="pick3(this)" data-v="${j+1}">${f[0]}<small>${f[1]}</small></button>`).join("")}</div>`).join("")}

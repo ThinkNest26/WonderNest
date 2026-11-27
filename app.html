@@ -616,7 +616,7 @@ const SDG_STORIES = [
     <div class="navg">Plan</div>
     <button class="nav" data-view="poiup">📚 Programme of inquiry</button>
     <button class="nav" data-view="home">🗂️ My units</button>
-    <button class="nav on" data-view="builder">✨ Unit builder</button>
+    <button class="nav on" data-view="builder">🛠️ Unit builder</button>
     <button class="nav" data-view="cycle">🎡 Inquiry cycle</button>
     <div class="navg">Assess</div>
     <button class="nav" data-view="summative">🎯 Summative tasks</button>
@@ -856,7 +856,7 @@ function step1(){
     <textarea id="unitDesc" style="min-height:76px" oninput="unit.description=this.value;saveCurrent()" placeholder="A sentence or two is enough. For example: how animals and plants depend on their habitats, and how people can protect them. You can also paste the unit description from your programme of inquiry.">${esc(unit.description||"")}</textarea>
     <div class="hint" style="margin-top:6px">WonderNest uses this to suggest central ideas that fit your unit.</div>
     <div class="actions"><div class="hint">WonderNest only suggests. Your team chooses, edits and owns every part of the unit.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="writeOwnIdea()">✍️ Write my own central idea</button><button class="btn" onclick="suggestIdeas()">✨ Suggest central ideas</button></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="writeOwnIdea()">✍️ Write my own central idea</button><button class="btn" onclick="suggestIdeas()">Suggest central ideas</button></div></div>
   </div>`;
 }
 
@@ -869,7 +869,7 @@ function step2(){
     <div class="label" style="margin-top:16px">${own ? "Your own central idea" : "Your chosen central idea (you can edit it here)"}</div>
     <textarea id="ciText" style="min-height:70px" oninput="unit.centralIdea=this.value;unit.ciOwn=!unit.centralIdeaOptions.includes(this.value);saveCurrent()" placeholder="${own ? "Type your central idea here" : "Choose an idea above or write your own"}">${esc(unit.centralIdea)}</textarea>
     <div class="actions">
-      ${unit.centralIdeaOptions.length ? `<button class="link" onclick="suggestIdeas()">↻ Suggest different ideas</button>` : `<button class="link" onclick="suggestIdeas()">✨ Show me some suggestions too</button>`}
+      ${unit.centralIdeaOptions.length ? `<button class="link" onclick="suggestIdeas()">↻ Suggest different ideas</button>` : `<button class="link" onclick="suggestIdeas()">Show me some suggestions too</button>`}
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" onclick="writeOwnLines()">✍️ Write my own lines of inquiry</button><button class="btn" onclick="suggestInquiry()">Next: suggest lines of inquiry →</button></div>
     </div>
     ${own ? `<div class="hint" style="margin-top:8px">You're using your own central idea.</div>` : ""}
@@ -883,10 +883,10 @@ function step3(){
       <div class="card"><div class="label">Central idea · ${esc(gradeLabel(unit))}</div><div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.45">${esc(unit.centralIdea)}</div></div>
       <div class="card">
         <div class="label">Lines of inquiry</div>
-        <div class="loitabs"><button class="${unit.loiMode!=="own"?"on":""}" onclick="loiMode('ai')">✨ Suggested lines</button><button class="${unit.loiMode==="own"?"on":""}" onclick="loiMode('own')">✍️ My own lines</button></div>
+        <div class="loitabs"><button class="${unit.loiMode!=="own"?"on":""}" onclick="loiMode('ai')">Suggested lines</button><button class="${unit.loiMode==="own"?"on":""}" onclick="loiMode('own')">✍️ My own lines</button></div>
         <div class="hint" style="margin:6px 0 10px">${unit.loiMode==="own" ? "Write your team's own lines of inquiry. As you type, WonderNest picks the specified concept that matches your wording, and ticks it on the right. You can change any of them. Your suggested lines are kept, so you can switch back at any time." : (unit.linesAI||[]).length ? "Edit these suggestions, or switch to “My own lines” to write your own." : "No suggestions yet. Click “Suggest again”, or write your own."}</div>
-        ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="loiTyped(${i},this.value)" onchange="loiDone()">${esc(l.text)}</textarea><div class="loisel"><select id="loic${i}" onchange="unit.lines[${i}].concept=this.value;unit.lines[${i}].manual=true;syncLineConcepts();saveCurrent();render()">${conceptOpts(l.concept)}</select>${unit.loiMode==="own" && (l.text||"").trim() ? `<small id="loia${i}" class="loiauto">${l.manual ? "✋ chosen by you" : "✨ matched to your wording"}</small>` : `<small id="loia${i}" class="loiauto"></small>`}</div><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
-        <div class="actions" style="margin-top:10px"><button class="link" onclick="unit.lines.push({text:'',concept:'Form'});saveCurrent();render()">＋ Add a line of inquiry</button><button class="link" onclick="suggestInquiry()">${(unit.linesAI||[]).length ? "↻ Suggest again" : "✨ Suggest lines"}</button></div>
+        ${unit.lines.map((l,i)=>`<div class="loi"><div class="n">${i+1}</div><textarea rows="2" oninput="loiTyped(${i},this.value)" onchange="loiDone()">${esc(l.text)}</textarea><div class="loisel"><select id="loic${i}" onchange="unit.lines[${i}].concept=this.value;unit.lines[${i}].manual=true;syncLineConcepts();saveCurrent();render()">${conceptOpts(l.concept)}</select>${unit.loiMode==="own" && (l.text||"").trim() ? `<small id="loia${i}" class="loiauto">${l.manual ? "✋ chosen by you" : "matched to your wording"}</small>` : `<small id="loia${i}" class="loiauto"></small>`}</div><button class="link danger" title="Remove" onclick="unit.lines.splice(${i},1);saveCurrent();render()">✕</button></div>`).join("")}
+        <div class="actions" style="margin-top:10px"><button class="link" onclick="unit.lines.push({text:'',concept:'Form'});saveCurrent();render()">＋ Add a line of inquiry</button><button class="link" onclick="suggestInquiry()">${(unit.linesAI||[]).length ? "↻ Suggest again" : "Suggest lines"}</button></div>
       </div>
     </div>
     <div class="card">
@@ -912,14 +912,14 @@ function step4(){
     <div class="sdgs">${SDGS.map(([n,name,col])=>`<button class="sdg ${unit.sdgs.includes(n)?"on":""}" style="background:${col}" onclick="toggle(unit.sdgs,${n});saveCurrent();render()"><b>${n}</b>${name}</button>`).join("")}</div>
   </div>
   ${chosen.length ? `<div class="card"><div class="label">How this unit connects</div>${chosen.map(([n,name,col])=>`<div class="sdg-why"><span style="background:${col}">${n}</span><div><b>${name}</b><br><span style="color:var(--muted)">${esc(unit.sdgWhy[n] || "Chosen by your team.")}</span></div></div>`).join("")}</div>` : ""}
-  ${!unit.sdgs.length && ownLineTexts().length ? `<div class="actions" style="margin-top:0"><span class="hint">No goals chosen yet. WonderNest can suggest goals from your central idea and lines of inquiry.</span><button class="btn ghost" onclick="fillRest()">✨ Suggest goals for my unit</button></div>` : ""}
+  ${!unit.sdgs.length && ownLineTexts().length ? `<div class="actions" style="margin-top:0"><span class="hint">No goals chosen yet. WonderNest can suggest goals from your central idea and lines of inquiry.</span><button class="btn ghost" onclick="fillRest()">Suggest goals for my unit</button></div>` : ""}
   <div class="actions"><span class="hint">Suggested goals are already selected. Add or remove any.</span><button class="btn" onclick="suggestResources()">Next: stories & routines →</button></div>`;
 }
 
 let s5Tab = "books";
 function step5(){
   const s = unit.story, B = unit.books || [], R = unit.routines || [], P = unit.provocations || [];
-  const tabs = [["books", "📚 Books", B.length], ["routines", "🧠 Thinking routines", R.length], ["prov", "🔍 Provocations", P.length]].concat(s || unit.spark ? [["story", "✨ Story", ""]] : []);
+  const tabs = [["books", "📚 Books", B.length], ["routines", "🧠 Thinking routines", R.length], ["prov", "🔍 Provocations", P.length]].concat(s || unit.spark ? [["story", "Story", ""]] : []);
   if(!tabs.some(t => t[0] === s5Tab)) s5Tab = "books";
   let body = "";
   if(s5Tab === "books") body = `<div class="s5-grid books">${B.map(b => `<div class="s5-card">${bookHTML(b)}</div>`).join("") || `<p class="hint">No books yet. Click ↻ Suggest again.</p>`}</div>
@@ -927,7 +927,7 @@ function step5(){
   if(s5Tab === "routines") body = `<div class="s5-grid two">${R.map((r, i) => `<div class="routine" style="border-left-color:${ROUTINE_COLOURS[i % 5]}"><h4>${esc(r.name)} <span>${esc(r.when)}</span></h4><p>${esc(r.how)}</p>
         <div class="blinks"><button class="blink" onclick="rtOpen(${i})">👁 View</button><button class="blink" onclick="rtWindow(${i},true,false)">🖥️ Use online</button><button class="blink" onclick="rtWindow(${i},false,true)">🖨️ Print / PDF</button><button class="blink" onclick="rtWord(${i})">⬇️ Word</button></div></div>`).join("") || `<p class="hint">No routines yet.</p>`}</div>`;
   if(s5Tab === "prov") body = `<div class="s5-grid three">${P.map(p => `<div class="prov"><h4>${esc(p.title)}</h4><p>${esc(p.text)}</p></div>`).join("") || `<p class="hint">No provocations yet.</p>`}</div>`;
-  if(s5Tab === "story") body = `${s ? `<div class="story"><div class="label">✨ Original WonderNest story</div><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.textSecond ? `<p class="ar">${esc(s.textSecond)}</p>` : ""}</div>` : ""}${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}`;
+  if(s5Tab === "story") body = `${s ? `<div class="story"><div class="label">Original WonderNest story</div><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.textSecond ? `<p class="ar">${esc(s.textSecond)}</p>` : ""}</div>` : ""}${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}`;
   return `<div class="card s5">
     <div class="s5-top"><div class="s5-tabs">${tabs.map(([k, l, n]) => `<button class="${s5Tab === k ? "on" : ""}" onclick="s5Tab='${k}';render()">${l}${n !== "" ? ` <i>${n}</i>` : ""}</button>`).join("")}</div>
       <button class="btn small ghost" onclick="suggestResources()">↻ Suggest again</button></div>
@@ -1017,7 +1017,7 @@ function summativeView(){
     return `<div class="top"><div><div class="crumb">WonderNest</div><h1>Summative tasks</h1></div></div>
     <div class="card"><div class="label">Choose a saved unit</div>
     ${units.length ? units.map(u=>`<div class="unit-row"><div><h4>${esc(themeOf(u.theme)?.ic||"")} ${esc(u.centralIdea || "Untitled unit")}</h4><p>${esc(themeOf(u.theme)?.name||"")} · ${esc(gradeLabel(u))}${u.summative ? " · <b style='color:var(--leaf)'>task ready</b>" : " · <span style='color:var(--muted);font-style:italic'>no task yet</span>"}</p></div>
-      <button class="btn small ${u.summative?"ghost":""}" onclick="openSum('${u.id}')">${u.summative ? "Open task" : "✨ Create task"}</button></div>`).join("")
+      <button class="btn small ${u.summative?"ghost":""}" onclick="openSum('${u.id}')">${u.summative ? "Open task" : "Create task"}</button></div>`).join("")
     : `<div class="empty">🎯<br><br>No saved units yet.<br>Build a unit in the <b>Unit builder</b> (it saves as you go), then come back here.</div>`}
     </div>`;
   }
@@ -1032,7 +1032,7 @@ function summativeView(){
       <div style="font-size:40px">🎯</div><h3 style="color:var(--navy);margin:8px 0">Create a summative task for this unit</h3>
       <p class="hint" style="max-width:520px;margin:0 auto 16px">WonderNest suggests a task that lets children show their understanding of the central idea, with choice of format, checkpoints and a rubric linked to the lines of inquiry, ${esc(cl.toLowerCase())} and ATL skills. Everything can be edited.</p>
       <div class="hint" style="margin-bottom:14px">Rubric levels: <b>${esc(settings.rubricLevels)}</b> (change in School settings)</div>
-      <button class="btn" onclick="sumGenerate()">✨ Suggest a summative task</button></div>`;
+      <button class="btn" onclick="sumGenerate()">Suggest a summative task</button></div>`;
   const L = t.levels;
   return head + `<div class="sgrid">
     <div>
@@ -1368,7 +1368,7 @@ function toolkitCard(){
   if(!t) return `<div class="card"><div class="label">🧰 ATL toolkit</div>${tabs}
     <div style="text-align:center;padding:20px"><div style="font-size:38px">🧰</div><h3 style="color:var(--navy);margin:6px 0">${esc(sk)}</h3>
     <p class="hint" style="max-width:560px;margin:0 auto 14px">WonderNest creates classroom practices, activities, teaching ideas, discussion questions, a quiz and reflection prompts for this skill, for ${esc(atlS.cls.grade)} and your current unit. You can share the quiz and reflections with the children as a "Skill quest".</p>
-    <button class="btn" onclick="tkGenerate()">✨ Create toolkit</button></div></div>`;
+    <button class="btn" onclick="tkGenerate()">Create toolkit</button></div></div>`;
   const sec = (title, inner) => `<div class="label" style="margin-top:16px">${title}</div>${inner}`;
   const kidsDone = atlS.quests.filter(q => q.content && q.content.skill === sk);
   return `<div class="card"><div class="actions" style="margin-top:0;margin-bottom:12px"><div class="label" style="margin:0">🧰 ATL toolkit</div>
@@ -1455,10 +1455,10 @@ function atlKidView(){
         ${atlS.quests.filter(q=>q.student_id===k.id && q.content && q.content.skill===x).slice(0,3).map(q=>`<div class="hist">🧩 ${q.content.type==="quiz" ? `Skill quest quiz: <b>${q.content.score}/${q.content.total}</b>` : `"${esc(q.content.starter)} ${esc(q.content.text)}"`} · ${new Date(q.created_at).toLocaleDateString("en-GB")}</div>`).join("")}
         ${hist.slice(0,4).map(r=>`<div class="hist">${r.source==="self"?"🧒 "+SELF_FACES[Math.min(r.level,4)-1]+" ":"👩‍🏫 "}<b>${esc(r.level_label)}</b> · ${new Date(r.created_at).toLocaleDateString("en-GB")}${r.note?` · ${esc(r.note)}`:""}</div>`).join("") || `<div class="hint">No evidence yet.</div>`}</div>`;}).join("")}
   </div>
-  <div class="card"><div class="label">✨ Report comment (ATL / inquiry)</div>
+  <div class="card"><div class="label">Report comment (ATL / inquiry)</div>
     <p class="hint" style="margin-bottom:10px">WonderNest drafts a comment from this child's ATL evidence. The child's name is not included. Always read and edit before using it.</p>
     <textarea id="atlComment" style="min-height:190px" placeholder="Click Draft comment">${esc(atlS.comment)}</textarea>
-    <div class="actions"><button class="link" onclick="navigator.clipboard.writeText($('#atlComment').value).then(()=>toast('Copied ✓'))">📋 Copy</button><button class="btn" onclick="atlDraft()">✨ Draft comment</button></div>
+    <div class="actions"><button class="link" onclick="navigator.clipboard.writeText($('#atlComment').value).then(()=>toast('Copied ✓'))">📋 Copy</button><button class="btn" onclick="atlDraft()">Draft comment</button></div>
   </div></div>`;
 }
 async function atlDraft(){
@@ -1783,7 +1783,7 @@ function tplModal(){
     <style>${RT_CSS}</style>
     <div class="actions" style="margin-top:0;margin-bottom:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:800;color:var(--navy);font-size:13.5px"><input type="checkbox" ${tpl.examples?"checked":""} onchange="tpl.examples=this.checked;render()" style="width:18px;height:18px"> Show examples</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${t.libId && lu ? `<button class="btn small ghost" onclick="libExamples('${t.libId}')">✨ Examples for my unit</button><button class="btn small ghost" onclick="libAddToUnit('${t.libId}')">➕ Add to unit</button>` : ""}
+        ${t.libId && lu ? `<button class="btn small ghost" onclick="libExamples('${t.libId}')">Examples for my unit</button><button class="btn small ghost" onclick="libAddToUnit('${t.libId}')">➕ Add to unit</button>` : ""}
         <button class="btn small ghost" onclick="tplWindow(tpl.cur,true,false)">🖥️ Use online</button><button class="btn small ghost" onclick="tplWindow(tpl.cur,false,true)">🖨️ Print / PDF</button><button class="btn small ghost" onclick="tplWord(tpl.cur)">⬇️ Word</button><button class="btn small" onclick="tpl.cur=null;render()">Close</button></div></div>
     ${t.steps && t.steps.length ? `<div class="hint" style="margin-bottom:12px"><b>How to use it:</b> ${t.steps.map((s,i)=>`${i+1}. ${esc(s)}`).join(" ")}</div>` : ""}
     ${tplHTML(t, {examples: tpl.examples, editable: false})}</div></div>`;
@@ -1829,7 +1829,7 @@ function libView(){
     </div>
     <div class="chips" style="margin-bottom:8px">${chip(libS.kind==="all","All (" + LIB.length + ")","libS.kind='all'")}${chip(libS.kind==="routine","🧠 Thinking routines","libS.kind='routine'")}${chip(libS.kind==="organiser","🗂️ Graphic organisers","libS.kind='organiser'")}</div>
     <div class="chips" style="margin:0">${chip(!libS.cat,"Any purpose","libS.cat=''")}${LIB_CATS.map(c=>chip(libS.cat===c, esc(c), `libS.cat=${esc(JSON.stringify(c))}`)).join("")}</div>
-    ${lu ? `<div class="hint" style="margin-top:10px">✨ Open any template and click <b>Examples for my unit</b> to rewrite the examples for <b>${esc(lu.centralIdea)}</b>, or <b>Add to unit</b> to add it to the unit's routines.</div>` : ""}
+    ${lu ? `<div class="hint" style="margin-top:10px">Open any template and click <b>Examples for my unit</b> to rewrite the examples for <b>${esc(lu.centralIdea)}</b>, or <b>Add to unit</b> to add it to the unit's routines.</div>` : ""}
   </div>
   <div class="libgrid">${items.map(x=>`<div class="libcard"><div class="libtop"><span class="kind ${x.kind}">${x.kind==="routine"?"🧠 Routine":"🗂️ Organiser"}</span><span class="hint">${esc(x.ages)}</span></div>
     <h4>${esc(x.name)}</h4><div class="libcat">${esc(x.cat)}</div><p>${esc(x.purpose)}</p>
@@ -1883,7 +1883,7 @@ function jarHTML(items, onSlip, opts){
 function slipCard(p, buttons){
   return `<div class="slipbg" onclick="if(event.target===this) closeSlip()"><div class="slipcard">
     <div class="slipemoji">${esc(p.emoji || "💭")}</div>
-    <div class="slipkind">${p.kind === "maker" ? "🛠️ Maker challenge" : p.kind === "wonder" ? "💭 A wonder" : "✨ Provocation"}</div>
+    <div class="slipkind">${p.kind === "maker" ? "🛠️ Maker challenge" : p.kind === "wonder" ? "💭 A wonder" : "Provocation"}</div>
     <h3>${esc(p.title)}</h3>${p.body ? `<p>${esc(p.body)}</p>` : ""}
     <div class="slipbtns">${buttons}</div></div></div>`;
 }
@@ -1997,18 +1997,18 @@ function oiView(){
         ${jarHTML(mine.filter(p => p.active !== false), "oiSlip", { newId: oi.newProv, label: "Wonder jar" })}
         <p class="hint" style="text-align:center;margin-bottom:12px">Children shake the jar in their Wonder Nest and a slip pops out. Click a slip to see it.</p>
         <details ${mine.length && mine.length <= 3 ? "open" : ""}><summary class="label" style="cursor:pointer">Manage the slips (${mine.length})</summary>
-        ${mine.map(p=>`<div class="unit-row"><div><h4>${esc(p.emoji)} ${esc(p.title)}</h4><p>${p.kind==="maker"?"🛠️ Maker challenge":p.kind==="wonder"?"💭 Wonder":"✨ Provocation"}${p.body?" · "+esc(p.body.slice(0,90)):""}${p.active?"":" · <b>hidden</b>"}</p></div>
+        ${mine.map(p=>`<div class="unit-row"><div><h4>${esc(p.emoji)} ${esc(p.title)}</h4><p>${p.kind==="maker"?"🛠️ Maker challenge":p.kind==="wonder"?"💭 Wonder":"Provocation"}${p.body?" · "+esc(p.body.slice(0,90)):""}${p.active?"":" · <b>hidden</b>"}</p></div>
           <div style="display:flex;gap:12px;flex-shrink:0"><button class="link" onclick="oiToggleProv('${p.id}',${!p.active})">${p.active?"Hide":"Show"}</button><button class="link danger" onclick="oiDelProv('${p.id}')">Delete</button></div></div>`).join("") || `<div class="hint">Empty. Add ideas from the bank, or write your own.</div>`}</details>
         <div class="label" style="margin-top:16px">Add your own</div>
         <div class="fields" style="grid-template-columns:110px 1fr;margin:0 0 8px"><div><label>Type</label><select id="pk"><option value="provocation">Provocation</option><option value="maker">Maker challenge</option><option value="wonder">Wonder</option></select></div><div><label>Title</label><input type="text" id="pt" placeholder="For example: Why do leaves change colour?"></div></div>
         <label class="hint">Details (optional)</label><textarea id="pb" style="min-height:60px;margin-top:4px"></textarea>
         <div class="actions"><span></span><button class="btn" onclick="oiAddProv()">＋ Add to wonder jar</button></div></div>
-      <div class="card"><div class="label">✨ Mystery parcels for your unit</div>
+      <div class="card"><div class="label">Mystery parcels for your unit</div>
         ${oi.cls.current_unit ? `<p class="hint" style="margin-bottom:8px">Ideas written for <b>${esc(oi.cls.current_unit.centralIdea)}</b> and its ATL skills.</p>
-          <button class="btn small" onclick="oiParcels()">✨ Suggest mystery parcels</button>
-          ${(oi.parcels||[]).map((b,k)=>{const added = mine.some(p=>p.title===b.title); return `<div class="unit-row" style="padding:8px 0"><div><h4 style="font-size:14px">${esc(b.emoji||"📦")} ${esc(b.title)}</h4><p>${b.kind==="maker"?"🛠️ Maker challenge":b.kind==="wonder"?"💭 Wonder":"✨ Provocation"}${b.body?" · "+esc(b.body):""}</p></div>${added?`<span class="hint">✓ added</span>`:`<button class="btn small ghost" onclick="oiAddParcel(${k})">＋ Add</button>`}</div>`;}).join("")}` : `<p class="hint">Set a current unit for this class to get mystery parcels written for it.</p>`}
+          <button class="btn small" onclick="oiParcels()">Suggest mystery parcels</button>
+          ${(oi.parcels||[]).map((b,k)=>{const added = mine.some(p=>p.title===b.title); return `<div class="unit-row" style="padding:8px 0"><div><h4 style="font-size:14px">${esc(b.emoji||"📦")} ${esc(b.title)}</h4><p>${b.kind==="maker"?"🛠️ Maker challenge":b.kind==="wonder"?"💭 Wonder":"Provocation"}${b.body?" · "+esc(b.body):""}</p></div>${added?`<span class="hint">✓ added</span>`:`<button class="btn small ghost" onclick="oiAddParcel(${k})">＋ Add</button>`}</div>`;}).join("")}` : `<p class="hint">Set a current unit for this class to get mystery parcels written for it.</p>`}
       <div class="label" style="margin-top:18px">Idea bank: click to add</div>
-        ${["provocation","maker","wonder"].map(k=>`<div class="label" style="margin-top:10px;color:var(--blue)">${k==="maker"?"🛠️ Maker challenges":k==="wonder"?"💭 Wonders":"✨ Provocations"}</div>
+        ${["provocation","maker","wonder"].map(k=>`<div class="label" style="margin-top:10px;color:var(--blue)">${k==="maker"?"🛠️ Maker challenges":k==="wonder"?"💭 Wonders":"Provocations"}</div>
           ${OI_BANK.filter(b=>b.kind===k).map(b=>{const added = mine.some(p=>p.title===b.title); return `<div class="unit-row" style="padding:8px 0"><div><h4 style="font-size:14px">${b.emoji} ${esc(b.title)}</h4>${b.body?`<p>${esc(b.body)}</p>`:""}</div>${added?`<span class="hint">✓ added</span>`:`<button class="btn small ghost" onclick="oiAddBank(${esc(JSON.stringify(b.title))})">＋ Add</button>`}</div>`;}).join("")}`).join("")}
       </div></div>`;
   }
@@ -2053,9 +2053,9 @@ function oiModal(){
       <div class="label">Give feedback</div>
       <div class="chips">${OI_STICKERS.map(s2=>`<button class="chip" onclick="oiNote('sticker', ${esc(JSON.stringify(s2))})">${esc(s2)}</button>`).join("")}</div>
       <textarea id="oiC" style="min-height:80px" placeholder="Write a comment for ${esc(k.first_name||"the child")}…">${esc((oi.ai && oi.ai.comment) || "")}</textarea>
-      <div class="actions"><button class="link" onclick="oiFeedback()">✨ Suggest a comment</button><button class="btn small" onclick="const v=$('#oiC').value.trim(); if(v) oiNote('comment', v)">Send comment</button></div>
+      <div class="actions"><button class="link" onclick="oiFeedback()">Suggest a comment</button><button class="btn small" onclick="const v=$('#oiC').value.trim(); if(v) oiNote('comment', v)">Send comment</button></div>
       ${skills.length ? `<div class="label" style="margin-top:14px">ATL evidence</div>
-        <button class="link" onclick="oiSummary()">✨ Summarise ATL evidence in this inquiry</button>
+        <button class="link" onclick="oiSummary()">Summarise ATL evidence in this inquiry</button>
         ${oi.ai && oi.ai.skills ? oi.ai.skills.map(x=>`<div class="why" style="margin-top:6px"><b>${esc(x.skill)}:</b> ${esc(x.evidence)}</div>`).join("") : ""}
         <div class="edit-row" style="margin-top:8px"><select id="oiSk">${skills.map(s2=>`<option>${esc(s2)}</option>`).join("")}</select><select id="oiLv" style="max-width:150px">${atlLevels().map((l,i)=>`<option value="${i+1}">${esc(l)}</option>`).join("")}</select><button class="btn small ghost" onclick="oiAtl()">Save</button></div>` : ""}
       <div class="label" style="margin-top:14px">Messages (${ns.length})</div>
@@ -2099,7 +2099,7 @@ async function oiAddProvRow(row){ const keepParcels = oi.parcels; const { data, 
 function oiSlip(id){ oi.slip = id; render(); }
 function closeSlip(){ oi.slip = null; render(); }
 function oiAddBank(title){ const b = OI_BANK.find(x => x.title === title); oiAddProvRow({ kind: b.kind, title: b.title, body: b.body, emoji: b.emoji }); }
-function oiAddProv(){ const t = $("#pt").value.trim(); if(!t){ error = "Please write a title."; return render(); } const k = $("#pk").value; oiAddProvRow({ kind: k, title: t.slice(0,120), body: $("#pb").value.trim().slice(0,600), emoji: k==="maker"?"🛠️":k==="wonder"?"💭":"✨" }); }
+function oiAddProv(){ const t = $("#pt").value.trim(); if(!t){ error = "Please write a title."; return render(); } const k = $("#pk").value; oiAddProvRow({ kind: k, title: t.slice(0,120), body: $("#pb").value.trim().slice(0,600), emoji: k==="maker"?"🛠️":k==="wonder"?"💭":"" }); }
 async function oiToggleProv(id, on){ const { error: e } = await db.from("class_provocations").update({ active: on }).eq("id", id); if(e){ error = tcErr(e); return render(); } oi.provs.find(p => p.id === id).active = on; render(); }
 async function oiDelProv(id){ if(!confirm("Delete this from the wonder jar?")) return; const { error: e } = await db.from("class_provocations").delete().eq("id", id); if(e){ error = tcErr(e); return render(); } oi.provs = oi.provs.filter(p => p.id !== id); render(); }
 async function oiAddExpert(){
@@ -2132,7 +2132,7 @@ function storiesView(){
   const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>📚 Story library</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
   if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
   if(sl.mine === null){ if(!sl.loading) slLoadMine(); return top + `<div class="card">Loading…</div>`; }
-  const tabs = `<div class="tabs" style="max-width:none">${[["library","📖 Books & stories"],["maker","✨ Story maker"],["shelf","🏫 Class bookshelf"]].map(([k,l])=>`<button class="${sl.tab===k?"on":""}" onclick="sl.tab='${k}';error='';render()">${l}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs" style="max-width:none">${[["library","📖 Books & stories"],["maker","Story maker"],["shelf","🏫 Class bookshelf"]].map(([k,l])=>`<button class="${sl.tab===k?"on":""}" onclick="sl.tab='${k}';error='';render()">${l}</button>`).join("")}</div>`;
   let body = "";
   if(sl.tab === "library"){
     const filters = `<div class="card"><div class="fields" style="grid-template-columns:1.3fr 1fr 1fr;margin:0">
@@ -2142,10 +2142,10 @@ function storiesView(){
     const seen = new Set(), books = [];
     savedUnits().forEach(u => (u.books || []).forEach(b => { const k = norm(b.title); if(!seen.has(k)){ seen.add(k); books.push(Object.assign({}, b, { theme: u.theme, grade: u.grade || "", unitName: u.centralIdea })); } }));
     const bk = books.filter(slMatch), st = slAllStories().filter(slMatch);
-    body = filters + `<div class="grid2"><div class="card"><div class="label">✨ Original stories (${st.length})</div>
-        ${st.map(s=>`<div class="book"><div class="cover" style="background:linear-gradient(135deg,#f1edff,#ffe9e2)">✨</div><div style="flex:1"><h4>${esc(s.title)}</h4>
+    body = filters + `<div class="grid2"><div class="card"><div class="label">Original stories (${st.length})</div>
+        ${st.map(s=>`<div class="book"><div class="cover" style="background:linear-gradient(135deg,#f1edff,#ffe9e2)"></div><div style="flex:1"><h4>${esc(s.title)}</h4>
           <p>${esc(themeOf(s.theme)?.name || "")}${s.grade ? " · " + esc(s.grade) : ""}${s.textSecond ? " · 2 languages" : ""} · ${s.source === "unit" ? "from a unit" : "my story"}</p>
-          <div class="blinks"><button class="blink read" onclick="slOpen('${s.key}')">📖 Read</button><button class="blink" onclick="slPrint('${s.key}')">🖨️ Print</button><button class="blink" onclick="slShareStart('${s.key}')">🏫 Share with a class</button>${s.source==="saved"?`<button class="blink" style="color:#c2410c" onclick="slDelete('${s.id}')">Delete</button>`:""}</div></div></div>`).join("") || `<div class="hint">No stories yet. Make one in ✨ Story maker, or build a unit.</div>`}</div>
+          <div class="blinks"><button class="blink read" onclick="slOpen('${s.key}')">📖 Read</button><button class="blink" onclick="slPrint('${s.key}')">🖨️ Print</button><button class="blink" onclick="slShareStart('${s.key}')">🏫 Share with a class</button>${s.source==="saved"?`<button class="blink" style="color:#c2410c" onclick="slDelete('${s.id}')">Delete</button>`:""}</div></div></div>`).join("") || `<div class="hint">No stories yet. Make one in Story maker, or build a unit.</div>`}</div>
       <div class="card"><div class="label">📚 Books from your units (${bk.length})</div>
         ${bk.map(b=>bookHTML(Object.assign({}, b, { why: (b.why||"") + (b.unitName ? " · Unit: " + b.unitName.slice(0,60) : "") }))).join("") || `<div class="hint">Books suggested in your units appear here.</div>`}
         ${bk.length ? `<div class="hint" style="margin-top:8px">📖 "Read online free" appears when Open Library has a free copy to borrow.</div>` : ""}</div></div>`;
@@ -2163,11 +2163,11 @@ function storiesView(){
         <div><label>Length</label><select id="smL"><option value="150">Short (about 150 words)</option><option value="300" selected>Medium (about 300 words)</option><option value="500">Long (about 500 words)</option></select></div>
         <div><label>Second language (optional)</label><select id="smS">${LANGS.map(l=>`<option value="${l}">${l || "English only"}</option>`).join("")}</select></div></div>
       <div class="fields" style="grid-template-columns:1fr;margin-top:10px"><div><label>Your idea (optional)</label><textarea id="smI" style="min-height:80px" placeholder="For example: a new girl who speaks a different language joins the class and they find a way to play together"></textarea></div></div>
-      <div class="actions"><span class="hint">Always read a story before sharing it with children.</span><button class="btn" onclick="slMake()">✨ Write the story</button></div></div>
+      <div class="actions"><span class="hint">Always read a story before sharing it with children.</span><button class="btn" onclick="slMake()">Write the story</button></div></div>
       <div class="card">${d ? `<div class="label">Your new story</div><h3 style="color:var(--navy);font-size:20px;margin-bottom:8px">${esc(d.title)}</h3>
         <p style="white-space:pre-wrap;line-height:1.65;font-size:14.5px;max-height:340px;overflow:auto">${esc(d.text)}</p>
         <div class="actions"><button class="link" onclick="sl.read=sl.draft;render()">📖 Open in reader</button><div style="display:flex;gap:8px"><button class="btn small ghost" onclick="slMake()">↻ Write another</button><button class="btn small" onclick="slSaveDraft()">💾 Save to my stories</button></div></div>`
-        : `<div class="empty">✨<br><br>Your story will appear here.<br>You can read it, edit the idea and try again, then save it.</div>`}</div></div>`;
+        : `<div class="empty"><br><br>Your story will appear here.<br>You can read it, edit the idea and try again, then save it.</div>`}</div></div>`;
   }
   if(sl.tab === "shelf"){
     if(sl.classes === null){ db.from("classes").select("*").order("created_at").then(({ data }) => { sl.classes = data || []; if(sl.classes.length === 1) slShelf(sl.classes[0].id); else render(); }); return top + tabs + `<div class="card">Loading…</div>`; }
@@ -2369,7 +2369,7 @@ function conceptFor(text){
 }
 function loiTyped(i, v){
   const l = unit.lines[i]; l.text = v;
-  if(unit.loiMode === "own" && !l.manual){ l.concept = conceptFor(v); const sel = document.getElementById("loic" + i); if(sel) sel.value = l.concept; const a = document.getElementById("loia" + i); if(a) a.textContent = v.trim() ? "✨ matched to your wording" : ""; }
+  if(unit.loiMode === "own" && !l.manual){ l.concept = conceptFor(v); const sel = document.getElementById("loic" + i); if(sel) sel.value = l.concept; const a = document.getElementById("loia" + i); if(a) a.textContent = v.trim() ? "matched to your wording" : ""; }
   saveCurrent();
 }
 function syncLineConcepts(){
@@ -2823,7 +2823,7 @@ function sdgEditor(){
     <label style="margin-top:8px">SDGs</label><div class="sdgchips">${SDGS.map(g=>`<button class="sdgchip ${(s.sdgs||[]).includes(g[0])?"on":""}" style="--c:${g[2]}" onclick="sdgKeep();toggle(sdgS.edit.sdgs,${g[0]});render()">${g[0]}</button>`).join("")}</div>
     <label style="margin-top:8px">The story, for children (leave a blank line between paragraphs)</label><textarea id="seS" style="min-height:180px">${esc(s.story||"")}</textarea>
     <div class="grid2" style="grid-template-columns:1fr 1fr;margin-top:8px"><div><label>Questions to talk about (one per line)</label><textarea id="seQ">${esc((s.questions||[]).join("\n"))}</textarea></div><div><label>Action ideas (one per line)</label><textarea id="seX">${esc((s.actions||[]).join("\n"))}</textarea></div></div>
-    <button class="link" onclick="sdgSuggest()">✨ Suggest questions and action ideas</button>
+    <button class="link" onclick="sdgSuggest()">Suggest questions and action ideas</button>
     <div class="grid2" style="grid-template-columns:1fr 2fr;margin-top:8px"><div><label>Source name</label><input id="seSN" value="${esc(((s.sources||[])[0]||[])[0]||"")}"></div><div><label>Source link</label><input id="seSU" placeholder="https://" value="${esc(((s.sources||[])[0]||[])[1]||"")}"></div></div>
     <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:700"><input type="checkbox" id="seSh" style="width:auto" ${s.share_school?"checked":""}> Share with all teachers in my school</label>
     <div class="actions"><button class="link" onclick="sdgS.edit=null;render()">Cancel</button><button class="btn" onclick="sdgSave()">💾 Save story</button></div></div></div>`;
@@ -2911,7 +2911,7 @@ function exGroups(){
     ${exS.kids.map(k => { const p = latestEntry(k.id, "passion"), c = p ? p.content : {};
       return `<div class="unit-row" style="align-items:flex-start"><div><h4>${esc(k.picture)} ${esc(k.first_name)} ${inGroup.has(k.id)?`<span class="tag" style="background:#e7f7ef;color:#1d7a4e">in a group</span>`:""}</h4>${p ? `<p>❤️ ${esc((c.passions||[]).join(", "))}</p>${(c.issues||[]).map(i=>`<p>🌍 ${esc(i.text)} ${i.sdg?sdgBadge(Number(i.sdg)):""}</p>`).join("")}` : `<p class="hint">Not added yet</p>`}</div></div>`; }).join("")}</div>
   <div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👥 Groups (${exS.groups.length})</div><button class="btn small" onclick="exNewGroup()">＋ New group</button></div>
-    <button class="link" onclick="exSuggestGroups()">✨ Suggest groups from shared SDGs</button>
+    <button class="link" onclick="exSuggestGroups()">Suggest groups from shared SDGs</button>
     ${exS.groups.map(g=>`<div class="unit-row"><div><h4>${esc(g.name)}</h4><p>${(g.members||[]).map(kidName).map(esc).join(", ") || "No children yet"}</p><p class="hint">${esc((g.data&&g.data.issue)||"")}${g.mentor?" · Mentor: "+esc(g.mentor):""}</p></div><button class="btn small ghost" onclick="exS.group='${g.id}';render()">Open</button></div>`).join("") || `<p class="hint" style="margin-top:8px">No groups yet.</p>`}</div></div>`;
 }
 async function exNewGroup(name, members){
@@ -2939,7 +2939,7 @@ function exGroupView(){
     ${ta("centralIdea","Central idea")}
     <label style="margin-top:8px">Lines of inquiry</label>${[0,1,2].map(i=>`<input id="eg_line${i}" value="${esc((d.lines||[])[i]||"")}" placeholder="Line ${i+1}" style="margin-bottom:6px">`).join("")}
     <label>${esc(settings.conceptLabel||"Specified concepts")}</label><div class="chips">${KEY_CONCEPTS.map(c=>`<button class="chip ${(d.concepts||[]).includes(c)?"on":""}" onclick="exKeep();toggle(exS.groups.find(x=>x.id==='${g.id}').data.concepts,'${c}');render()">${c}</button>`).join("")}</div>
-    <button class="link" onclick="exIdeas('${g.id}')">✨ Ideas for this group (central idea, lines, concepts, action)</button>
+    <button class="link" onclick="exIdeas('${g.id}')">Ideas for this group (central idea, lines, concepts, action)</button>
     ${d._ideas ? `<div class="aibox">${(d._ideas.centralIdeas||[]).map(x=>`<p>💡 <button class="link" onclick="exKeep();exS.groups.find(g=>g.id==='${g.id}').data.centralIdea=${esc(JSON.stringify(x))};render()">Use</button> ${esc(x)}</p>`).join("")}${(d._ideas.lines||[]).length?`<p><b>Lines:</b> ${(d._ideas.lines||[]).map(esc).join(" · ")} <button class="link" onclick="exKeep();exS.groups.find(g=>g.id==='${g.id}').data.lines=${esc(JSON.stringify(d._ideas.lines))};render()">Use</button></p>`:""}${(d._ideas.actions||[]).length?`<p><b>Action ideas:</b> ${(d._ideas.actions||[]).map(esc).join(" · ")}</p>`:""}</div>` : ""}
     <div class="actions"><button class="link" style="color:var(--coral)" onclick="exDelGroup('${g.id}')">Delete group</button><button class="btn" onclick="exSaveGroup('${g.id}')">💾 Save group</button></div></div>
   <div><div class="card"><div class="label">🔎 Research questions</div>${(d.questions||[]).map(q=>`<p>❓ ${esc(typeof q==="string"?q:q.text)}</p>`).join("") || `<p class="hint">Children add these in their group space.</p>`}</div>
@@ -3105,7 +3105,7 @@ function cnQuestions(){
   return `<div class="card exg"><div class="label">Make factual, conceptual and debatable questions</div>
     <label>Topic or line of inquiry</label><input id="cnTopic" value="${esc(cnS.qTopic || (unit.lines[0] && unit.lines[0].text) || "")}" placeholder="For example: How human actions affect habitats">
     <label style="margin-top:8px">Concepts</label><div class="chips">${CONCEPTS.map(c=>`<button class="chip ${cnS.qConcepts.includes(c.k)?"on":""}" onclick="cnS.qTopic=$('#cnTopic').value;toggle(cnS.qConcepts,'${c.k}');render()">${c.ic} ${c.k}</button>`).join("")}</div>
-    <div class="actions"><span class="hint">Grade: ${esc(gradeLabel(unit) || "any")}</span><button class="btn" onclick="cnMakeQ()">✨ Make questions</button></div></div>
+    <div class="actions"><span class="hint">Grade: ${esc(gradeLabel(unit) || "any")}</span><button class="btn" onclick="cnMakeQ()">Make questions</button></div></div>
   ${o ? `<div class="grid2" style="grid-template-columns:1fr 1fr 1fr">${[["factual","🔎 Factual"],["conceptual","💡 Conceptual"],["debatable","⚖️ Debatable"]].map(([k,l])=>`<div class="card"><div class="label">${l}</div>${(o[k]||[]).map(x=>`<p class="stem">${esc(x)}</p>`).join("")}</div>`).join("")}</div>
     <div class="card"><button class="btn small ghost" onclick="navigator.clipboard.writeText(['factual','conceptual','debatable'].map(k=>k.toUpperCase()+'\\n'+(cnS.qOut[k]||[]).join('\\n')).join('\\n\\n')).then(()=>toast('Copied ✓'))">📋 Copy all</button></div>` : ""}`;
 }
@@ -3167,7 +3167,7 @@ async function ciCheck(){
 }
 function conceptQCard(){
   const cq = unit.conceptQuestions || [];
-  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">❓ Conceptual questions for each line</div><p class="hint">Teacher questions that move children from facts to the big idea.</p></div><button class="btn small ghost" onclick="cqMake()">✨ Write questions</button></div>
+  return `<div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">❓ Conceptual questions for each line</div><p class="hint">Teacher questions that move children from facts to the big idea.</p></div><button class="btn small ghost" onclick="cqMake()">Write questions</button></div>
     ${cq.map((l,i)=>`<div class="cqline"><b>Line ${i+1} · ${esc(l.concept||"")}</b>${["factual","conceptual","debatable"].map(k=>(l[k]||[]).length?`<p><span class="tag">${k}</span> ${(l[k]||[]).map(esc).join(" · ")}</p>`:"").join("")}</div>`).join("")}
     <div class="label" style="margin-top:10px">Add related concepts from your subjects (choose as many as you like)</div><div class="chips">${Object.keys(RELATED).map(s=>`<button class="chip ${(cnS.relSubs||[]).includes(s)?"on":""}" onclick="cnS.relSubs=cnS.relSubs||[];toggle(cnS.relSubs,'${s}');render()">${s}</button>`).join("")}</div>
     ${(cnS.relSubs||[]).map(sub=>`<p class="hint" style="margin:6px 0 4px;font-weight:800">${sub}</p><div class="chips">${RELATED[sub].map(r=>`<button class="chip ${unit.relatedConcepts.includes(r)?"on":""}" onclick="toggle(unit.relatedConcepts,'${r}');saveCurrent();render()">${esc(r)}</button>`).join("")}</div>`).join("")}
@@ -3229,7 +3229,7 @@ function basicsView(){
   <div class="card"><div class="actions" style="margin-top:0"><div><div class="label" style="margin:0">🧭 New to the PYP mode</div><p class="hint">When it is on, WonderNest opens the 💡 guidance notes on every page and shows examples. Turn it off when you feel confident.</p></div>
     <label style="display:flex;gap:8px;align-items:center;font-weight:800"><input type="checkbox" style="width:auto" ${newPYP?"checked":""} onchange="newPYP=this.checked;store.set('wn_newpyp',newPYP);toast(newPYP?'Guidance on ✓':'Guidance off');render()"> On</label></div></div>
   <div class="card"><div class="label">Your first unit in 8 steps</div><ol class="steps8">
-    <li>Plan with your grade team: open ✨ Unit builder together and add colleagues with 👥 Team.</li><li>Choose the theme and read its description together.</li>
+    <li>Plan with your grade team: open 🛠️ Unit builder together and add colleagues with 👥 Team.</li><li>Choose the theme and read its description together.</li>
     <li>Choose or write a central idea, then press 🔍 Check my central idea.</li><li>Agree 3 lines of inquiry, each with a ${esc(settings.conceptLabel||"specified concept")}.</li>
     <li>Choose 2 ATL skills and learner profile attributes to focus on.</li><li>In Plan & reflect, write learning goals and success criteria in children's words.</li>
     <li>Start with a provocation and collect children's wonders. Let them shape the inquiry.</li><li>Reflect as a team before, during and after the unit.</li></ol></div>
@@ -3253,11 +3253,11 @@ STEP_NAMES.push("Plan & reflect");
 const FORMATIVE = ["Observation","Conversations","Exit tickets","Thinking routines","Self-assessment","Peer feedback","Conferences","Learning journals","Quizzes","Work samples"];
 function planObj(){ return unit.plan = Object.assign({ goals: "", criteria: "", teacherQs: "", studentQs: "", formative: [], formativeNotes: "", agency: "", im: "", languages: "", subjects: "", before: "", during: "", after: "" }, unit.plan || {}); }
 const PR_AI = ["goals","criteria","teacherQs","formativeNotes","agency","im","languages","before"];
-const planTA = (k, label, ph, h = 70) => `${PR_AI.includes(k) ? `<div class="tdfocush"><label>${label}</label><button class="link" onclick="prInspire('${k}')">✨ Inspire me</button></div>` : `<label>${label}</label>`}<textarea style="min-height:${h}px" placeholder="${esc(ph||"")}" oninput="planObj().${k}=this.value;saveCurrent()">${esc(planObj()[k]||"")}</textarea>`;
+const planTA = (k, label, ph, h = 70) => `${PR_AI.includes(k) ? `<div class="tdfocush"><label>${label}</label><button class="link" onclick="prInspire('${k}')">Inspire me</button></div>` : `<label>${label}</label>`}<textarea style="min-height:${h}px" placeholder="${esc(ph||"")}" oninput="planObj().${k}=this.value;saveCurrent()">${esc(planObj()[k]||"")}</textarea>`;
 const wonderS = { list: null };
 function step6(){
   const p = planObj();
-  return whyBox("step6") + `<div class="card" style="padding:12px 16px"><div class="actions" style="margin:0"><span class="hint">Write your own, or tap <b>✨ Inspire me</b> on any box for ideas from your unit. Everything stays editable.</span><button class="btn ghost" onclick="prInspire()">✨ Fill all the empty boxes</button></div></div><div class="grid2"><div>
+  return whyBox("step6") + `<div class="card" style="padding:12px 16px"><div class="actions" style="margin:0"><span class="hint">Write your own, or tap <b>Inspire me</b> on any box for ideas from your unit. Everything stays editable.</span><button class="btn ghost" onclick="prInspire()">Fill all the empty boxes</button></div></div><div class="grid2"><div>
     <div class="card exg"><div class="label">🎯 Learning goals and success criteria</div>
       ${planTA("goals","What do we want children to understand, know and be able to do? (one per line)","Children will understand that…")}
       ${planTA("criteria","Success criteria in children's words (one per line)","I can explain… I can show…")}
@@ -3576,7 +3576,7 @@ function poiUploadView(){
         return `<td class="t${k % 2}">${us.map(([u, ui]) => `<button class="pg-u ${poiU.open && poiU.open[0] === gi && poiU.open[1] === ui ? "on" : ""}" onclick="poiU.open=[${gi},${ui}];render()">${u.title ? `<small>${esc(u.title)}</small>` : ""}<b>${esc(u.centralIdea || "Unit")}</b>${u.keyConcepts.length ? `<span class="pg-k">${u.keyConcepts.slice(0, 3).map(esc).join(" · ")}</span>` : ""}</button>`).join("") || `<span class="pg-none">No unit</span>`}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
     if(poiU.open){ const g = G[poiU.open[0]], u = g && g.units[poiU.open[1]];
       if(u){ const t = poiTh(u.theme); body += `<div class="pg-bg" onclick="poiU.open=null;render()"></div><aside class="pg-panel"><div class="pg-ph"><div><small>${esc(g.grade)}</small><h3>${t.ic} ${esc(t.name)}</h3></div><button class="pg-x" onclick="poiU.open=null;render()" title="Close">✕</button></div>
-        ${poiUnitCard(u, poiU.open[0], poiU.open[1], false)}${!editable ? `<button class="btn" style="margin-top:12px;width:100%" onclick="npUse(${poiU.open[0]},${poiU.open[1]})">${poiExisting(u) ? "📂 Open my saved unit" : "✨ Plan this unit in the unit builder"}</button>` : ""}${editable ? `<button class="btn ghost" style="margin-top:12px;width:100%" onclick="poiU.edit=poiU.open;poiU.open=null;render()">✏️ Edit this unit</button>` : ""}
+        ${poiUnitCard(u, poiU.open[0], poiU.open[1], false)}${!editable ? `<button class="btn" style="margin-top:12px;width:100%" onclick="npUse(${poiU.open[0]},${poiU.open[1]})">${poiExisting(u) ? "📂 Open my saved unit" : "Plan this unit in the unit builder"}</button>` : ""}${editable ? `<button class="btn ghost" style="margin-top:12px;width:100%" onclick="poiU.edit=poiU.open;poiU.open=null;render()">✏️ Edit this unit</button>` : ""}
         <div class="pg-nav">${(() => { const flat = []; G.forEach((x, a) => cols.forEach(c => x.units.forEach((y, b) => { if(c.id ? y.theme === c.id : !THEMES.find(z => z.id === y.theme)) flat.push([a, b]); }))); const n = flat.findIndex(f => f[0] === poiU.open[0] && f[1] === poiU.open[1]);
           return `<button class="btn small ghost" ${n > 0 ? "" : "disabled"} onclick="poiU.open=[${(flat[n - 1] || []).join(",")}];render()">‹ Previous</button><button class="btn small ghost" ${n < flat.length - 1 ? "" : "disabled"} onclick="poiU.open=[${(flat[n + 1] || []).join(",")}];render()">Next ›</button>`; })()}</div></aside>`; }
       else poiU.open = null; }
@@ -3621,7 +3621,7 @@ function poiView(){
   if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
   if(poiS.units === null){ poiLoad(); return top + `<div class="card">Loading…</div>`; }
   const U = poiS.units, grades = GRADES.map(g => g[0]).filter(g => U.some(u => u.grade === g));
-  if(!U.length) return top + `<div class="card empty">📚<br><br>No units in the programme of inquiry yet.<p class="hint" style="margin-top:8px">Open a unit in ✨ Unit builder → 👥 Team, and tick <b>Part of our programme of inquiry</b>.</p></div>`;
+  if(!U.length) return top + `<div class="card empty">📚<br><br>No units in the programme of inquiry yet.<p class="hint" style="margin-top:8px">Open a unit in 🛠️ Unit builder → 👥 Team, and tick <b>Part of our programme of inquiry</b>.</p></div>`;
   const cell = (g, t) => U.filter(u => u.grade === g && u.theme === t.id).map(u => `<div class="poiu"><b>${esc(u.centralIdea||"Untitled")}</b><div>${(u.keyConcepts||[]).map(c=>`<span class="tag">${esc(c)}</span>`).join(" ")}</div><small>${(u.sdgs||[]).map(n=>sdgBadge(Number(n))).join("")}</small></div>`).join("");
   const count = (g, f) => { const m = {}; U.filter(u => u.grade === g).forEach(u => (f(u)||[]).forEach(x => m[x] = (m[x]||0) + 1)); return m; };
   const atlCat = u => [...new Set((u.atl||[]).map(a => a.split(" · ")[0]))];
@@ -3713,7 +3713,7 @@ function sortsTab(){
   return `<div class="card exg"><div class="label">🧩 Fact or big idea? sorting games</div><p class="hint" style="margin-bottom:8px">Make a sorting game for your class's current unit, check every sentence, then share it. Children only see games you have checked.</p>
     <div class="grid2" style="grid-template-columns:1fr 1fr"><div><label>Class</label><select onchange="sgS.cls=this.value;sgS.items=null;render()"><option value="">Choose…</option>${cnS.classes.map(x=>`<option value="${x.id}" ${sgS.cls===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
     <div><label>Concept</label><select onchange="sgS.concept=this.value;sgS.items=null;render()">${CONCEPTS.map(x=>`<option ${sgS.concept===x.k?"selected":""}>${x.k}</option>`).join("")}</select></div></div>
-    ${c ? `<p class="hint" style="margin-top:8px">Unit: ${esc((c.current_unit||{}).centralIdea||"no current unit")} · Shared games: ${Object.keys(sorts).join(", ")||"none"}</p><div class="actions"><span></span><button class="btn" onclick="sgMake()">✨ Make sentences</button></div>` : ""}</div>
+    ${c ? `<p class="hint" style="margin-top:8px">Unit: ${esc((c.current_unit||{}).centralIdea||"no current unit")} · Shared games: ${Object.keys(sorts).join(", ")||"none"}</p><div class="actions"><span></span><button class="btn" onclick="sgMake()">Make sentences</button></div>` : ""}</div>
   ${sgS.items ? `<div class="card exg"><div class="label">Check each sentence</div>${sgS.items.map((it,i)=>`<div class="mile"><input value="${esc(it.text)}" onchange="sgS.items[${i}].text=this.value" style="flex:3"><select onchange="sgS.items[${i}].type=this.value" style="width:150px"><option value="fact" ${it.type==="fact"?"selected":""}>🔎 Fact</option><option value="big" ${it.type==="big"?"selected":""}>💡 Big idea</option></select><button class="link" style="color:var(--coral)" onclick="sgS.items.splice(${i},1);render()">✕</button></div>`).join("")}
     <button class="link" onclick="sgS.items.push({text:'',type:'fact'});render()">＋ Add a sentence</button><div class="actions"><span class="hint">Only share sentences you have checked are true.</span><button class="btn" onclick="sgShare()">📤 Share with the class</button></div></div>` : ""}`;
 }
@@ -3748,10 +3748,10 @@ function stepSubjects(){
   return whyBox("subjects") + `<div class="card exg"><div class="label">1. Which subjects are teaching this unit, and what are they teaching?</div>
     <div class="chips">${SUBJECTS.map(s=>`<button class="chip ${subs.some(x=>x.subject===s)?"on":""}" onclick="tdToggle('${s}')">${s}</button>`).join("")}<button class="chip" onclick="const v=prompt('Subject name');if(v&&v.trim())tdToggle(v.trim())">＋ Other</button></div>
     ${subs.map((x,i)=>`<div class="tdsub"><div class="tdsubh"><b>${esc(x.subject)}</b>${(RELATED[relKey(x.subject)]||[]).length?`<select onchange="unit.subjects[${i}].related=this.value;saveCurrent();render()"><option value="">Related concept…</option>${RELATED[relKey(x.subject)].map(r=>`<option ${x.related===r?"selected":""}>${esc(r)}</option>`).join("")}</select>`:""}<button class="link danger tdrm" title="Remove this box" onclick="tdRemove(${i})">🗑 Remove</button></div>
-      <div class="tdfocush"><label>Focus this unit: topics, skills or objectives</label><button class="link" onclick="tdFocusIdeas(${i})">✨ Inspire me</button></div>
+      <div class="tdfocush"><label>Focus this unit: topics, skills or objectives</label><button class="link" onclick="tdFocusIdeas(${i})">Inspire me</button></div>
       <textarea id="tdtop${i}" oninput="unit.subjects[${i}].topics=this.value;saveCurrent()" placeholder="${x.subject==="Mathematics"?"For example: measuring length in cm, reading bar charts":x.subject==="English"?"For example: writing instructions, persuasive language":x.subject==="Science"?"For example: what plants need to grow, habitats":"Paste or type the focus (for example from Atlas)"}">${esc(x.topics||"")}</textarea>${tdFocusPanel(x,i)}</div>`).join("") || `<p class="hint">Choose the subjects above.</p>`}
     ${subs.length ? `<div class="label" style="margin-top:16px">How the integration looks</div>${tdWeb()}<div style="text-align:center"><button class="link" onclick="render()">↻ Update the picture</button></div>` : ""}
-    <div class="actions"><span class="hint">WonderNest suggests experiences where subjects meet through your central idea, and tells you which topics are better taught on their own.</span><button class="btn" onclick="tdInspire()">✨ Inspire me</button></div></div>
+    <div class="actions"><span class="hint">WonderNest suggests experiences where subjects meet through your central idea, and tells you which topics are better taught on their own.</span><button class="btn" onclick="tdInspire()">Inspire me</button></div></div>
   ${sug && (sug.subjectIdeas||[]).length ? `<div class="card"><div class="label">2. Ideas, questions and activities for each subject</div><div class="sigrid">${sug.subjectIdeas.map((x,i)=>`<div class="sicard"><h4>📘 ${esc(x.subject)}</h4>${x.connection?`<p class="hint" style="margin-bottom:6px">🔗 ${esc(x.connection)}</p>`:""}
       ${(x.relatedConcepts||[]).length?`<div>${x.relatedConcepts.map(r=>`<span class="tag">${esc(r)}</span>`).join(" ")}</div>`:""}
       <p class="sih">❓ Inquiry questions</p>${(x.questions||[]).map(q=>`<p class="siq">${esc(q)} <button class="link" onclick="tdAddQ(${esc(JSON.stringify(q))})">＋ plan</button></p>`).join("")}
@@ -3809,7 +3809,7 @@ function tdFocusPanel(x, i){
   const ideas = x.ideas || [];
   if(!ideas.length) return "";
   const have = (x.topics || "").toLowerCase();
-  return `<div class="tdideas"><div class="tdideash"><b>✨ Ideas for ${esc(x.subject)} that link to this unit</b><span><button class="link" onclick="tdFocusIdeas(${i})">↻ More ideas</button> <button class="link" style="color:var(--muted)" onclick="unit.subjects[${i}].ideas=[];saveCurrent();render()">Hide</button></span></div>
+  return `<div class="tdideas"><div class="tdideash"><b>Ideas for ${esc(x.subject)} that link to this unit</b><span><button class="link" onclick="tdFocusIdeas(${i})">↻ More ideas</button> <button class="link" style="color:var(--muted)" onclick="unit.subjects[${i}].ideas=[];saveCurrent();render()">Hide</button></span></div>
     ${ideas.map((d,j)=>{ const on = have.includes(String(d.topic||"").toLowerCase()); return `<div class="tdidea"><button class="chip ${on?"on":""}" ${on?"disabled":""} onclick="tdFocusAdd(${i},${j})">${on?"✓":"＋"} ${esc(d.topic)}</button>${d.why?`<span class="hint">${esc(d.why)}</span>`:""}</div>`; }).join("")}
     <div class="hint" style="margin-top:6px">Tap an idea to add it to the focus box. You can edit anything you add.</div></div>`;
 }
@@ -4028,7 +4028,7 @@ function weeksObj(){
 function slotOptions(i){
   const o = [], line = i === undefined ? null : Number(unit.weeks[i].line);
   (unit.tdExperiences||[]).slice().sort((a,b) => (Number(b.line)===line) - (Number(a.line)===line)).forEach(e => o.push([(Number(e.line)===line?"⭐ ":"🔗 ") + e.title + " (" + (e.subjects||[]).join(", ") + ")", e.title, e.subjects||[]]));
-  (unit.provocations||[]).forEach(p => o.push(["✨ " + p.title, p.title, []]));
+  (unit.provocations||[]).forEach(p => o.push(["" + p.title, p.title, []]));
   (unit.routines||[]).forEach(r => o.push(["🧠 " + r.name, "Thinking routine: " + r.name, []]));
   (unit.books||[]).forEach(b => o.push(["📚 " + b.title, "Read: " + b.title, ["English"]]));
   if(unit.story) o.push(["📖 " + unit.story.title, "Story: " + unit.story.title, ["English"]]);
@@ -4040,7 +4040,7 @@ function stepWeeks(){
   const used = new Set(Object.values(w.tags).flat()), missing = subs.filter(s => !used.has(s) && !(w.subj[s]||"").trim());
   return whyBox("weeks") + `<div class="card exg"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🗓️ Weekly inquiry cycle · ${W.length} weeks</div><span class="hint">Weeks come from the unit duration (${esc(unit.duration)}). Lines are spread across the weeks for you.</span></div>
     ${!subs.length ? `<div class="wkwarn">🔗 No subjects chosen yet. <button class="link" onclick="goStep(6)">Add the subjects in step 6</button> so they can be woven into each week.</div>` : ""}
-    ${W.every(x=>!Object.values(x.cells||{}).some(v=>v&&v.trim())) ? `<div class="wkstart"><div><b>⏱️ Save planning time</b><p>Let WonderNest draft all ${W.length} weeks from your central idea, lines of inquiry, ${subs.length ? "the focus of " + subs.join(", ") : "subjects"} and your resources. Subjects are woven into the phases. You then just edit what you want to change.</p></div><button class="btn" onclick="wkAll()">✨ Draft all ${W.length} weeks for me</button></div>` : ""}
+    ${W.every(x=>!Object.values(x.cells||{}).some(v=>v&&v.trim())) ? `<div class="wkstart"><div><b>⏱️ Save planning time</b><p>Let WonderNest draft all ${W.length} weeks from your central idea, lines of inquiry, ${subs.length ? "the focus of " + subs.join(", ") : "subjects"} and your resources. Subjects are woven into the phases. You then just edit what you want to change.</p></div><button class="btn" onclick="wkAll()">Draft all ${W.length} weeks for me</button></div>` : ""}
     <div class="wkdl"><span class="hint">⬇️ Download the weekly plan (Word):</span><button class="btn small ghost" onclick="downloadWeeks(${i})">Week ${i+1}</button><button class="btn small ghost" onclick="downloadWeeks('all')">All ${W.length} weeks</button></div>
     <div class="wktabs">${W.map((x,k)=>`<button class="${k===i?"on":""}" onclick="wkS.week=${k};render()">Week ${k+1}${Object.values(x.cells||{}).some(v=>v&&v.trim())?" ✓":""}</button>`).join("")}</div>
     <div class="grid2" style="grid-template-columns:1fr 2fr;margin-top:10px"><div><label>Line of inquiry this week</label><select onchange="unit.weeks[${i}].line=this.value;saveCurrent();render()"><option value="">Choose…</option>${unit.lines.map((l,k)=>`<option value="${k+1}" ${String(w.line)===String(k+1)?"selected":""}>Line ${k+1}: ${esc(l.text.slice(0,60))}</option>`).join("")}</select></div>
@@ -4050,8 +4050,8 @@ function stepWeeks(){
       ${((wkS.ideas[i]||{})[ph]||[]).length?`<div class="wkchips">${wkS.ideas[i][ph].map((t,k)=>`<button onclick="wkUse(${i},'${ph}',${k})" title="Add this idea">＋ ${esc(t.text)}${(t.subjects||[]).length?`<br>${t.subjects.map(s=>subTag(s,true)).join("")}`:""}</button>`).join("")}</div>`:""}</div>`).join("")}</div>
     ${subs.length ? `<div class="wksubs"><div class="label">📚 What each subject teaches this week</div><div class="wksubgrid">${subs.map(s=>{ const ph = CYCLE.filter(([p]) => (w.tags[p]||[]).includes(s)).map(([p,ic]) => ic); return `<div class="wksub" style="border-left-color:${subCol(s)}"><div class="actions" style="margin:0"><b style="color:${subCol(s)}">${esc(s)}</b><span class="hint">${ph.length ? "In: " + ph.join(" ") : "Not in a phase yet"}</span></div><textarea oninput="unit.weeks[${i}].subj['${esc(s)}']=this.value;saveCurrent()" placeholder="Skill or objective this week">${esc(w.subj[s]||"")}</textarea></div>`; }).join("")}</div>
       ${missing.length ? `<div class="wkwarn">💡 ${missing.map(esc).join(", ")} ${missing.length>1?"are":"is"} not part of this week yet. That is fine if it is taught on its own this week; otherwise tag a phase or use the ideas button.</div>` : ""}</div>` : ""}
-    <div class="actions"><button class="link" onclick="wkCopyPrev(${i})" ${i?"":"disabled"}>Copy last week's routines</button><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" onclick="wkFill(${i},true)" title="Ideas appear under each box. Nothing changes until you tap one.">💡 Show ideas to pick from</button><button class="btn" onclick="wkFill(${i})" title="Writes an activity in every empty box of this week. Boxes you have written in stay as they are.">✨ Write the empty boxes for me</button></span></div>
-    <p class="hint" style="margin:6px 0 0;text-align:right">💡 shows ideas under each box for you to choose. ✨ writes the empty boxes of week ${i+1}; your own writing is kept.</p></div>
+    <div class="actions"><button class="link" onclick="wkCopyPrev(${i})" ${i?"":"disabled"}>Copy last week's routines</button><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn ghost" onclick="wkFill(${i},true)" title="Ideas appear under each box. Nothing changes until you tap one.">💡 Show ideas to pick from</button><button class="btn" onclick="wkFill(${i})" title="Writes an activity in every empty box of this week. Boxes you have written in stay as they are.">Write the empty boxes for me</button></span></div>
+    <p class="hint" style="margin:6px 0 0;text-align:right">💡 shows ideas under each box for you to choose. writes the empty boxes of week ${i+1}; your own writing is kept.</p></div>
   <div class="card"><div class="label">Overview</div><div style="overflow-x:auto"><table class="tbl wkt"><tr><th>Phase</th>${W.map((x,k)=>`<th>Week ${k+1}${x.line?`<br><small>Line ${esc(String(x.line))}</small>`:""}</th>`).join("")}</tr>${CYCLE.map(([ph,ic])=>`<tr><td><b>${ic} ${ph}</b></td>${W.map(x=>`<td>${esc((x.cells[ph]||"").slice(0,90))}${(x.tags[ph]||[]).length?`<div>${x.tags[ph].map(s=>subTag(s,true)).join("")}</div>`:""}</td>`).join("")}</tr>`).join("")}
     ${subs.map(s=>`<tr class="subrow"><td><b style="color:${subCol(s)}">${esc(s)}</b></td>${W.map(x=>`<td>${esc((x.subj[s]||"").slice(0,90))}</td>`).join("")}</tr>`).join("")}</table></div>
     ${subs.length ? `<div class="label" style="margin-top:14px">Integration at a glance (phases each subject is part of)</div><div style="overflow-x:auto"><table class="tbl wkt"><tr><th>Subject</th>${W.map((x,k)=>`<th>Week ${k+1}</th>`).join("")}</tr>${subs.map(s=>`<tr><td><b style="color:${subCol(s)}">${esc(s)}</b></td>${W.map(x=>{ const n = CYCLE.filter(([p]) => (x.tags[p]||[]).includes(s)).length; return `<td style="text-align:center">${n ? `<span class="dot" style="background:${subCol(s)}">${n}</span>` : (x.subj[s]||"").trim() ? "◦" : "·"}</td>`; }).join("")}</tr>`).join("")}</table></div><p class="hint">Numbers show how many phases use the subject that week. ◦ means the subject has its own objective but isn't tagged in a phase.</p>` : ""}</div>
@@ -4193,7 +4193,7 @@ function cycleView(){
   const units = savedUnits(), has = unit && (unit.centralIdea || (unit.weeks || []).length);
   const pick = units.length ? `<select style="max-width:420px" onchange="cycleSwitch(this.value)">${units.some(u => u.id === unit.id) ? "" : `<option>${esc(unit.centralIdea || "Current unit")}</option>`}${units.map(u => { const t = themeOf(u.theme); return `<option value="${u.id}" ${u.id === unit.id ? "selected" : ""}>${esc((t ? t.ic + " " : "") + (gradeLabel(u) ? gradeLabel(u) + " · " : "") + (u.centralIdea || "Untitled unit").slice(0, 80))}</option>`; }).join("")}</select>` : "";
   const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🎡 Inquiry cycle in action</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
-  if(!has) return top + `<div class="card empty">🎡<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The cycle view shows each week of the unit's weekly inquiry cycle as a poster.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}<button class="btn" onclick="view='builder';render()">✨ Go to the unit builder</button></div>`;
+  if(!has) return top + `<div class="card empty">🎡<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The cycle view shows each week of the unit's weekly inquiry cycle as a poster.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}<button class="btn" onclick="view='builder';render()">Go to the unit builder</button></div>`;
   const W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
   return top + `<div class="card"><div class="actions" style="margin-top:0;align-items:flex-end"><div><label style="display:block">Unit</label>${pick || `<b>${esc(unit.centralIdea || "Current unit")}</b>`}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="view='builder';goStep(7)">📝 Plan this week</button><button class="btn" onclick="wheelPrint(${i})">🖨️ Print or save as PDF</button></div></div>
@@ -4205,7 +4205,7 @@ function cycleView(){
 const DIFF = [["must","Must","All learners","#5fb548"],["could","Could","Most learners","#3b86e0"],["extend","Extend","Some learners","#9b6bd6"]];
 function diffCard(i){
   const x = unit.weeks[i].extra = unit.weeks[i].extra || {}, sc = x.sc = x.sc || {}, tk = x.tasks = x.tasks || {};
-  return `<div class="card dsc"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🎯 Differentiated success criteria · week ${i + 1}</div><button class="btn small ghost" onclick="diffSuggest(${i})" title="Fills the empty boxes only">✨ Suggest</button></div>
+  return `<div class="card dsc"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🎯 Differentiated success criteria · week ${i + 1}</div><button class="btn small ghost" onclick="diffSuggest(${i})" title="Fills the empty boxes only">Suggest</button></div>
     <p class="hint" style="margin:4px 0 10px">Three levels so every child is supported and challenged. Write each success criterion as "I can…", then the task children working at that level do.</p>
     <div class="dsc-grid">${DIFF.map(([k, l, who, c]) => `<div class="dsc-col" style="--c:${c}"><div class="dsc-h"><b>${l}</b><span>${who}</span></div>
       <label>Success criterion</label><textarea oninput="wheelSet(${i},'sc.${k}',this.value)" placeholder="I can…">${esc(sc[k] || "")}</textarea>
@@ -4451,7 +4451,7 @@ function weekView(){
       ${isNow ? `<span class="pill" style="background:#e8f7ef;color:#1d7a4e">📍 This week</span>` : `<button class="link" onclick="hbSetNow({week:${i+1}})">Make this the current week</button>`}</div>
       <button class="btn small ghost" onclick="hbOpenPlan()">✏️ Edit the plan</button></div>
     ${w.line ? `<p style="margin-top:8px"><b>Line ${esc(String(w.line))}:</b> ${esc(((u.lines||[])[w.line-1]||{}).text||"")}${w.focus?` · <b>Focus:</b> ${esc(w.focus)}`:""}</p>` : ""}
-    ${!hasWeeks ? `<div class="wkstart" style="margin-top:10px"><div><b>No weekly plan yet</b><p>Draft all weeks in one click in the unit builder (step 7). They will appear here, phase by phase.</p></div><button class="btn" onclick="hbOpenPlan()">✨ Plan the weeks</button></div>` : ""}
+    ${!hasWeeks ? `<div class="wkstart" style="margin-top:10px"><div><b>No weekly plan yet</b><p>Draft all weeks in one click in the unit builder (step 7). They will appear here, phase by phase.</p></div><button class="btn" onclick="hbOpenPlan()">Plan the weeks</button></div>` : ""}
     <div class="label" style="margin-top:14px">📍 Where is your class in the inquiry cycle? Tap the phase</div>
     <div class="hbjourney">${CYCLE.map(([ph,ic])=>`<button class="${isNow&&now.phase===ph?"on":""}" onclick="hbSetNow({week:${i+1},phase:'${ph}'})" title="Show children we are here">${ic}<span>${ph}</span></button>`).join("")}</div>
     <p class="hint" style="text-align:center">Children see the phase on their home screen, and their work is labelled with it.</p>
@@ -4557,7 +4557,7 @@ weekView = function(){
   const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏠 This week</h1></div></div>`;
   if(!db || !tc.user) return classesView().replace("<h1>Classes & portfolios</h1>", "<h1>Sign in</h1>");
   if(!unit || !unit.centralIdea){ const n = savedUnits().length;
-    return top + `<div class="card empty">📌<br><br><b>Open a unit to see this week's plan.</b><br><br>${n ? `<button class="btn" onclick="goView('home')">🗂️ My units</button> ` : ""}<button class="btn ghost" onclick="startNew()">✨ Build a unit</button></div>`; }
+    return top + `<div class="card empty">📌<br><br><b>Open a unit to see this week's plan.</b><br><br>${n ? `<button class="btn" onclick="goView('home')">🗂️ My units</button> ` : ""}<button class="btn ghost" onclick="startNew()">Build a unit</button></div>`; }
   if(!unit.weeks) weeksObj();
   const now = unit.now || { week: 1, phase: "" };
   hbS.classes = [{ id: "_me", name: "My class", current_unit: { unitId: unit.id, now } }]; hbS.cls = hbS.classes[0];
@@ -4743,7 +4743,7 @@ cycleView = function(){
   const units = savedUnits(), has = unit && (unit.centralIdea || (unit.weeks || []).length);
   const pick = units.length ? `<select style="max-width:420px" onchange="cycleSwitch(this.value)">${units.some(u => u.id === unit.id) ? "" : `<option>${esc(unit.centralIdea || "Current unit")}</option>`}${units.map(u => { const t = themeOf(u.theme); return `<option value="${u.id}" ${u.id === unit.id ? "selected" : ""}>${esc((t ? t.ic + " " : "") + (gradeLabel(u) ? gradeLabel(u) + " · " : "") + (u.centralIdea || "Untitled unit").slice(0, 80))}</option>`; }).join("")}</select>` : "";
   const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🎡 Inquiry cycle</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
-  if(!has) return top + `<div class="card empty">🎡<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The cycle shows the whole unit: one phase of the inquiry cycle each week.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}<button class="btn" onclick="view='builder';render()">✨ Go to the unit builder</button></div>`;
+  if(!has) return top + `<div class="card empty">🎡<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The cycle shows the whole unit: one phase of the inquiry cycle each week.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}<button class="btn" onclick="view='builder';render()">Go to the unit builder</button></div>`;
   const W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
   return top + `<div class="card"><div class="actions" style="margin-top:0;align-items:flex-end"><div><label style="display:block">Unit</label>${pick || `<b>${esc(unit.centralIdea || "Current unit")}</b>`}</div>
       <button class="btn" onclick="uWheelPrint()">🖨️ Print or save as PDF</button></div>
@@ -4806,11 +4806,11 @@ function npModal(){
   const G = poiSaved().grades || [], g = G.find(x => x.grade === npS.grade) || G[0], gi = G.indexOf(g);
   const units = g.units.map((u, ui) => [u, ui]).sort((a, b) => POI_ORDER.findIndex(t => t.id === a[0].theme) - POI_ORDER.findIndex(t => t.id === b[0].theme));
   return `<div class="modal-bg" onclick="if(event.target===this){npS.open=false;render()}"><div class="modal np-modal">
-    <div class="np-h"><div><h2>✨ Start a new unit</h2><p class="hint">Pick a unit from your programme of inquiry. WonderNest fills in the theme, grade, central idea, lines of inquiry, concepts, ATL and subjects for you.</p></div><button class="pg-x" onclick="npS.open=false;render()" title="Close">✕</button></div>
+    <div class="np-h"><div><h2>Start a new unit</h2><p class="hint">Pick a unit from your programme of inquiry. WonderNest fills in the theme, grade, central idea, lines of inquiry, concepts, ATL and subjects for you.</p></div><button class="pg-x" onclick="npS.open=false;render()" title="Close">✕</button></div>
     <div class="chips" style="margin:10px 0 12px">${G.map(x => `<button class="chip ${x === g ? "on" : ""}" onclick="npS.grade='${esc(x.grade).replace(/'/g, "\\'")}';render()">${esc(x.grade)}</button>`).join("")}</div>
     <div class="np-grid">${units.map(([u, ui]) => { const t = poiTh(u.theme), ex = poiExisting(u);
       return `<button class="np-card" onclick="npUse(${gi},${ui})"><span class="np-th">${t.ic} ${esc(t.name)}</span>${u.title ? `<small>${esc(u.title)}</small>` : ""}<b>${esc(u.centralIdea || "No central idea")}</b>
-        ${u.keyConcepts.length ? `<span class="pg-k">${u.keyConcepts.map(esc).join(" · ")}</span>` : ""}<span class="np-go">${ex ? "📂 Open my saved unit" : "✨ Start this unit →"}</span></button>`; }).join("")}</div>
+        ${u.keyConcepts.length ? `<span class="pg-k">${u.keyConcepts.map(esc).join(" · ")}</span>` : ""}<span class="np-go">${ex ? "📂 Open my saved unit" : "Start this unit →"}</span></button>`; }).join("")}</div>
     <div class="actions"><span class="hint">Something not in the programme?</span><button class="btn ghost" onclick="npS.open=false;_startNewNP()">Start a blank unit</button></div></div></div>`;
 }
 (function(){ const st = document.createElement("style"); st.textContent = `
@@ -4903,7 +4903,7 @@ async function kudSuggest(){
 function kudCard(){
   const K = kudObj(), subs = (unit.subjects || []).filter(s => s.subject), kc = unit.keyConcepts || [], cl = settings.conceptLabel || "Specified concepts";
   const ta = (k, ph, h) => `<textarea style="min-height:${h || 90}px" placeholder="${esc(ph)}" oninput="kudSet('${k}',this.value)">${esc(K[k] || "")}</textarea>`;
-  return `<div class="card kud"><div class="actions" style="margin-top:0;align-items:center"><div class="label" style="margin:0">🧩 How this unit works: integration and understanding</div><button class="btn small ghost" onclick="kudSuggest()" title="Fills the empty boxes only">✨ Suggest</button></div>
+  return `<div class="card kud"><div class="actions" style="margin-top:0;align-items:center"><div class="label" style="margin:0">🧩 How this unit works: integration and understanding</div><button class="btn small ghost" onclick="kudSuggest()" title="Fills the empty boxes only">Suggest</button></div>
     <div class="kud-ci"><span>💡 Central idea</span><b>${esc(unit.centralIdea || "")}</b>${kc.length ? `<div>${kc.map(c => `<span class="tag">${esc(c)}</span>`).join(" ")}</div>` : ""}</div>
     <div class="kud-row">
       <div class="kud-box int"><h4>🔗 How the subjects come together</h4>
@@ -4982,7 +4982,7 @@ function obModal(){
 const _stepSubjOb = stepSubjects;
 stepSubjects = function(){
   let h = _stepSubjOb();
-  (unit.subjects || []).forEach((x, i) => { if(!obSubj(x.subject)) return; const a = `<button class="link" onclick="tdFocusIdeas(${i})">✨ Inspire me</button>`;
+  (unit.subjects || []).forEach((x, i) => { if(!obSubj(x.subject)) return; const a = `<button class="link" onclick="tdFocusIdeas(${i})">Inspire me</button>`;
     h = h.replace(a, `<span style="display:flex;gap:14px"><button class="link" onclick="obOpen(${esc(JSON.stringify(x.subject))},'unit')">📋 Choose objectives</button>${a}</span>`); });
   return h;
 };
@@ -5037,7 +5037,7 @@ async function weekSubjFill(k){
 }
 const _uWeekEdWS = uWeekEditor;
 uWeekEditor = function(k){ const w = unit.weeks[k]; w.subj = w.subj || {}; (unit.subjects || []).forEach(x => { if(!String(w.subj[x.subject] || "").trim()){ const t = weekSubjText(w, x.subject); if(t && Object.keys(w.subj).some(key => key !== x.subject && subjMatch(key, x.subject))) w.subj[x.subject] = t; } });
-  return _uWeekEdWS(k).replace('📚 What each subject teaches this week · main points</div>', `📚 What each subject teaches this week · main points <button class="link" style="margin-left:10px;text-transform:none;letter-spacing:0" onclick="weekSubjFill(${k})">✨ Suggest</button></div>`); };
+  return _uWeekEdWS(k).replace('📚 What each subject teaches this week · main points</div>', `📚 What each subject teaches this week · main points <button class="link" style="margin-left:10px;text-transform:none;letter-spacing:0" onclick="weekSubjFill(${k})">Suggest</button></div>`); };
 
 /* Read Write Inc. stage in English planning (Pre-K to Grade 2) */
 const _stepSubjRWI = stepSubjects;
@@ -5115,7 +5115,7 @@ async function fillCoreAll(){
 }
 const _cycleCore = cycleView;
 cycleView = function(){ const h = _cycleCore(); if(!coreSubs().length || !coreMissing()) return h;
-  return h.replace('<div class="whl" id="whl">', `<div class="card uw-fill"><span>📚 Some weeks have no plan yet for <b>${coreSubs().map(esc).join(", ")}</b>.</span><button class="btn small" onclick="fillCoreAll()">✨ Fill them for every week</button></div><div class="whl" id="whl">`); };
+  return h.replace('<div class="whl" id="whl">', `<div class="card uw-fill"><span>📚 Some weeks have no plan yet for <b>${coreSubs().map(esc).join(", ")}</b>.</span><button class="btn small" onclick="fillCoreAll()">Fill them for every week</button></div><div class="whl" id="whl">`); };
 (function(){ const st = document.createElement("style"); st.textContent = `.uw-miss{color:#98a2b3;font-style:italic}.uw-miss b{font-style:normal;opacity:.7}.uw-fill{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fff7dc;border-color:#f5d27a}`; document.head.appendChild(st); })();
 
 /* ---------- hide everything that needs children's own logins ---------- */
