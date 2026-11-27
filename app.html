@@ -4524,7 +4524,7 @@ hbOpenPlan = async function(){ unit.step = 7; wkS.week = hbS.week || 0; saveCurr
 /* ---------- PYP Exhibition: coordinator adds Grade 5 students, each gets a code ---------- */
 exS.tab = "kids";
 const _exOpenBase = exOpen;
-exOpen = async function(id){ await _exOpenBase(id); if(exS.cls && !exS.kids.length) { exS.tab = "kids"; render(); } };
+exOpen = async function(id){ exS.loading = !!id; try{ await _exOpenBase(id); } finally{ exS.loading = false; } render(); if(exS.cls && !exS.kids.length) { exS.tab = "kids"; render(); } };
 exView = function(){
   const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏆 PYP Exhibition</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
   if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
@@ -4539,13 +4539,15 @@ exView = function(){
   if(!exS.cls) return top + pick + intro + more;
   const tabs = [["kids","👧 Students & codes"],["timeline","🗓️ Timeline"],["groups","💡 Passions & groups"],["mentors","🧑‍🏫 Mentors"],["journals","📓 Journals"],["day","🏛️ Exhibition day"],["assess","✅ Assessment"]];
   let body;
-  if(exS.tab === "kids" && !exS.group && !exS.kid) body = exKids();
+  if(exS.loading) body = `<div class="card">Loading…</div>`;
+  else if(exS.tab === "kids" && !exS.group && !exS.kid) body = exKids();
   else if(!exS.exh) body = `<div class="card empty">🏆<br><br><b>Start the exhibition first</b><p class="hint" style="margin:8px auto 0;max-width:520px">Click 🏆 Start the exhibition at the top of this page. Then the timeline, groups, mentors, journals and assessment will appear here.</p></div>`;
   else if(exS.group) body = exGroupView(); else if(exS.kid) body = exKidView();
   else body = ({ timeline: exTimeline, groups: exGroups, mentors: exMentors, journals: exJournals, day: exDay, assess: exAssess })[exS.tab]();
   return top + pick + exVisBar() + `<div class="tabs" style="max-width:none">${tabs.map(([k, l]) => `<button class="${exS.tab === k && !exS.group && !exS.kid ? "on" : ""}" onclick="exS.tab='${k}';exS.group=null;exS.kid=null;render()">${l}</button>`).join("")}</div>` + body + (exS.tab === "kids" ? more : "");
 };
 function exVisBar(){
+  if(exS.loading) return `<div class="card exvis"><span>⏳</span><div><b>Loading the exhibition…</b></div></div>`;
   return !exS.exh ? `<div class="card exvis off"><span>🔒</span><div><b>The exhibition hasn't started yet</b><p class="hint">Students can't open their journals until you start it.</p></div><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`
     : `<div class="card exvis ${exS.exh.active ? "on" : "off"}"><span>${exS.exh.active ? "✅" : "🔒"}</span><div><b>${exS.exh.active ? "Students can open their journals" : "Journals are closed to students"}</b><p class="hint">${exS.exh.active ? "Untick to close the journals for a while." : "Tick the box to let students in with their codes."}</p></div><label class="exsw"><input type="checkbox" ${exS.exh.active ? "checked" : ""} onchange="exS.exh.active=this.checked;exSaveExh();render();toast(this.checked?'Journals are open ✓':'Journals closed')"> Open</label></div>`;
 }
