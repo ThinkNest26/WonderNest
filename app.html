@@ -464,6 +464,15 @@
   .pg-x{width:34px;height:34px;border-radius:50%;background:var(--bg);font-size:15px}
   .pg-panel .pu-card{border:0;box-shadow:none;padding:0;background:none}
   .pg-nav{display:flex;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+  .s5-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .s5-tabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--bg);border-radius:14px;padding:5px}
+  .s5-tabs button{padding:9px 14px;border-radius:10px;font-weight:700;font-size:14px;color:var(--muted)}.s5-tabs button.on{background:var(--navy);color:#fff}
+  .s5-tabs i{font-style:normal;background:rgba(127,140,170,.18);border-radius:999px;padding:0 7px;font-size:12px;margin-left:4px}.s5-tabs button.on i{background:rgba(255,255,255,.25)}
+  .s5-atl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--muted)}
+  .s5-grid{display:grid;gap:14px;align-items:start}.s5-grid.books{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}.s5-grid.two{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}.s5-grid.three{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .s5-grid .routine,.s5-grid .prov{margin:0;height:100%}
+  .s5-card{border:1px solid var(--line);border-radius:14px;padding:4px 14px;background:#fff}.s5-card .book{border:0}
+  @media (max-width:700px){.s5-grid.books,.s5-grid.two,.s5-grid.three{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -905,28 +914,23 @@ function step4(){
   <div class="actions"><span class="hint">Suggested goals are already selected. Add or remove any.</span><button class="btn" onclick="suggestResources()">Next: stories & routines →</button></div>`;
 }
 
+let s5Tab = "books";
 function step5(){
-  const s = unit.story;
-  return `<div class="grid3">
-    <div>
-      <div class="card"><div class="label">📚 Books for this unit</div>
-        ${unit.books.map(bookHTML).join("")}
-        <div class="hint" style="margin-top:8px">Links search Open Library, Google Books and WorldCat (libraries near you). "Read online" appears when Open Library has a free digital copy to borrow (a free Open Library account is needed). Please check each title with your librarian before ordering.</div>
-      </div>
-      ${s ? `<div class="story"><div class="label">✨ Original WonderNest story</div><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.textSecond?`<p class="ar">${esc(s.textSecond)}</p>`:""}</div>` : ""}
-      ${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}
-    </div>
-    <div class="card"><div class="label">🧠 Visible thinking routines</div>
-      ${unit.routines.map((r,i)=>`<div class="routine" style="border-left-color:${ROUTINE_COLOURS[i%5]}"><h4>${esc(r.name)} <span>${esc(r.when)}</span></h4><p>${esc(r.how)}</p>
-        <div class="blinks"><button class="blink" onclick="rtOpen(${i})">👁 View</button><button class="blink" onclick="rtWindow(${i},true,false)">🖥️ Use online</button><button class="blink" onclick="rtWindow(${i},false,true)">🖨️ Print / PDF</button><button class="blink" onclick="rtWord(${i})">⬇️ Word</button></div></div>`).join("")}
-      ${rtModal()}
-    </div>
-    <div class="card"><div class="label">🔍 Open inquiry provocations</div>
-      ${unit.provocations.map(p=>`<div class="prov"><h4>${esc(p.title)}</h4><p>${esc(p.text)}</p></div>`).join("")}
-      ${unit.atl.length ? `<div class="label" style="margin-top:14px">Builds ATL skills</div><div class="chips">${unit.atl.map(a=>`<span class="chip atl on">${esc(a.split(" · ")[1])}</span>`).join("")}</div>` : ""}
-      <button class="link" onclick="suggestResources()">↻ Suggest again</button>
-    </div>
-  </div>`;
+  const s = unit.story, B = unit.books || [], R = unit.routines || [], P = unit.provocations || [];
+  const tabs = [["books", "📚 Books", B.length], ["routines", "🧠 Thinking routines", R.length], ["prov", "🔍 Provocations", P.length]].concat(s || unit.spark ? [["story", "✨ Story", ""]] : []);
+  if(!tabs.some(t => t[0] === s5Tab)) s5Tab = "books";
+  let body = "";
+  if(s5Tab === "books") body = `<div class="s5-grid books">${B.map(b => `<div class="s5-card">${bookHTML(b)}</div>`).join("") || `<p class="hint">No books yet. Click ↻ Suggest again.</p>`}</div>
+      <p class="hint" style="margin-top:10px">Links search Open Library, Google Books and WorldCat (libraries near you). "Read online" appears when Open Library has a free digital copy to borrow (a free Open Library account is needed). Please check each title with your librarian before ordering.</p>`;
+  if(s5Tab === "routines") body = `<div class="s5-grid two">${R.map((r, i) => `<div class="routine" style="border-left-color:${ROUTINE_COLOURS[i % 5]}"><h4>${esc(r.name)} <span>${esc(r.when)}</span></h4><p>${esc(r.how)}</p>
+        <div class="blinks"><button class="blink" onclick="rtOpen(${i})">👁 View</button><button class="blink" onclick="rtWindow(${i},true,false)">🖥️ Use online</button><button class="blink" onclick="rtWindow(${i},false,true)">🖨️ Print / PDF</button><button class="blink" onclick="rtWord(${i})">⬇️ Word</button></div></div>`).join("") || `<p class="hint">No routines yet.</p>`}</div>`;
+  if(s5Tab === "prov") body = `<div class="s5-grid three">${P.map(p => `<div class="prov"><h4>${esc(p.title)}</h4><p>${esc(p.text)}</p></div>`).join("") || `<p class="hint">No provocations yet.</p>`}</div>`;
+  if(s5Tab === "story") body = `${s ? `<div class="story"><div class="label">✨ Original WonderNest story</div><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.textSecond ? `<p class="ar">${esc(s.textSecond)}</p>` : ""}</div>` : ""}${unit.spark ? `<div class="spark">✍️ Story spark for children: ${esc(unit.spark)}</div>` : ""}`;
+  return `<div class="card s5">
+    <div class="s5-top"><div class="s5-tabs">${tabs.map(([k, l, n]) => `<button class="${s5Tab === k ? "on" : ""}" onclick="s5Tab='${k}';render()">${l}${n !== "" ? ` <i>${n}</i>` : ""}</button>`).join("")}</div>
+      <button class="btn small ghost" onclick="suggestResources()">↻ Suggest again</button></div>
+    ${unit.atl.length ? `<div class="s5-atl"><span>Builds ATL skills:</span>${unit.atl.map(a => `<span class="chip atl on">${esc(a.split(" · ")[1])}</span>`).join("")}</div>` : ""}
+    ${body}${rtModal()}</div>`;
 }
 
 function homeView(){
@@ -2432,7 +2436,7 @@ async function saveUnit(quiet){
 async function finishUnit(){ unit.finished = true; await saveUnit(true); view = "home"; render(); toast("Unit finished and saved ✓"); }
 function startNew(){ unit = newUnit(); saveCurrent(); view = "builder"; render(); }
 function openUnit(id){ const u = store.get("wn_units", []).find(x => x.id === id); if(u){ unit = u; saveCurrent(); view = "builder"; render(); } }
-function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); if(db && isUuid(id)) db.from("units").delete().eq("id", id).then(()=>{}); render(); } }
+function deleteUnit(id){ if(confirm("Delete this unit? This cannot be undone.")){ if(unit && unit.id === id){ clearTimeout(_autoT); unit = newUnit(); store.set("wn_current", unit); if(typeof wkS !== "undefined") wkS.week = 0; } store.set("wn_units", store.get("wn_units", []).filter(u => u.id !== id)); if(db && isUuid(id)) db.from("units").delete().eq("id", id).then(()=>{}); render(); } }
 function saveSettings(){ settings.atlLevels = ($("#setAtl").value.trim() || "Novice, Learner, Practitioner, Expert"); settings.school = $("#setSchool").value.trim(); settings.conceptLabel = $("#setConcept").value.trim() || "Specified concepts"; settings.rubricLevels = $("#setLevels").value.trim() || "Beginning, Developing, Achieving, Extending"; settings.themeText = {}; THEMES.forEach(t => { const v = $("#tt_" + t.id).value.trim(); if(v && v !== defaultThemeText(t.id)) settings.themeText[t.id] = v; }); store.set("wn_settings", settings); toast("Settings saved ✓"); schoolSaveSettings(); render(); }
 
 function downloadWord(){
