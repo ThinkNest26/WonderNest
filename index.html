@@ -239,6 +239,15 @@
     .links a.pillbtn{padding:10px 16px;font-size:14px}
   }
   @media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} .rv{opacity:1;transform:none} .bub{opacity:1} }
+  .doors>.door{min-width:0}
+  .door.mentor{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 26px;border:2px solid #cdeee3;background:linear-gradient(135deg,#fff,#effaf6)}
+  .door.mentor h2{color:#0f766e}.door.mentor .av{background:#e0f4ee}.door.mentor p.s{margin-bottom:0;max-width:560px}
+  .mcode{display:flex;gap:10px;width:360px;max-width:100%}
+  .mcode input{flex:1;min-width:0;text-align:center;font-family:"Fredoka";font-size:22px;font-weight:700;letter-spacing:4px;text-transform:uppercase;border:2px solid #cdeee3;border-radius:14px;padding:12px;color:#0f766e}
+  .mcode input::placeholder{color:#a8c9bf}
+  .mcode button{background:#0f766e;color:#fff;font-family:"Fredoka";font-weight:700;border-radius:14px;padding:0 22px;font-size:18px;transition:.2s}.mcode button:hover{transform:scale(1.05)}
+  .door.mentor .msg{grid-column:1/-1;margin:0}
+  @media (max-width:900px){.door.mentor{grid-template-columns:minmax(0,1fr)}.mcode{width:100%}.mcode input{width:100%}}
 </style>
 </head>
 <body>
@@ -299,8 +308,13 @@
     <form class="code" onsubmit="event.preventDefault(); goKids()"><input id="code" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123-4F2AB" aria-label="Exhibition journal code" style="font-size:19px;letter-spacing:2px"><button type="submit">Go →</button></form>
     <div class="msg" id="kmsg"></div>
     <p class="hint">Your journal and the Wonder Library are waiting! 🔎</p>
-    <p class="hint" style="margin-top:6px">🧑‍🏫 Exhibition mentor? <a href="mentor.html" style="color:#ffd25a;font-weight:700">Open the mentor page →</a></p>
     <img class="peek" src="wondernest-mark.png" alt="">
+  </div>
+  <div class="door mentor rv d2" id="mentors">
+    <div class="mtxt"><div class="dh"><span class="av">🧑‍🏫</span><h2>Exhibition mentors</h2></div>
+    <p class="s">Mentoring a Grade 5 group? Type the code the school gave you to see your groups' work and leave notes.</p></div>
+    <form class="mcode" onsubmit="event.preventDefault(); goMentor()"><input id="mcode" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD1234" aria-label="Mentor code"><button type="submit">Open →</button></form>
+    <div class="msg" id="mmsg"></div>
   </div>
 </div></div></div>
 
@@ -428,6 +442,11 @@ async function auth(){
   finally{ $("go").disabled = false; }
 }
 async function signOut(){ if(db) await db.auth.signOut(); $("signed").style.display = "none"; $("authBox").style.display = ""; }
+function goMentor(){
+  const c = $("mcode").value.trim().replace(/\s+/g, "");
+  if(c.length < 6){ const k = $("mmsg"); k.textContent = "Type the whole code the school gave you."; k.className = "msg err"; return; }
+  location.href = "mentor.html?m=" + encodeURIComponent(c);
+}
 function goKids(){
   const c = $("code").value.trim().replace(/\s+/g, "");
   if(c.replace(/[^a-zA-Z0-9]/g, "").length < 8){ const k = $("kmsg"); k.textContent = "Type the whole code from your card, like ABC123-4F2AB."; k.className = "msg err"; return; }
