@@ -4811,6 +4811,65 @@ function npModal(){
   .np-th{font-family:"Fredoka",sans-serif;font-weight:600;color:var(--navy);font-size:14px}.np-card small{color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase}
   .np-card b{font-weight:600;font-size:14px;line-height:1.45;color:#1d2740}.np-go{margin-top:auto;padding-top:6px;color:var(--blue);font-weight:800;font-size:13px}`; document.head.appendChild(st); })();
 
+
+/* =====================================================================
+   SUMMATIVE TASK: example pictures and a printable task poster
+   ===================================================================== */
+function sxResize(file, max = 1000){ return new Promise((res, rej) => { const r = new FileReader(); r.onerror = rej; r.onload = () => { const im = new Image(); im.onerror = rej; im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); res(c.toDataURL("image/jpeg", .74)); }; im.src = r.result; }; r.readAsDataURL(file); }); }
+async function sxAdd(files){
+  const t = draft(); if(!t) return; t.examples = t.examples || [];
+  const list = [...(files || [])].filter(f => /^image\//.test(f.type)).slice(0, Math.max(0, 8 - t.examples.length));
+  if(!list.length) return toast(t.examples.length >= 8 ? "Up to 8 example pictures per task" : "Choose a picture (JPG or PNG)");
+  loading(true, "Adding the pictures…");
+  try{ for(const f of list) t.examples.push({ img: await sxResize(f), caption: "", format: "" }); sumAutosave(); toast(list.length + " picture" + (list.length > 1 ? "s" : "") + " added ✓"); }
+  catch(e){ toast("That picture couldn't be added. Try a JPG or PNG."); }
+  finally{ loading(false); render(); }
+}
+function sxSet(i, k, v){ draft().examples[i][k] = v; sumAutosave(); }
+function sxDel(i){ if(!confirm("Remove this example picture?")) return; draft().examples.splice(i, 1); sumAutosave(); render(); }
+let sxBig = null;
+function sxCard(){
+  const t = draft(); if(!t) return ""; const E = t.examples || [], F = (t.formats || []).filter(Boolean);
+  return `<div class="card sx"><div class="actions" style="margin-top:0;align-items:center"><div class="label" style="margin:0">🖼️ Examples to show the children</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn small ghost">📷 Add pictures<input type="file" accept="image/*" multiple hidden onchange="sxAdd(this.files)"></label><button class="btn small" onclick="sxPoster()">🖨️ Print task poster</button></div></div>
+    <p class="hint" style="margin:4px 0 12px">Add photos of example posters, models or work from past years, so children can see what good work looks like. They appear on the printable task poster too. Please avoid photos that show children's faces.</p>
+    ${E.length ? `<div class="sx-grid">${E.map((e, i) => `<div class="sx-item"><button class="sx-img" onclick="sxBig=${i};render()" title="See it bigger"><img src="${e.img}" alt=""></button>
+        <input type="text" placeholder="Caption, e.g. A habitat model with labels" value="${esc(e.caption || "")}" oninput="sxSet(${i},'caption',this.value)">
+        ${F.length ? `<select onchange="sxSet(${i},'format',this.value)"><option value="">Which way of showing learning?</option>${F.map(f => `<option ${e.format === f ? "selected" : ""}>${esc(f)}</option>`).join("")}</select>` : ""}
+        <button class="link danger" onclick="sxDel(${i})">✕ Remove</button></div>`).join("")}</div>`
+      : `<label class="sx-drop" ondragover="event.preventDefault();this.classList.add('on')" ondragleave="this.classList.remove('on')" ondrop="event.preventDefault();this.classList.remove('on');sxAdd(event.dataTransfer.files)"><span>🖼️</span><b>Drag example pictures here, or click to choose</b><small>Up to 8 pictures · JPG or PNG</small><input type="file" accept="image/*" multiple hidden onchange="sxAdd(this.files)"></label>`}
+    ${sxBig != null && E[sxBig] ? `<div class="modal-bg" onclick="sxBig=null;render()"><div class="sx-big"><img src="${E[sxBig].img}" alt="">${E[sxBig].caption ? `<p>${esc(E[sxBig].caption)}</p>` : ""}</div></div>` : ""}</div>`;
+}
+function sxPoster(){
+  const u = sumUnit(), t = draft(); if(!u || !t) return; const th = themeOf(u.theme), E = (t.examples || []).slice(0, 6);
+  const ic = ["🏗️","🎨","🎭","🎤","📖","🧩","📷","✏️"];
+  const html = `<div class="pp"><div class="pp-h"><img src="${SITE_URL}/wondernest-mark.png" alt=""><div><small>${esc(th ? th.ic + " " + th.name : "Our unit of inquiry")}${gradeLabel(u) ? " · " + esc(gradeLabel(u)) : ""}</small><h1>${esc(t.title || "Our summative task")}</h1></div></div>
+    <div class="pp-ci"><b>Central idea:</b> ${esc(u.centralIdea || "")}</div>
+    <div class="pp-brief">${esc(t.childBrief || "").replace(/\n/g, "<br>")}</div>
+    <div class="pp-row"><div class="pp-box y"><h2>🌟 Choose how to show your learning</h2><ul>${(t.formats || []).filter(Boolean).map((f, i) => `<li><span>${ic[i % ic.length]}</span>${esc(f)}</li>`).join("")}</ul></div>
+      <div class="pp-box b"><h2>✅ Success criteria</h2><ul>${(t.successCriteria || []).filter(Boolean).map(s => `<li><span>☐</span>${esc(s)}</li>`).join("")}</ul></div></div>
+    ${E.length ? `<h2 class="pp-ex">🖼️ Examples to inspire you</h2><div class="pp-g n${Math.min(E.length, 3)}">${E.map(e => `<figure><img src="${e.img}" alt="">${e.caption || e.format ? `<figcaption>${esc(e.caption || e.format)}</figcaption>` : ""}</figure>`).join("")}</div>` : ""}
+    <div class="pp-f">${esc(settings.school || "")}${settings.school ? " · " : ""}WonderNest</div></div>`;
+  printWin((t.title || "Summative task") + " poster", html, `@page{size:A4 portrait;margin:10mm}body{margin:0;font-family:Arial,sans-serif;color:#1b2540}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .pp{border:3px solid #1f4fb0;border-radius:22px;padding:18px 20px;min-height:270mm;box-sizing:border-box;display:flex;flex-direction:column}
+    .pp-h{display:flex;gap:14px;align-items:center;background:#1f4fb0;color:#fff;border-radius:16px;padding:12px 16px}.pp-h img{width:62px}.pp-h small{font-weight:700;opacity:.9}.pp-h h1{margin:2px 0 0;font-size:30px;line-height:1.1;color:#fff !important}.pp-h small{color:#fff}
+    .pp-ci{margin:12px 2px;font-size:13px;color:#1f4fb0}
+    .pp-brief{background:#fff7dc;border:2px solid #f5d27a;border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.5}
+    .pp-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.pp-box{border-radius:14px;padding:10px 14px}.pp-box.y{background:#f5f9ff;border:2px solid #c9d8f3}.pp-box.b{background:#eefaf2;border:2px solid #bfe6cd}
+    .pp-box h2{font-size:16px;margin:0 0 6px;color:#1f4fb0}.pp-box ul{list-style:none;margin:0;padding:0}.pp-box li{display:flex;gap:8px;font-size:13.5px;margin:5px 0;line-height:1.35}.pp-box li span{flex:none}
+    .pp-ex{font-size:17px;color:#1f4fb0;margin:14px 0 8px}.pp-g{display:grid;gap:10px}.pp-g.n1{grid-template-columns:1fr}.pp-g.n2{grid-template-columns:1fr 1fr}.pp-g.n3{grid-template-columns:1fr 1fr 1fr}
+    .pp-g figure{margin:0;border:2px solid #e3e9f4;border-radius:12px;padding:6px;break-inside:avoid}.pp-g img{width:100%;height:170px;object-fit:contain;background:#f5f8fd;border-radius:8px;display:block}.pp-g.n1 img{height:300px;object-fit:contain}.pp-g figcaption{font-size:12px;text-align:center;margin-top:4px;font-weight:700}
+    .pp-f{margin-top:auto;padding-top:10px;text-align:right;font-size:11px;color:#667085}`);
+}
+const _svSx = summativeView;
+summativeView = function(){ const h = _svSx(); if(!draft()) return h; const k = h.indexOf('<div class="label">Rubric</div>'); if(k < 0) return h + sxCard(); const c = h.lastIndexOf('<div class="card">', k); return h.slice(0, c) + sxCard() + h.slice(c); };
+(function(){ const st = document.createElement("style"); st.textContent = `
+  .sx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .sx-item{display:flex;flex-direction:column;gap:6px}.sx-item input,.sx-item select{font-size:13px;padding:8px 10px}.sx-item .link{align-self:flex-start;font-size:13px}
+  .sx-img{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;padding:0;aspect-ratio:4/3}.sx-img img{width:100%;height:100%;object-fit:cover;display:block;transition:.2s}.sx-img:hover img{transform:scale(1.03)}
+  .sx-drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px dashed #c9d8f3;border-radius:16px;padding:26px;background:#f7faff;cursor:pointer;text-align:center}.sx-drop span{font-size:32px}.sx-drop b{color:var(--navy)}.sx-drop small{color:var(--muted)}.sx-drop.on{border-color:var(--blue);background:#eaf3ff}
+  .sx-big{background:#fff;border-radius:18px;padding:12px;max-width:min(900px,92vw);max-height:90vh;overflow:auto}.sx-big img{max-width:100%;max-height:78vh;display:block;margin:auto;border-radius:10px}.sx-big p{text-align:center;font-weight:700;margin-top:8px}`; document.head.appendChild(st); })();
+
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
 function teacherOnly(m){
