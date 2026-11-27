@@ -4164,9 +4164,9 @@ function wheelPrint(i){ printWin("Inquiry cycle - week " + (i + 1), wheelHTML(i)
 const _stepWeeksBase = stepWeeks;
 stepWeeks = function(){
   const html = _stepWeeksBase(), W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
-  const tog = `<div class="wkview"><button class="${wkS.view !== "wheel" ? "on" : ""}" onclick="wkS.view='plan';render()">📝 Plan the week</button><button class="${wkS.view === "wheel" ? "on" : ""}" onclick="wkS.view='wheel';render()">🎡 Cycle view</button>${wkS.view === "wheel" ? `<button class="btn small ghost" style="margin-left:auto" onclick="wheelPrint(${i})">🖨️ Print or save as PDF</button>` : ""}</div>`;
+  const tog = `<div class="wkview"><button class="${wkS.view !== "wheel" ? "on" : ""}" onclick="wkS.view='plan';render()">📝 Plan the week</button><button class="${wkS.view === "wheel" ? "on" : ""}" onclick="wkS.view='wheel';render()">🎡 Cycle view</button>${wkS.view === "wheel" ? `<button class="btn small ghost" style="margin-left:auto" onclick="uWheelPrint()">🖨️ Print or save as PDF</button>` : ""}</div>`;
   if(wkS.view !== "wheel") return html.replace('<div class="cyclegrid">', tog + '<div class="cyclegrid">').replace('<div class="actions"><button class="link" onclick="wkCopyPrev', diffCard(i) + '<div class="actions"><button class="link" onclick="wkCopyPrev');
-  return html.replace('<div class="cyclegrid">', tog + wheelHTML(i) + diffCard(i) + wheelDetails(i) + '<div class="cyclegrid" style="display:none">');
+  return html.replace('<div class="cyclegrid">', tog + uWheelHTML(i) + uWeekEditor(i) + diffCard(i) + '<div class="cyclegrid" style="display:none">');
 };
 
 
@@ -4659,6 +4659,80 @@ function exPrintMentors(){
     return `<div class="c"><img src="${SITE_URL}/wondernest-logo.png" class="lg" onerror="this.remove()"><b>${esc(m.name)}</b><small class="g">PYP Exhibition mentor${gs.length ? " · " + gs.map(g => esc(g.name)).join(", ") : ""}</small><div class="qr">${qrImg(mentorLink(m), 3)}</div><div class="code">${esc(m.code)}</div><small>Scan the QR code, or go to ${esc(SITE_URL.replace("https://", ""))}/mentor.html and type your code.<br>Please keep it private.</small></div>`; }).join("")}</div>`;
   printWin(c.name + " mentor cards", html, `body{font-family:Arial,sans-serif;margin:18px}h1{font-size:17px;color:#14325c}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.c{border:2px dashed #94a3b8;border-radius:14px;padding:14px;text-align:center;break-inside:avoid}.lg{width:130px;display:block;margin:0 auto 4px}.c b{display:block;font-size:20px;color:#14325c}.g{display:block;color:#0f766e;font-weight:700;margin:2px 0 6px}.qr img{width:120px;height:120px}.code{font:700 20px monospace;letter-spacing:2px;background:#e6f5ec;border-radius:8px;padding:6px;margin:6px 0}.c small{display:block;color:#475569;font-size:11px;line-height:1.35}`);
 }
+
+/* =====================================================================
+   UNIT INQUIRY CYCLE: one phase per week, the wheel shows the whole unit
+   ===================================================================== */
+const phaseOfWeek = (k, n) => { const w = (unit.weeks || [])[k]; return (w && w.phase && WHEEL_COL[w.phase]) ? w.phase : CYCLE[Math.min(5, Math.floor(k * 6 / Math.max(n, 1)))][0]; };
+const phaseIc = ph => (CYCLE.find(c => c[0] === ph) || ["", "•"])[1];
+function uWheelSVG(sel){
+  const W = unit.weeks || [], n = W.length || 6, cx = 250, cy = 250, R = 238, r = 96, st = 360 / n, P = (a, d) => [cx + d * Math.cos(a * Math.PI / 180), cy + d * Math.sin(a * Math.PI / 180)];
+  const fs = n > 8 ? 12 : n > 6 ? 14 : 16;
+  const seg = W.map((w, k) => {
+    const ph = phaseOfWeek(k, n), c = WHEEL_COL[ph], a0 = -90 - st / 2 + k * st, a1 = a0 + st, m = a0 + st / 2, big = st > 180 ? 1 : 0, on = k === sel, RR = on ? R : R - 8;
+    const [x0, y0] = P(a0, RR), [x1, y1] = P(a1, RR), [x2, y2] = P(a1, r), [x3, y3] = P(a0, r), [tx, ty] = P(m, 168), words = ph.split(" ");
+    return `<g class="uw-s" onclick="wkS.week=${k};render()" style="cursor:pointer"><path d="M${x0} ${y0} A${RR} ${RR} 0 ${big} 1 ${x1} ${y1} L${x2} ${y2} A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z" fill="${c}" stroke="#fff" stroke-width="4" opacity="${sel == null || on ? 1 : .82}"/>
+      <text x="${tx}" y="${ty - 26}" text-anchor="middle" font-size="${fs + 10}">${phaseIc(ph)}</text>
+      <text x="${tx}" y="${ty - 2}" text-anchor="middle" font-size="${fs - 1}" font-weight="800" fill="#fff" opacity=".9" font-family="Fredoka,Arial">WEEK ${k + 1}</text>
+      ${words.length > 1 ? `<text x="${tx}" y="${ty + 17}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#fff" font-family="Fredoka,Arial">${esc(words[0])}</text><text x="${tx}" y="${ty + 35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#fff" font-family="Fredoka,Arial">${esc(words.slice(1).join(" "))}</text>` : `<text x="${tx}" y="${ty + 19}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#fff" font-family="Fredoka,Arial">${esc(ph)}</text>`}</g>`;
+  }).join("");
+  return `<svg class="whl-svg" viewBox="0 0 500 500" role="img" aria-label="Unit inquiry cycle, one phase per week">${seg}
+    <circle cx="${cx}" cy="${cy}" r="${r - 6}" fill="#fff" stroke="#e3e9f4" stroke-width="3"/>
+    <image href="wondernest-mark.png" x="${cx - 30}" y="${cy - 80}" width="60" height="54"/>
+    <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="19" font-weight="700" fill="#1f4fb0" font-family="Fredoka,Arial">Unit</text>
+    <text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="19" font-weight="700" fill="#1f4fb0" font-family="Fredoka,Arial">Inquiry Cycle</text>
+    <text x="${cx}" y="${cy + 44}" text-anchor="middle" font-size="15" font-weight="700" fill="#e3a50d" font-family="Fredoka,Arial">${n} weeks</text></svg>`;
+}
+function uWeekCard(k, sel){
+  const W = unit.weeks, w = W[k], ph = phaseOfWeek(k, W.length), c = WHEEL_COL[ph], x = w.extra || {};
+  const items = String((w.cells || {})[ph] || "").split("\n").map(s => s.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean), tags = (w.tags || {})[ph] || [];
+  return `<div class="whl-card uw-card ${k === sel ? "on" : ""}" style="--c:${c}" onclick="wkS.week=${k};render()"><h4>Week ${k + 1}: ${esc(ph)} ${phaseIc(ph)}</h4><div class="in">
+    ${w.focus ? `<div class="whl-time">🎯 ${esc(w.focus)}</div>` : ""}
+    ${items.length ? `<ul>${items.slice(0, 3).map(s => `<li>${esc(s)}</li>`).join("")}${items.length > 3 ? `<li class="whl-empty">and ${items.length - 3} more…</li>` : ""}</ul>` : `<div class="whl-empty">Nothing planned yet.</div>`}
+    ${(x.sc || {}).must ? `<div style="margin-top:5px"><b style="color:#5fb548">Must:</b> ${esc(x.sc.must)}</div>` : ""}
+    ${tags.length ? `<div class="whl-tags">${tags.map(s => `<span style="color:${subCol(s)}">${esc(s)}</span>`).join("")}</div>` : ""}</div></div>`;
+}
+function uWheelHTML(sel){
+  const W = weeksObj(), n = W.length, t = themeOf(unit.theme), half = Math.ceil(n / 2);
+  const right = W.map((w, k) => k).slice(0, half), left = W.map((w, k) => k).slice(half).reverse();
+  return `<div class="whl" id="whl">
+    <div class="whl-top"><div class="whl-title">The Inquiry Cycle in Action</div><div class="whl-sub">One unit · ${n} weeks · One phase each week</div>
+      <div class="whl-pills"><span class="whl-pill" style="background:#5fb548">${esc(gradeLabel(unit) || "Grade")}</span><span class="whl-pill" style="background:#9b6bd6">${esc(t ? t.name : "Unit of inquiry")}</span><span class="whl-pill" style="background:#f5b921;color:#1b2540">${n} weeks</span></div></div>
+    ${unit.centralIdea ? `<div style="padding:10px 20px 0;font-size:14px"><b style="color:#1f4fb0">Central idea:</b> ${esc(unit.centralIdea)}</div>` : ""}
+    <div class="whl-body"><div class="whl-col">${left.map(k => uWeekCard(k, sel)).join("")}</div><div class="whl-wheel">${uWheelSVG(sel)}</div><div class="whl-col">${right.map(k => uWeekCard(k, sel)).join("")}</div></div>
+    <div class="whl-banner">Inquiry is not simply a sequence of activities. It is a process through which students question, explore, construct understanding, make connections and apply their learning.</div></div>`;
+}
+function uSetPhase(k, ph){ unit.weeks[k].phase = ph; saveCurrent(); render(); }
+function uSetCell(k, v){ const w = unit.weeks[k], ph = phaseOfWeek(k, unit.weeks.length); w.cells = w.cells || {}; w.cells[ph] = v; saveCurrent(); clearTimeout(window._uwT); window._uwT = setTimeout(() => { const el = $("#whl"); if(el){ const d = document.createElement("div"); d.innerHTML = uWheelHTML(k); el.replaceWith(d.firstElementChild); } }, 400); }
+function uWeekEditor(k){
+  const W = unit.weeks, w = W[k], ph = phaseOfWeek(k, W.length), c = WHEEL_COL[ph], line = w.line ? (unit.lines[w.line - 1] || {}) : null;
+  const others = CYCLE.map(x => x[0]).filter(p => p !== ph && String((w.cells || {})[p] || "").trim());
+  return `<div class="card uw-ed" style="--c:${c}"><div class="uw-edh"><div><small>Week ${k + 1} of ${W.length}</small><h3>${phaseIc(ph)} ${esc(ph)}</h3></div>
+      <label>Phase this week<select onchange="uSetPhase(${k},this.value)">${CYCLE.map(([p, ic]) => `<option value="${p}" ${p === ph ? "selected" : ""}>${ic} ${p}</option>`).join("")}</select></label></div>
+    ${line ? `<p style="margin:6px 0"><b style="color:var(--navy)">Line of inquiry ${esc(String(w.line))}:</b> ${esc(line.text || "")}${line.concept ? ` <span class="tag">${esc(line.concept)}</span>` : ""}</p>` : ""}
+    <div class="grid2" style="grid-template-columns:1fr 2fr;gap:12px;margin-top:8px"><div><label>Focus this week</label><input type="text" value="${esc(w.focus || "")}" placeholder="e.g. What is a system?" oninput="unit.weeks[${k}].focus=this.value;saveCurrent()"></div>
+      <div><label>${phaseIc(ph)} Learning experiences this week (one per line)</label><textarea style="min-height:96px" oninput="uSetCell(${k},this.value)" placeholder="What children do in this ${ph.toLowerCase()} week…">${esc((w.cells || {})[ph] || "")}</textarea></div></div>
+    ${others.length ? `<details style="margin-top:8px"><summary class="hint" style="cursor:pointer">Also in this week's plan from before: ${others.map(esc).join(", ")}</summary>${others.map(p => `<p style="margin-top:6px"><b>${phaseIc(p)} ${esc(p)}:</b> ${esc(w.cells[p]).replace(/\n/g, "<br>")}</p>`).join("")}</details>` : ""}</div>`;
+}
+cycleView = function(){
+  const units = savedUnits(), has = unit && (unit.centralIdea || (unit.weeks || []).length);
+  const pick = units.length ? `<select style="max-width:420px" onchange="cycleSwitch(this.value)">${units.some(u => u.id === unit.id) ? "" : `<option>${esc(unit.centralIdea || "Current unit")}</option>`}${units.map(u => { const t = themeOf(u.theme); return `<option value="${u.id}" ${u.id === unit.id ? "selected" : ""}>${esc((t ? t.ic + " " : "") + (gradeLabel(u) ? gradeLabel(u) + " · " : "") + (u.centralIdea || "Untitled unit").slice(0, 80))}</option>`; }).join("")}</select>` : "";
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🎡 Inquiry cycle</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!has) return top + `<div class="card empty">🎡<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The cycle shows the whole unit: one phase of the inquiry cycle each week.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}<button class="btn" onclick="view='builder';render()">✨ Go to the unit builder</button></div>`;
+  const W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
+  return top + `<div class="card"><div class="actions" style="margin-top:0;align-items:flex-end"><div><label style="display:block">Unit</label>${pick || `<b>${esc(unit.centralIdea || "Current unit")}</b>`}</div>
+      <button class="btn" onclick="uWheelPrint()">🖨️ Print or save as PDF</button></div>
+    <p class="hint" style="margin-top:10px">Each week of the unit is one phase of the inquiry cycle. Tap a week on the wheel to plan it. You can change a week's phase if your unit needs it.</p></div>
+    ${uWheelHTML(i)}${uWeekEditor(i)}${diffCard(i)}${wheelDetails(i).replace(/<label style="margin-top:10px;display:block">When each stage happens[\s\S]*<\/div><\/div>$/, "</div>")}`;
+};
+function uWheelPrint(){ printWin("Inquiry cycle - " + (unit.centralIdea || "unit"), uWheelHTML(null), WHEEL_CSS + UW_CSS + "@page{size:A4 landscape;margin:8mm}body{margin:0}"); }
+const UW_CSS = `.uw-card{cursor:pointer;transition:.15s}.uw-card:hover{transform:translateY(-2px)}.uw-card.on{box-shadow:0 0 0 3px #f5b921}`;
+(function(){ const st = document.createElement("style"); st.textContent = UW_CSS + `
+  .uw-ed{border-left:6px solid var(--c)}.uw-edh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+  .uw-edh small{color:var(--muted);font-weight:700}.uw-edh h3{font-family:"Fredoka",sans-serif;color:var(--c);font-size:22px}
+  .uw-edh label{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:13px;color:var(--muted)}.uw-edh select{min-width:220px}
+  .uw-s:hover path{filter:brightness(1.07)}`; document.head.appendChild(st); })();
+
 /* ---------- hide everything that needs children's own logins ---------- */
 sumVoicesCard = () => "";
 function teacherOnly(m){
