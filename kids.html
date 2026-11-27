@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>My Wonder Nest</title>
-<link rel="icon" href="bird.png">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* Softer, more natural reading voice: prefer the best female voices on each device */
@@ -361,7 +362,7 @@ const SDG_STORIES = [
 </style>
 </head>
 <body>
-<div class="wrap" id="app"><div class="loading"><span><img src="bird.png" alt="" style="width:90px" onerror="this.replaceWith('🐦')"></span></div></div>
+<div class="wrap" id="app"><div class="loading"><span><img src="wondernest-mark.png" alt="" style="width:90px" onerror="this.replaceWith('🐦')"></span></div></div>
 <div class="toast" id="toast"></div>
 <script>
 /* ===== CONFIG: your Supabase project (public values) ===== */
@@ -460,7 +461,7 @@ function go(s){ screen = s; draw(); window.scrollTo(0,0); }
 function draw(){
   const app = $("#app");
   if(screen === "code") return app.innerHTML = `<div class="body">
-    <div class="big-title"><img src="bird.png" alt="" style="width:110px;display:block;margin:0 auto 6px;animation:hop 3s ease-in-out infinite" onerror="this.replaceWith('🐦')">Wonder Nest</div><p class="sub">Type your class code</p>
+    <div class="big-title"><img src="wondernest-logo.png" alt="Wonder Nest" style="width:250px;max-width:80%;display:block;margin:0 auto 6px;animation:hop 3s ease-in-out infinite" onerror="this.replaceWith('Wonder Nest')"></div><p class="sub">Type your class code</p>
     <input class="code-input" id="code" maxlength="6" autocomplete="off" autocapitalize="characters" value="${esc(classCode)}">
     <div class="center"><button class="btn" onclick="classCode=$('#code').value.trim(); loadRoster()">Let's go! →</button></div>
     <div class="msg"></div><p class="center" style="margin-top:26px"><a href="./" style="color:var(--navy);font-weight:800">← WonderNest home</a></p></div>`;

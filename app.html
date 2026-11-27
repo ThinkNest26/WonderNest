@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WonderNest · Unit builder</title>
-<link rel="icon" href="bird.png">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion for teachers and children.">
 <style>
   :root{
@@ -19,7 +20,10 @@
   /* sidebar */
   .side{width:240px;flex-shrink:0;background:var(--navy);color:#fff;padding:26px 18px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
   .logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800;margin-bottom:26px}
-  .logo .mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--sun),var(--coral));display:grid;place-items:center;font-size:21px}
+  .logo .mark{width:52px;height:52px;display:grid;place-items:center;font-size:21px;flex-shrink:0}
+  .logo .mark img{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+  .logo .n{color:#ffc83d}
+  .logo > div:last-child{white-space:nowrap;font-size:21px}
   .logo small{display:block;font-size:11px;font-weight:600;opacity:.7;letter-spacing:.5px}
   .nav{padding:11px 14px;border-radius:10px;font-size:14.5px;opacity:.8;display:flex;gap:10px;align-items:center;text-align:left;width:100%}
   .nav:hover{background:rgba(255,255,255,.08);opacity:1}
@@ -473,7 +477,7 @@ const SDG_STORIES = [
 <body>
 <div class="app">
   <aside class="side">
-    <div class="logo"><div class="mark" style="background:linear-gradient(135deg,#ffd76a,#ffb347)"><img src="bird.png" alt="" style="width:34px;height:34px;object-fit:contain" onerror="this.replaceWith('🐦')"></div><div>WonderNest<small>by ThinkNest Education</small></div></div>
+    <div class="logo"><div class="mark"><img src="wondernest-mark.png" alt="" onerror="this.replaceWith('🐦')"></div><div>Wonder <span class="n">Nest</span><small>by ThinkNest Education</small></div></div>
     <div class="navg">Plan</div>
     <button class="nav" data-view="home">🏠 My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
