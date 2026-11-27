@@ -403,6 +403,9 @@
   .pu-col{background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px;box-shadow:0 6px 18px rgba(31,79,176,.05)}
   .pu-colh{font-family:"Fredoka",sans-serif;font-weight:600;color:var(--navy);font-size:15px;margin-bottom:8px;display:flex;gap:8px;align-items:center}.pu-colh span{font-size:22px}
   .pu-col .pu-card{font-size:14px}.pu-col .pu-ci{font-size:15px}
+  .wkview{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  .wkview>button:not(.btn){padding:9px 14px;border-radius:12px;font-weight:700;font-size:14px;color:var(--muted);background:#fff;border:1px solid var(--line)}
+  .wkview>button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3984,6 +3987,101 @@ async function wkAll(){
     saveCurrent(); toast("Draft ready ✓ Check each week and change anything you like");
   }catch(e){ error = e.message; } finally{ loading(false); render(); }
 }
+
+/* =====================================================================
+   WEEKLY INQUIRY CYCLE: "Cycle wheel" view (infographic of one week)
+   ===================================================================== */
+const WHEEL_COL = { "Tuning in": "#9b6bd6", "Finding out": "#f08a3c", "Sorting out": "#5fb548", "Going further": "#3b86e0", "Making connections": "#2fb0c2", "Taking action": "#e0507e" };
+const WHEEL_CSS = `
+.whl,.whl *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.whl{background:#fff;border:1px solid #e3e9f4;border-radius:24px;overflow:hidden;box-shadow:0 8px 24px rgba(31,79,176,.07);font-family:"DM Sans",Arial,sans-serif;color:#1b2540}
+.whl-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 20px;background:linear-gradient(180deg,#f5f9ff,#eef5ff);border-bottom:1px solid #e3e9f4}
+.whl-title{background:#1f4fb0;color:#fff;font-family:"Fredoka",Arial,sans-serif;font-weight:700;font-size:26px;padding:8px 18px;border-radius:14px;line-height:1.1}
+.whl-sub{font-family:"Fredoka",Arial,sans-serif;font-weight:600;color:#1f4fb0;font-size:16px;border-left:2px solid #c9d8f3;padding-left:14px}
+.whl-pills{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.whl-pill{font-family:"Fredoka",Arial,sans-serif;font-weight:600;font-size:14px;padding:6px 14px;border-radius:999px;color:#fff}
+.whl-body{display:grid;grid-template-columns:1fr 430px 1fr;gap:14px;align-items:center;padding:18px}
+.whl-col{display:flex;flex-direction:column;gap:12px}
+.whl-card{border:2px solid var(--c);border-radius:16px;overflow:hidden;background:#fff}
+.whl-card h4{background:var(--c);color:#fff;font-family:"Fredoka",Arial,sans-serif;font-weight:600;font-size:15px;padding:7px 12px;margin:0}
+.whl-card .in{padding:8px 12px 10px;font-size:12.5px;line-height:1.45}
+.whl-time{font-weight:700;color:#475066;font-size:12.5px;margin-bottom:4px}
+.whl-card ul{margin:0;padding-left:17px}.whl-card li{margin:2px 0}
+.whl-empty{color:#98a2b3;font-style:italic}
+.whl-tags{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap}.whl-tags span{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 7px;background:#f1f5fc;color:#1f4fb0}
+.whl-svg{width:100%;height:auto;display:block}
+.whl-foot{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.1fr;gap:0;margin:0 18px 16px;background:#f5f9ff;border-radius:16px;border:1px solid #e3e9f4}
+.whl-foot>div{padding:12px 14px;border-left:1px solid #e3e9f4;font-size:12.5px;line-height:1.4}.whl-foot>div:first-child{border-left:0}
+.whl-lab{display:inline-block;font-family:"Fredoka",Arial,sans-serif;font-weight:600;font-size:13px;color:#fff;border-radius:8px;padding:3px 10px;margin:0 0 6px}
+.whl-sc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.whl-banner{background:#1f4fb0;color:#fff;text-align:center;font-weight:700;font-size:13.5px;padding:11px 16px}
+@media (max-width:1150px){.whl-body{grid-template-columns:1fr}.whl-wheel{order:-1;max-width:430px;margin:0 auto}.whl-foot{grid-template-columns:1fr 1fr}}
+@media print{.whl{box-shadow:none;border:0}.whl-body{grid-template-columns:1fr 360px 1fr}.whl-foot{grid-template-columns:1.6fr 1fr 1fr 1.1fr}}`;
+(function(){ const st = document.createElement("style"); st.textContent = WHEEL_CSS; document.head.appendChild(st); })();
+function wheelSVG(weekNo){
+  const cx = 250, cy = 250, R = 238, r = 92, P = (a, d) => [cx + d * Math.cos(a * Math.PI / 180), cy + d * Math.sin(a * Math.PI / 180)];
+  const seg = CYCLE.map(([ph, ic], i) => {
+    const a0 = -120 + i * 60, a1 = a0 + 60, m = a0 + 30, c = WHEEL_COL[ph];
+    const [x0, y0] = P(a0, R), [x1, y1] = P(a1, R), [x2, y2] = P(a1, r), [x3, y3] = P(a0, r), [tx, ty] = P(m, 160), [nx, ny] = P(a0 + 11, 216);
+    const words = ph.split(" ");
+    return `<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1} L${x2} ${y2} A${r} ${r} 0 0 0 ${x3} ${y3}Z" fill="${c}" stroke="#fff" stroke-width="4"/>
+      <circle cx="${nx}" cy="${ny}" r="13" fill="#fff" opacity=".95"/><text x="${nx}" y="${ny + 5}" text-anchor="middle" font-size="14" font-weight="800" fill="${c}" font-family="Fredoka,Arial">${i + 1}</text>
+      <text x="${tx}" y="${ty - 8}" text-anchor="middle" font-size="30">${ic}</text>
+      ${words.length > 1 && ph.length > 12 ? `<text x="${tx}" y="${ty + 18}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" font-family="Fredoka,Arial">${esc(words[0])}</text><text x="${tx}" y="${ty + 36}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" font-family="Fredoka,Arial">${esc(words.slice(1).join(" "))}</text>` : `<text x="${tx}" y="${ty + 22}" text-anchor="middle" font-size="17" font-weight="700" fill="#fff" font-family="Fredoka,Arial">${esc(ph)}</text>`}`;
+  }).join("");
+  return `<svg class="whl-svg" viewBox="0 0 500 500" role="img" aria-label="Inquiry cycle wheel">${seg}
+    <circle cx="${cx}" cy="${cy}" r="${r - 6}" fill="#fff" stroke="#e3e9f4" stroke-width="3"/>
+    <image href="wondernest-mark.png" x="${cx - 30}" y="${cy - 78}" width="60" height="54"/>
+    <text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="19" font-weight="700" fill="#1f4fb0" font-family="Fredoka,Arial">Weekly</text>
+    <text x="${cx}" y="${cy + 20}" text-anchor="middle" font-size="19" font-weight="700" fill="#1f4fb0" font-family="Fredoka,Arial">Inquiry Cycle</text>
+    <text x="${cx}" y="${cy + 46}" text-anchor="middle" font-size="16" font-weight="700" fill="#e3a50d" font-family="Fredoka,Arial">Week ${weekNo}</text></svg>`;
+}
+function wheelCard(w, i){
+  const [ph, ic] = CYCLE[i], c = WHEEL_COL[ph], x = (w.extra || {}), t = ((x.time || {})[ph] || "").trim();
+  const items = String((w.cells || {})[ph] || "").split("\n").map(s => s.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean);
+  const tags = (w.tags || {})[ph] || [];
+  return `<div class="whl-card" style="--c:${c}"><h4>Stage ${i + 1}: ${esc(ph)} ${ic}</h4><div class="in">${t ? `<div class="whl-time">🕒 ${esc(t)}</div>` : ""}
+    ${items.length ? `<ul>${items.map(s => `<li>${esc(s)}</li>`).join("")}</ul>` : `<div class="whl-empty">Nothing planned yet.</div>`}
+    ${tags.length ? `<div class="whl-tags">${tags.map(s => `<span style="color:${subCol(s)}">${esc(s)}</span>`).join("")}</div>` : ""}</div></div>`;
+}
+function wheelHTML(i){
+  const W = weeksObj(), w = W[i], x = w.extra || {}, t = themeOf(unit.theme), line = w.line ? (unit.lines[w.line - 1] || {}) : null;
+  const concept = (line && line.concept) || (unit.keyConcepts || []).join(", ");
+  const atl = [...new Set((unit.atl || []).map(a => String(a).split(" · ")[0]))].slice(0, 3).join(", ");
+  const sc = x.sc || {}, q = x.question || (line ? line.text : "") || "", subs = [...new Set(Object.values(w.tags || {}).flat())];
+  return `<div class="whl" id="whl">
+    <div class="whl-top"><div class="whl-title">The Inquiry Cycle in Action</div><div class="whl-sub">One week · Six stages${w.focus ? " · " + esc(w.focus) : ""}</div>
+      <div class="whl-pills"><span class="whl-pill" style="background:#5fb548">${esc(gradeLabel(unit) || "Grade")}</span><span class="whl-pill" style="background:#9b6bd6">${esc(t ? t.name : "Unit of inquiry")}</span><span class="whl-pill" style="background:#f5b921;color:#1b2540">Week ${i + 1} of ${W.length}</span></div></div>
+    ${unit.centralIdea ? `<div style="padding:10px 20px 0;font-size:14px"><b style="color:#1f4fb0">Central idea:</b> ${esc(unit.centralIdea)}${line ? ` &nbsp;·&nbsp; <b style="color:#1f4fb0">Line of inquiry ${esc(String(w.line))}:</b> ${esc(line.text || "")}` : ""}</div>` : ""}
+    <div class="whl-body"><div class="whl-col">${[5, 4, 3].map(k => wheelCard(w, k)).join("")}</div>
+      <div class="whl-wheel">${wheelSVG(i + 1)}</div>
+      <div class="whl-col">${[0, 1, 2].map(k => wheelCard(w, k)).join("")}</div></div>
+    <div class="whl-foot">
+      <div><span class="whl-lab" style="background:#f5b921;color:#1b2540">Success criteria</span><div class="whl-sc">${[["Must", "#5fb548", sc.must], ["Could", "#3b86e0", sc.could], ["Extend", "#9b6bd6", sc.extend]].map(([l, c, v]) => `<div><span class="whl-lab" style="background:${c}">${l}:</span><div>${v ? esc(v) : `<span class="whl-empty">Add in details below</span>`}</div></div>`).join("")}</div></div>
+      <div><span class="whl-lab" style="background:#2fb0c2">${esc(settings.conceptLabel || "Specified concept")}:</span><div>${esc(concept) || "–"}</div><span class="whl-lab" style="background:#9b6bd6;margin-top:8px">ATL skills:</span><div>${esc(atl) || "–"}</div></div>
+      <div><span class="whl-lab" style="background:#e0507e">Inquiry question:</span><div>${esc(q) || "–"}</div>${subs.length ? `<span class="whl-lab" style="background:#3b86e0;margin-top:8px">Subjects:</span><div>${subs.map(esc).join(", ")}</div>` : ""}</div>
+      <div><span class="whl-lab" style="background:#1f4fb0">Assessment for learning:</span><div>${x.assess ? esc(x.assess) : `<span class="whl-empty">Add in details below</span>`}</div><span class="whl-lab" style="background:#5fb548;margin-top:8px">Resources:</span><div>${x.res ? esc(x.res) : `<span class="whl-empty">Add in details below</span>`}</div></div>
+    </div>
+    <div class="whl-banner">Inquiry is not simply a sequence of activities. It is a process through which students question, explore, construct understanding, make connections and apply their learning.</div></div>`;
+}
+function wheelDetails(i){
+  const w = unit.weeks[i], x = w.extra = w.extra || {}, sc = x.sc = x.sc || {}, tm = x.time = x.time || {};
+  const inp = (path, val, ph) => `<input type="text" value="${esc(val || "")}" placeholder="${esc(ph)}" oninput="wheelSet(${i},'${path}',this.value)">`;
+  return `<div class="card" style="margin-top:14px"><div class="label">✏️ Details for the cycle view (week ${i + 1})</div><p class="hint" style="margin-bottom:10px">The stage boxes come from your weekly plan. Add these extra details to complete the poster. They are saved with the unit.</p>
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:10px">${[["sc.must", sc.must, "Must: I can…"], ["sc.could", sc.could, "Could: I can…"], ["sc.extend", sc.extend, "Extend: I can…"]].map(([p, v, h]) => `<div><label>${h.split(":")[0]}</label>${inp(p, v, h)}</div>`).join("")}</div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px"><div><label>Inquiry question</label>${inp("question", x.question, "How can we…?")}</div><div><label>Assessment for learning</label>${inp("assess", x.assess, "Questioning, observation, exit tickets…")}</div><div><label>Resources</label>${inp("res", x.res, "Books, objects, websites…")}</div></div>
+    <label style="margin-top:10px;display:block">When each stage happens (optional)</label><div class="grid2" style="grid-template-columns:repeat(3,1fr);gap:8px">${CYCLE.map(([ph, ic]) => `<div><small class="hint">${ic} ${ph}</small>${inp("time." + ph, tm[ph], "e.g. Sunday or Day 1–2")}</div>`).join("")}</div></div>`;
+}
+function wheelSet(i, path, v){ const x = unit.weeks[i].extra = unit.weeks[i].extra || {}; const [a, b] = path.split("."); if(b){ x[a] = x[a] || {}; x[a][b] = v; } else x[a] = v; saveCurrent(); clearTimeout(window._whT); window._whT = setTimeout(() => { const el = $("#whl"); if(el){ const d = document.createElement("div"); d.innerHTML = wheelHTML(i); el.replaceWith(d.firstElementChild); } }, 300); }
+function wheelPrint(i){ printWin("Inquiry cycle - week " + (i + 1), wheelHTML(i), WHEEL_CSS + "@page{size:A4 landscape;margin:8mm}body{margin:0}"); }
+const _stepWeeksBase = stepWeeks;
+stepWeeks = function(){
+  const html = _stepWeeksBase(), W = weeksObj(), i = Math.min(wkS.week, W.length - 1);
+  const tog = `<div class="wkview"><button class="${wkS.view !== "wheel" ? "on" : ""}" onclick="wkS.view='plan';render()">📝 Plan the week</button><button class="${wkS.view === "wheel" ? "on" : ""}" onclick="wkS.view='wheel';render()">🎡 Cycle view</button>${wkS.view === "wheel" ? `<button class="btn small ghost" style="margin-left:auto" onclick="wheelPrint(${i})">🖨️ Print or save as PDF</button>` : ""}</div>`;
+  if(wkS.view !== "wheel") return html.replace('<div class="cyclegrid">', tog + '<div class="cyclegrid">');
+  return html.replace('<div class="cyclegrid">', tog + wheelHTML(i) + wheelDetails(i) + '<div class="cyclegrid" style="display:none">');
+};
+
 /* Download the weekly plan as a Word file (landscape): this week or all weeks. */
 function weekPageHTML(w, k){
   const subs = wkSubs(), line = w.line ? (unit.lines[w.line-1]||{}) : null;
