@@ -436,6 +436,9 @@
   .td-qs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.td-qs>div{background:var(--bg);border-radius:14px;padding:12px}.td-qs small{display:block;color:var(--muted)}.td-qs p{margin-top:6px;font-style:italic}
   .td-mine .td-ci{font-weight:800;color:var(--navy);font-size:16px;margin:4px 0 8px}.td-mine ul{padding-left:18px}.td-mine li{margin:4px 0}
   @media (max-width:900px){.td-hero,.td-kinds,.td-qs{grid-template-columns:1fr}}
+  .kcode{font:700 14px ui-monospace,Menlo,monospace;background:#fff7dc;border:1px solid #f5d27a;border-radius:8px;padding:3px 8px;letter-spacing:.5px;color:#5c4300;white-space:nowrap}
+  .exintro{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,#f5f9ff,#fffaea)}.exintro>span{font-size:34px}
+  .exmore{margin-top:6px}.exmore summary{cursor:pointer;font-weight:700;color:var(--blue);padding:8px 2px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -579,14 +582,10 @@ const SDG_STORIES = [
     <button class="nav" data-view="home">🗂️ My units</button>
     <button class="nav on" data-view="builder">✨ Unit builder</button>
     <button class="nav" data-view="cycle">🎡 Inquiry cycle</button>
-    <div class="navg">Teach</div>
-    <button class="nav" data-view="classes">🌱 Classes & portfolios</button>
-    <button class="nav" data-view="inquiry">🔍 Open inquiry</button>
-    <button class="nav" data-view="exh">🏆 PYP Exhibition</button>
-    <div class="navg">Assess & track</div>
+    <div class="navg">Assess</div>
     <button class="nav" data-view="summative">🎯 Summative tasks</button>
-    <button class="nav" data-view="atl">📈 ATL growth</button>
-    <button class="nav" data-view="progress">📊 Progress over time</button>
+    <div class="navg">Grade 5</div>
+    <button class="nav" data-view="exh">🏆 PYP Exhibition</button>
     <div class="navg">Resources</div>
     <button class="nav" data-view="wlib" data-lib="1">🏛️ Library</button>
     <button class="nav" data-view="td">🧩 Transdisciplinary learning</button>
@@ -595,7 +594,7 @@ const SDG_STORIES = [
     <button class="nav" data-view="reviews">✅ Unit reviews</button>
     <button class="nav" data-view="settings">⚙️ School settings</button>
     <button class="nav" data-view="basics">📖 PYP basics</button>
-    <div class="navhidden" hidden><button class="nav" data-view="attention">🔔 Needs attention</button><button class="nav" data-view="concepts">💡 Concepts</button><button class="nav" data-view="library">🧠 Routines & organisers</button><button class="nav" data-view="sdg">🌍 SDG stories</button><button class="nav" data-view="stories">📚 Story library</button></div>
+    <div class="navhidden" hidden><button class="nav" data-view="classes">🌱 Classes & portfolios</button><button class="nav" data-view="inquiry">🔍 Open inquiry</button><button class="nav" data-view="atl">📈 ATL growth</button><button class="nav" data-view="progress">📊 Progress over time</button><button class="nav" data-view="attention">🔔 Needs attention</button><button class="nav" data-view="concepts">💡 Concepts</button><button class="nav" data-view="library">🧠 Routines & organisers</button><button class="nav" data-view="sdg">🌍 SDG stories</button><button class="nav" data-view="stories">📚 Story library</button></div>
     <a class="nav" href="privacy.html" target="_blank" style="text-decoration:none">🔒 Privacy</a>
     <div class="foot" id="footSchool">Your school's programme of inquiry</div>
   </aside>
@@ -1135,7 +1134,7 @@ function classesView(){
       ${tc.mode === "signin" ? `<button class="link" onclick="tc.mode='forgot';render()">Forgot password?</button>` : "<span></span>"}
       <button class="btn" onclick="tAuth()">${tc.mode==="signup" ? "Create account" : tc.mode==="forgot" ? "Send reset link" : "Sign in"}</button>
     </div>
-    <p class="hint" style="margin-top:14px">Teacher accounts are for adults only. Children sign in on their own page with a class code and a picture password.</p></div>`;
+    <p class="hint" style="margin-top:14px">WonderNest is for teachers. Grade 5 students open their exhibition journal with their own code.</p></div>`;
   if(!tc.cls){
     if(!tc.loaded){ tc.loaded = true; tLoadClasses(); }
     return top("🌱 Classes & portfolios") + `<div class="card">
@@ -2841,7 +2840,7 @@ async function exOpen(id){
   const [e, g, m, k, en, gr, fb] = await Promise.all([
     db.from("exhibitions").select("*").eq("class_id", id), db.from("exh_groups").select("*").eq("class_id", id).order("name"),
     db.from("exh_mentors").select("*").eq("class_id", id).order("name"), db.from("students").select("id, first_name, picture").eq("class_id", id).order("first_name"),
-    db.from("entries").select("*").eq("class_id", id).in("kind", ["passion","journal","exh_self","exh_reflect"]).order("created_at", { ascending: false }),
+    db.from("entries").select("*").eq("class_id", id).in("kind", ["passion","journal","exh_self","exh_reflect","research","exh_mentor","wonder"]).order("created_at", { ascending: false }),
     db.from("exh_grades").select("*").eq("class_id", id), db.from("exh_feedback").select("*").eq("class_id", id).order("created_at")]);
   exS.exh = (e.data || [])[0] || null; exS.groups = g.data || []; exS.mentors = m.data || []; exS.kids = k.data || []; exS.entries = en.data || []; exS.grades = gr.data || []; exS.feedback = fb.data || [];
   await loadQR(); render();
@@ -4482,6 +4481,139 @@ function tdView(){
     ${sub.length ? `<p style="margin-top:8px"><b>Subjects woven in:</b> ${sub.map(esc).join(", ")}</p>` : `<p class="hint" style="margin-top:8px">Add subjects in step 6 of the unit builder to see how they serve the central idea.</p>`}
     <button class="btn small ghost" style="margin-top:10px" onclick="view='builder';goStep(6)">🧩 Plan the transdisciplinary links</button></div>` : ""}`;
 }
+
+
+/* =====================================================================
+   TEACHERS ONLY: children's pages hidden; Grade 5 PYP Exhibition codes
+   ===================================================================== */
+const HIDDEN_VIEWS = ["classes","inquiry","atl","progress","attention"];
+const CODE_LETTERS = "ABCDEFGHJKLM";
+const idPart = id => String(id).replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase().padStart(4, "0");
+const kidCode = (cls, k) => `${cls.code}-${idPart(k.id)}${CODE_LETTERS[Math.max(0, PICTURES.indexOf(k.picture))]}`;
+const exAdmin = () => !sch.school || schoolAdmin();
+const exLink = code => `${SITE_URL}/kids.html?x=${encodeURIComponent(code)}`;
+Object.assign(PHASE_TOOLS, {
+  "Tuning in": [["🧠","Thinking routines","library"],["🔎","Wonder Library","wlib"]],
+  "Finding out": [["🔎","Wonder Library","wlib"],["📖","Story library","stories"]],
+  "Sorting out": [["🧩","Concept guide","concepts"],["🧠","Graphic organisers","library"]],
+  "Going further": [["🌍","SDG stories","sdg"],["🔎","Wonder Library","wlib"]],
+  "Making connections": [["💡","Concept questions","concepts"],["🧩","Transdisciplinary learning","td"]],
+  "Taking action": [["🎯","Summative task","summative"],["🌍","SDG stories","sdg"]] });
+
+/* ---------- This week: the teacher's open unit, no class needed ---------- */
+const _weekBase = weekView;
+weekView = function(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏠 This week</h1></div></div>`;
+  if(!db || !tc.user) return classesView().replace("<h1>Classes & portfolios</h1>", "<h1>Sign in</h1>");
+  if(!unit || !unit.centralIdea){ const n = savedUnits().length;
+    return top + `<div class="card empty">📌<br><br><b>Open a unit to see this week's plan.</b><br><br>${n ? `<button class="btn" onclick="goView('home')">🗂️ My units</button> ` : ""}<button class="btn ghost" onclick="startNew()">✨ Build a unit</button></div>`; }
+  if(!unit.weeks) weeksObj();
+  const now = unit.now || { week: 1, phase: "" };
+  hbS.classes = [{ id: "_me", name: "My class", current_unit: { unitId: unit.id, now } }]; hbS.cls = hbS.classes[0];
+  if(hbS._uid !== unit.id){ hbS._uid = unit.id; hbS.week = (now.week || 1) - 1; }
+  hbS.unit = unit; hbS.ent = []; hbS.kids = [];
+  let h = _weekBase();
+  const cut = h.lastIndexOf('<div class="grid2">'); if(cut > 0) h = h.slice(0, cut);
+  return h.replace("Children see the phase on their home screen, and their work is labelled with it.", "Tap a phase to mark where your class is this week.").replace("Show children we are here", "We are here");
+};
+hbSetNow = async function(patch){ unit.now = Object.assign({ week: 1, phase: "" }, unit.now || {}, patch); hbS.week = unit.now.week - 1; saveCurrent(); render(); };
+hbOpenPlan = async function(){ unit.step = 7; wkS.week = hbS.week || 0; saveCurrent(); view = "builder"; render(); };
+
+/* ---------- PYP Exhibition: coordinator adds Grade 5 students, each gets a code ---------- */
+exS.tab = "kids";
+const _exOpenBase = exOpen;
+exOpen = async function(id){ await _exOpenBase(id); if(exS.cls && !exS.kids.length) { exS.tab = "kids"; render(); } };
+exView = function(){
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>🏆 PYP Exhibition</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!db || !tc.user) return top + `<div class="card">Please sign in first.</div>`;
+  if(exS.classes === null){ myClasses().then(c => { exS.classes = c.filter(x => x.grade === "Grade 5"); if(exS.classes.length === 1 && !exS.cls) exOpen(exS.classes[0].id); else render(); }); return top + `<div class="card">Loading…</div>`; }
+  const admin = exAdmin();
+  const intro = `<div class="card exintro"><span>🏆</span><div><b>The Grade 5 PYP Exhibition</b><p class="hint">Add the Grade 5 students and give each one their own code. The code opens their exhibition journal and the Wonder Library, and nothing else. Guide the whole journey here: timeline, passions and groups, mentors, journals, exhibition day and assessment.</p></div></div>`;
+  const create = `<div class="card"><div class="label">＋ New exhibition class</div><div class="edit-row"><input id="exn" placeholder="Grade 5 Exhibition 2026–2027"><button class="btn" onclick="exCreateClass()">Create</button></div><p class="hint" style="margin-top:6px">Make one for the whole grade, or one for each Grade 5 section.</p></div>`;
+  const join = `<div class="card"><div class="label">🔑 Join the exhibition</div><p class="hint" style="margin-bottom:8px">Your PYP coordinator sets up the exhibition and adds the students. Ask them for the teacher code, then type it here.</p><div class="edit-row"><input id="exj" placeholder="Teacher code (10 characters)"><button class="btn" onclick="exJoin()">Join</button></div></div>`;
+  if(!exS.classes.length) return top + intro + (admin ? create : join);
+  const pick = exS.classes.length > 1 ? `<div class="chips" style="margin-bottom:12px">${exS.classes.map(c => `<button class="chip ${exS.cls && exS.cls.id === c.id ? "on" : ""}" onclick="exOpen('${c.id}')">${esc(c.name)}</button>`).join("")}</div>` : "";
+  const more = `<details class="exmore"><summary>${admin ? "＋ Another exhibition class" : "🔑 Join another exhibition class"}</summary>${admin ? create : join}</details>`;
+  if(!exS.cls) return top + pick + intro + more;
+  const tabs = [["kids","👧 Students & codes"],["timeline","🗓️ Timeline"],["groups","💡 Passions & groups"],["mentors","🧑‍🏫 Mentors"],["journals","📓 Journals"],["day","🏛️ Exhibition day"],["assess","✅ Assessment"]];
+  let body;
+  if(exS.tab === "kids" && !exS.group && !exS.kid) body = exKids();
+  else if(!exS.exh) body = `<div class="card empty">🏆<br><br><b>Start the PYP Exhibition for ${esc(exS.cls.name)}</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Students will see the timeline, their passions, their group, their journal, booths to visit and self-assessment.</p><button class="btn" onclick="exStart()">🏆 Start the exhibition</button></div>`;
+  else if(exS.group) body = exGroupView(); else if(exS.kid) body = exKidView();
+  else body = ({ timeline: exTimeline, groups: exGroups, mentors: exMentors, journals: exJournals, day: exDay, assess: exAssess })[exS.tab]();
+  return top + pick + `<div class="tabs" style="max-width:none">${tabs.map(([k, l]) => `<button class="${exS.tab === k && !exS.group && !exS.kid ? "on" : ""}" onclick="exS.tab='${k}';exS.group=null;exS.kid=null;render()">${l}</button>`).join("")}</div>` + body + (exS.tab === "kids" ? more : "");
+};
+function exKids(){
+  const c = exS.cls, admin = exAdmin(), K = exS.kids;
+  return `<div class="card"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">👧 Students (${K.length})</div>${K.length ? `<button class="btn small ghost" onclick="exPrintCodes()">🖨️ Print code cards</button>` : ""}</div>
+    <p class="hint" style="margin-bottom:10px">Each student has their own code. They type it on the WonderNest home page (box "Exhibition journal"), or scan the QR code on their card. It opens their exhibition journal and the Wonder Library only.</p>
+    ${K.length ? `<table class="tbl"><tr><th>Student</th><th>Code</th><th>Journal</th>${admin ? "<th></th>" : ""}</tr>${K.map(k => { const n = exS.entries.filter(e => e.student_id === k.id).length;
+      return `<tr><td><b>${esc(k.first_name)}</b></td><td><code class="kcode">${esc(kidCode(c, k))}</code></td><td>${n ? `<button class="link" onclick="exS.kid='${k.id}';render()">${n} entr${n === 1 ? "y" : "ies"}</button>` : `<span class="hint">Nothing yet</span>`}</td>${admin ? `<td style="text-align:right"><button class="link danger" onclick="exRemoveKid('${k.id}')">Remove</button></td>` : ""}</tr>`; }).join("")}</table>` : `<div class="empty">👧<br><br>No students yet.${admin ? " Add them below." : " Your PYP coordinator will add them."}</div>`}
+    ${admin ? `<div class="label" style="margin-top:16px">Add students (first names only, one per line)</div><textarea id="exkids" style="min-height:90px" placeholder="Layla\nOmar\nSara"></textarea>
+      <div class="actions"><span class="hint">Use first names only, to keep children's information private.</span><button class="btn" onclick="exAddKids()">＋ Add students</button></div>` : `<p class="hint" style="margin-top:10px">🔒 Only the PYP coordinator can add or remove students.</p>`}</div>
+    ${admin ? `<div class="card"><div class="label">🔑 Give Grade 5 teachers access</div><p class="hint" style="margin-bottom:8px">Share this teacher code with the Grade 5 teachers only. They type it on their PYP Exhibition page to read journals and guide groups. Never give it to students.</p>
+      ${exS.showT ? `<code class="kcode" style="font-size:20px">${esc(c.teacher_code || "")}</code>` : `<button class="btn small ghost" onclick="exS.showT=true;render()">🔒 Show teacher code</button>`}</div>` : ""}`;
+}
+async function exCreateClass(){
+  const name = ($("#exn").value || "").trim() || "Grade 5 Exhibition";
+  const { error: e } = await db.from("classes").insert({ name, grade: "Grade 5" });
+  if(e){ error = tcErr(e); return render(); }
+  exS.classes = (await myClasses()).filter(x => x.grade === "Grade 5");
+  const c = exS.classes.filter(x => x.name === name).pop(); error = "";
+  if(c){ await exOpen(c.id); if(!exS.exh) await exStart(); exS.tab = "kids"; }
+  toast("Exhibition class created ✓"); render();
+}
+async function exJoin(){
+  const { data, error: e } = await db.rpc("join_class_as_teacher", { p_teacher_code: ($("#exj").value || "").trim() });
+  if(e || !data || !data.ok){ error = "That teacher code didn't work. Check it with your PYP coordinator."; return render(); }
+  error = ""; toast(`You joined ${data.name} ✓`); exS.classes = null; render();
+}
+async function exAddKids(){
+  if(!exAdmin()) return;
+  const names = $("#exkids").value.split(/\n|,/).map(n => n.trim()).filter(Boolean).slice(0, 80); if(!names.length) return toast("Type at least one name");
+  const used = exS.kids.map(s => s.picture);
+  const rows = names.map(n => { const free = PICTURES.filter(p => !used.includes(p)), pool = free.length ? free : PICTURES, pic = pool[Math.floor(Math.random() * pool.length)]; used.push(pic); return { class_id: exS.cls.id, first_name: n.slice(0, 40), picture: pic }; });
+  const { error: e } = await db.from("students").insert(rows);
+  if(e){ error = tcErr(e); return render(); } error = ""; toast(`${rows.length} added ✓`); exOpen(exS.cls.id);
+}
+async function exRemoveKid(id){
+  const k = exS.kids.find(s => s.id === id); if(!k || !exAdmin()) return;
+  if(!confirm(`Remove ${k.first_name} and delete their journal? This cannot be undone.`)) return;
+  const { error: e } = await db.from("students").delete().eq("id", id);
+  if(e){ error = tcErr(e); return render(); } exOpen(exS.cls.id);
+}
+function exPrintCodes(){
+  const c = exS.cls; const html = `<h1>${esc(c.name)} · Exhibition journal codes</h1><div class="grid">${exS.kids.map(k => { const code = kidCode(c, k);
+    return `<div class="c"><img src="${SITE_URL}/wondernest-logo.png" class="lg" onerror="this.remove()"><b>${esc(k.first_name)}</b><div class="qr">${qrImg(exLink(code), 3)}</div><div class="code">${esc(code)}</div><small>Go to ${esc(SITE_URL.replace("https://", ""))}, type your code in <i>Exhibition journal</i>, or scan the QR code.<br>Keep your code secret.</small></div>`; }).join("")}</div>`;
+  printWin(c.name + " codes", html, `body{font-family:Arial,sans-serif;margin:18px}h1{font-size:17px;color:#14325c}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.c{border:2px dashed #94a3b8;border-radius:14px;padding:12px;text-align:center;break-inside:avoid}.lg{width:120px;display:block;margin:0 auto 4px}.c b{display:block;font-size:20px;color:#14325c}.qr img{width:110px;height:110px}.code{font:700 17px monospace;letter-spacing:1px;background:#fff7dc;border-radius:8px;padding:6px;margin:6px 0}.c small{display:block;color:#475569;font-size:11px;line-height:1.35}`);
+}
+const _exKidBase = exKidView;
+exKidView = function(){
+  const k = exS.kids.find(x => x.id === exS.kid); if(!k) return "";
+  const E = exS.entries.filter(e => e.student_id === k.id), d = x => new Date(x.created_at).toLocaleDateString("en-GB");
+  const res = E.filter(e => e.kind === "research"), met = E.filter(e => e.kind === "exh_mentor"), qs = E.filter(e => e.kind === "wonder"), pas = E.find(e => e.kind === "passion");
+  return _exKidBase().replace(`${esc(k.picture)} ${esc(k.first_name)}'s journal`, `📓 ${esc(k.first_name)}'s process journal`) + `<div class="grid2">
+    <div class="card"><div class="label">❤️ Passions and issues</div>${pas ? `<p>${esc((pas.content.passions || []).join(", "))}</p>${(pas.content.issues || []).map(i => `<p>🌍 ${esc(i.text)} ${i.sdg ? sdgBadge(Number(i.sdg)) : ""}</p>`).join("")}${pas.content.why ? `<p class="hint">${esc(pas.content.why)}</p>` : ""}` : `<p class="hint">Not yet.</p>`}</div>
+    <div class="card"><div class="label">❓ Questions and wonders (${qs.length})</div>${qs.map(e => `<p>💭 ${esc(e.content.text || "")}</p>`).join("") || `<p class="hint">Not yet.</p>`}</div>
+    <div class="card"><div class="label">🔎 Research notes (${res.length})</div>${res.map(e => `<div class="hist"><b>${esc(e.title || "")}</b> · ${d(e)}<br>${esc(e.content.text || "").replace(/\n/g, "<br>")}${e.content.source ? `<br><small>📎 ${esc(e.content.source)}</small>` : ""}</div>`).join("") || `<p class="hint">Not yet.</p>`}</div>
+    <div class="card"><div class="label">🧑‍🏫 Mentor meetings (${met.length})</div>${met.map(e => `<div class="hist"><b>${d(e)}${e.content.mentor ? " · " + esc(e.content.mentor) : ""}</b><br>${esc(e.content.talked || "")}${e.content.next ? `<br>➡️ ${esc(e.content.next)}` : ""}</div>`).join("") || `<p class="hint">Not yet.</p>`}</div></div>`;
+};
+
+/* ---------- hide everything that needs children's own logins ---------- */
+sumVoicesCard = () => "";
+function teacherOnly(m){
+  m.querySelectorAll('[onclick*="openAssign("],[onclick*="slShareStart("],[onclick*="rtPick("],[onclick*="cnS.tab=\'tracker\'"],[onclick*="cnS.tab=\'sorts\'"],[onclick*="sl.tab=\'shelf\'"],[onclick*="goView(\'classes\')"],[onclick*="goView(\'attention\')"],[onclick*="goView(\'inquiry\')"],[onclick*="goView(\'atl\')"],[onclick*="goView(\'progress\')"]').forEach(b => b.remove());
+  m.querySelectorAll(".label").forEach(l => { if(/Pin for a class|Share with a class/.test(l.textContent)){ const c = l.closest(".card"); if(c) c.remove(); } });
+  m.querySelectorAll(".hint").forEach(h => { if(/📌 Use with a class/.test(h.innerHTML)) h.remove(); });
+}
+const _renderT = render;
+render = function(){
+  if(HIDDEN_VIEWS.includes(view) && tc.user && tc.mode !== "newpass") view = "week";
+  if(view === "concepts" && ["tracker","sorts"].includes(cnS.tab)) cnS.tab = "guide";
+  if(view === "stories" && sl.tab === "shelf") sl.tab = "library";
+  _renderT();
+  const m = $("#main"); if(m) try{ teacherOnly(m); }catch(e){}
+};
 
 /* ---------- sidebar: This week first ---------- */
 (function(){

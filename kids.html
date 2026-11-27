@@ -366,6 +366,14 @@ const SDG_STORIES = [
   h1,h2,h3,.sect,.big-title{font-family:"Fredoka","Nunito",sans-serif !important}
   .head h1{font-weight:700}
   .birdwrap .hat{top:-12% !important;left:58% !important;transform:translateX(-30%) !important}
+  .exlog{max-width:460px;margin:0 auto}.exin{font-size:24px !important;letter-spacing:2px;text-transform:uppercase;width:100%}
+  .jcount{display:inline-block;margin-left:6px;background:rgba(255,255,255,.85);color:#1f4fb0;border-radius:999px;padding:0 8px;font-size:13px;font-weight:900}
+  .jbar{height:10px;background:#eaf1fb;border-radius:99px;overflow:hidden;margin:4px 0 10px}.jbar i{display:block;height:100%;background:#f5b921;border-radius:99px}
+  .qtypes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.qt{border:2px solid #dfe9fb;background:#fff;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:2px;font-family:inherit}
+  .qt b{font-size:14px;color:var(--navy)}.qt small{font-size:12px;color:var(--muted);font-weight:700}.qt.on{border-color:#f5b921;background:#fff7dc}
+  .jitem h3{color:var(--navy);font-size:16px;margin-bottom:4px}.jitem p{margin:4px 0}.jitem small{color:var(--muted);font-weight:700}
+  .jtag{background:#eaf3ff;color:#1f4fb0;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800}
+  @media (max-width:520px){.qtypes{grid-template-columns:1fr}}
 </style>
 
 <style>
@@ -1716,6 +1724,122 @@ async function wlSaveResearch(){
 }
 const _homeWL = NEW_SCREENS.home;
 NEW_SCREENS.home = function(){ return _homeWL().replace('<h3 class="sect">📚 Learn</h3>', '<h3 class="sect">📚 Learn</h3><div class="tiles">' + tileW("🔎", "Wonder Library<small style=\"display:block;font-size:13px;font-weight:700;opacity:.8\">True stories from around the world</small>", "#EAF3FF", "goLibrary()", true) + '</div>'); };
+
+
+/* =====================================================================
+   GRADE 5 EXHIBITION JOURNAL ONLY: personal code, journal, Wonder Library
+   ===================================================================== */
+const CODE_LETTERS = "ABCDEFGHJKLM";
+const idPart = id => String(id).replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase().padStart(4, "0");
+function parseExCode(raw){
+  const s = String(raw || "").trim().replace(/\s+/g, ""); let cls, rest;
+  if(s.includes("-")){ const i = s.lastIndexOf("-"); cls = s.slice(0, i); rest = s.slice(i + 1); } else { cls = s.slice(0, -5); rest = s.slice(-5); }
+  cls = cls.replace(/[^a-zA-Z0-9]/g, ""); rest = rest.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  if(!cls || rest.length !== 5) return null;
+  const pic = PICTURES[CODE_LETTERS.indexOf(rest[4])]; if(!pic) return null;
+  return { cls, id: rest.slice(0, 4), pic };
+}
+async function exLogin(raw){
+  const msg = t => { const m = $(".msg"); if(m) m.textContent = t; };
+  const c = parseExCode(raw);
+  if(!c) return msg("That code doesn't look right. Check your card. It looks like this: ABC123-4F2AB");
+  msg("Opening your journal… 🐦");
+  let code = c.cls, r = await db.rpc("class_roster", { p_code: code });
+  if(!r.data && code !== code.toUpperCase()){ code = code.toUpperCase(); r = await db.rpc("class_roster", { p_code: code }); }
+  const st = r.data && (r.data.students || []).find(s => idPart(s.id) === c.id);
+  if(!st) return msg("I can't find that code. Check it with your teacher.");
+  const { data, error } = await db.rpc("student_login", { p_code: code, p_student: st.id, p_picture: c.pic });
+  if(error || !data) return msg("Something went wrong. Try again.");
+  if(!data.ok) return msg(data.reason === "locked" ? "Too many tries. Please ask your teacher, or wait 10 minutes." : "That code didn't work. Check it with your teacher.");
+  const m = await db.rpc("me_student"); me = m.data; exh = null; await loadEntries(); screen = "home"; draw(); speak("Hello " + me.first_name + "!");
+}
+start = async function(){
+  try{
+    let { data: { session } } = await db.auth.getSession();
+    if(!session){ const r = await db.auth.signInAnonymously(); if(r.error) throw r.error; }
+    const x = new URLSearchParams(location.search).get("x");
+    if(x){ history.replaceState(null, "", location.pathname); screen = "code"; draw(); $("#code").value = x; return exLogin(x); }
+    const { data } = await db.rpc("me_student");
+    if(data){ me = data; await loadEntries(); screen = "home"; return draw(); }
+    screen = "code"; draw();
+  }catch(e){ $("#app").innerHTML = `<div class="body"><div class="big-title">Oops!</div><p class="sub">WonderNest can't connect right now. Please ask your teacher.</p></div>`; }
+};
+NEW_SCREENS.code = function(){
+  setTimeout(() => { const i = $("#code"); if(i){ i.focus(); i.onkeydown = e => { if(e.key === "Enter") exLogin(i.value); }; } }, 0);
+  return `<div class="body">
+    <div class="big-title"><img src="wondernest-logo.png" alt="Wonder Nest" style="width:250px;max-width:80%;display:block;margin:0 auto 6px;animation:hop 3s ease-in-out infinite" onerror="this.replaceWith('Wonder Nest')"></div>
+    <div class="card center exlog"><div style="font-size:44px">📓</div><h2 style="justify-content:center">My Exhibition Journal</h2><p class="sub" style="margin:4px 0 12px">Type the code from your card</p>
+      <input class="code-input exin" id="code" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123-4F2AB">
+      <button class="btn wide" style="margin-top:12px" onclick="exLogin($('#code').value)">Open my journal →</button>
+      <div class="msg"></div><p class="wl-tip">🔒 Keep your code secret, like a password.</p></div>
+    <p class="center" style="margin-top:18px"><a href="./" style="color:var(--navy);font-weight:800">← WonderNest home</a></p></div>`;
+};
+NEW_SCREENS.names = NEW_SCREENS.picture = function(){ screen = "code"; return NEW_SCREENS.code(); };
+
+let exLoading = false;
+const jHead = () => `<div class="head" style="background:linear-gradient(135deg,#2f6fd6,#5aa0f0)"><div class="hi">Hello, ${esc(me.first_name)}!</div><h1>My Exhibition Journal 📓</h1><button class="back" onclick="if(confirm('Close your journal?')) logout()">👋 Bye</button></div>`;
+NEW_SCREENS.home = function(){
+  if(!me.exhibition) return jHead() + `<div class="body"><div class="card center"><div style="font-size:54px">🔒</div><h2 style="justify-content:center">Your journal isn't open yet</h2><p class="sub">Your teacher will open the exhibition soon. Come back then!</p></div>
+    <div class="tiles">${tileW("🔎", "Wonder Library", "var(--blue)", "goLibrary()", true)}</div></div>`;
+  if(!exh){ if(!exLoading){ exLoading = true; goExh().finally(() => { exLoading = false; }); } return jHead() + `<div class="body"><div class="card center">Opening your journal… 🐦</div></div>`; }
+  const t = (exh.data && exh.data.timeline) || [], g = myGroup(), n = k => entries.filter(e => e.kind === k).length, done = t.filter(m => m.done).length;
+  const tl = (ic, label, bg, on, count) => tileW(ic, label + (count ? `<small class="jcount">${count}</small>` : ""), bg, on);
+  return jHead() + `<div class="body">
+    ${t.length ? `<div class="card"><h2>🗓️ Our journey <small style="font-size:14px;color:var(--muted)">${done} of ${t.length} done</small></h2><div class="jbar"><i style="width:${Math.round(done / t.length * 100)}%"></i></div>
+      ${t.map(m => `<div class="milek ${m.done ? "done" : ""}"><span>${m.done ? "✅" : "⬜"}</span><div><b>${esc(m.title)}</b>${m.date ? `<small>${new Date(m.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</small>` : ""}</div></div>`).join("")}</div>` : ""}
+    <div class="card"><h2>👥 My group</h2>${g ? `<p style="font-size:18px;font-weight:900;color:var(--navy)">${esc(g.name)}</p><p style="font-weight:700;color:var(--muted)">${(g.members || []).map(id => esc(mateName(id))).join(", ")}${g.mentor ? ` · Mentor: ${esc(g.mentor)}` : ""}</p>` : `<p style="font-weight:700">Your teacher will put you in a group soon. First, write about your passions!</p>`}</div>
+    <h3 class="sect">🌱 Getting started</h3>
+    <div class="tiles">${tl("❤️", "My passions & issue", "var(--coral)", "go('epass')", n("passion") ? "✓" : "")}${g ? tl("👥", "Our group space", "var(--leaf)", "go('egroup')") : ""}</div>
+    <h3 class="sect">🔎 Inquiry</h3>
+    <div class="tiles">${tl("❓", "My questions", "var(--lilac)", "go('eqs')", n("wonder"))}${tl("🔎", "Research notes", "var(--blue)", "go('eres')", n("research"))}
+      ${tl("🧑‍🏫", "Mentor meetings", "#0f766e", "go('emeet')", n("exh_mentor"))}${tl("📚", "Wonder Library", "linear-gradient(135deg,#2f6fd6,#56c02b)", "goLibrary()")}</div>
+    <h3 class="sect">📓 Reflect</h3>
+    <div class="tiles">${tl("📓", "Process journal", "var(--blue)", "go('ejournal')", n("journal"))}${tl("✅", "How am I doing?", "var(--lilac)", "go('eself')", n("exh_self") ? "✓" : "")}
+      ${tl("🌟", "My reflection", "#f59e0b", "go('erefl')", n("exh_reflect") ? "✓" : "")}${tl("🏛️", "Visit booths", "#b45309", "go('ebooths')")}</div></div>`;
+};
+NEW_SCREENS.exh = function(){ screen = "home"; return NEW_SCREENS.home(); };
+
+const jBack = (title, hi, color) => khead(title, hi, color, "home", "‹ My journal");
+const QTYPES = [["factual","❓ Factual","I can look it up"],["conceptual","💭 Conceptual","A big idea"],["debatable","⚖️ Debatable","People may disagree"]];
+let qType = "";
+NEW_SCREENS.eqs = function(){
+  const q = entries.filter(e => e.kind === "wonder");
+  return jBack("My questions ❓", "What do I want to find out?", "var(--lilac)") + `<div class="body">
+    <div class="card"><h2>💭 A new question</h2><div class="mic-row">${micBtn("qT")}<textarea id="qT" placeholder="How… Why… What if… Should…" style="min-height:64px"></textarea></div>
+      <p class="lbl">What kind of question is it?</p><div class="qtypes">${QTYPES.map(([k, l, d]) => `<button class="qt ${qType === k ? "on" : ""}" onclick="qType=qType==='${k}'?'':'${k}';document.querySelectorAll('.qt').forEach(b=>b.classList.toggle('on',b.dataset.k===qType))" data-k="${k}"><b>${l}</b><small>${d}</small></button>`).join("")}</div>
+      <button class="btn leaf wide" style="margin-top:10px" onclick="saveQ()">＋ Add my question</button></div>
+    ${q.map(e => `<div class="card jitem"><p>${e.content.qtype ? `<span class="jtag">${esc((QTYPES.find(x => x[0] === e.content.qtype) || ["", ""])[1])}</span> ` : ""}${esc(e.content.text || "")}</p><small>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.content.from ? " · " + esc(e.content.from) : ""}</small></div>`).join("") || `<div class="card center">Your questions will appear here.</div>`}</div>`;
+};
+async function saveQ(){ const t = $("#qT").value.trim(); if(!t) return toast("Write or say your question!"); if(await addEntry("wonder", t.slice(0, 80), { text: t, qtype: qType, from: "Exhibition" })){ qType = ""; draw(); } }
+NEW_SCREENS.eres = function(){
+  const r = entries.filter(e => e.kind === "research");
+  return jBack("Research notes 🔎", "What have I found out?", "var(--blue)") + `<div class="body">
+    <div class="card"><h2>📝 A new note</h2>
+      <p class="lbl">What did I read, watch or who did I ask?</p><input class="title" id="rT" placeholder="A book, a website, a video or a person">
+      <p class="lbl">What did I find out?</p><div class="mic-row">${micBtn("rF")}<textarea id="rF" style="min-height:80px" placeholder="I found out that…"></textarea></div>
+      <p class="lbl">Where can someone else find it?</p><input class="title" id="rS" placeholder="Website name, book title and author, or the person's name">
+      <button class="btn leaf wide" style="margin-top:10px" onclick="saveRes()">💾 Save my note</button>
+      <button class="btn ghost wide" style="margin-top:8px" onclick="goLibrary()">📚 Find a true story in the Wonder Library</button></div>
+    ${r.map(e => `<div class="card jitem"><h3>${esc(e.title || "")}</h3><p>${esc(e.content.text || "").replace(/\n/g, "<br>")}</p>${e.content.source ? `<small>📎 ${esc(e.content.source)}</small><br>` : ""}<small>${new Date(e.created_at).toLocaleDateString("en-GB")}</small></div>`).join("") || `<div class="card center">Your research notes will appear here. Notes you save in the Wonder Library appear here too.</div>`}</div>`;
+};
+async function saveRes(){ const t = $("#rT").value.trim(), f = $("#rF").value.trim(); if(!f) return toast("Write what you found out!"); if(await addEntry("research", t || "My research", { text: f, source: $("#rS").value.trim() })) draw(); }
+NEW_SCREENS.emeet = function(){
+  const m = entries.filter(e => e.kind === "exh_mentor"), g = myGroup();
+  return jBack("Mentor meetings 🧑‍🏫", "Learning with my mentor", "#0f766e") + `<div class="body">
+    <div class="card"><h2>🗓️ A new meeting</h2>
+      <p class="lbl">My mentor</p><input class="title" id="mM" value="${esc((g && g.mentor) || "")}" placeholder="Mentor's name">
+      <p class="lbl">What did we talk about?</p><div class="mic-row">${micBtn("mT")}<textarea id="mT" style="min-height:70px"></textarea></div>
+      <p class="lbl">What will I do next?</p><div class="mic-row">${micBtn("mN")}<textarea id="mN" style="min-height:56px"></textarea></div>
+      <button class="btn leaf wide" style="margin-top:10px" onclick="saveMeet()">💾 Save the meeting</button></div>
+    ${m.map(e => `<div class="card jitem"><h3>${new Date(e.created_at).toLocaleDateString("en-GB")}${e.content.mentor ? " · " + esc(e.content.mentor) : ""}</h3><p>${esc(e.content.talked || "")}</p>${e.content.next ? `<p>➡️ ${esc(e.content.next)}</p>` : ""}</div>`).join("") || `<div class="card center">Your mentor meetings will appear here.</div>`}</div>`;
+};
+async function saveMeet(){ const t = $("#mT").value.trim(); if(!t) return toast("Write what you talked about!"); if(await addEntry("exh_mentor", "Mentor meeting", { mentor: $("#mM").value.trim(), talked: t, next: $("#mN").value.trim() })) draw(); }
+
+/* the Wonder Library: wonders go to My questions */
+const _wstoryEx = NEW_SCREENS.wstory;
+NEW_SCREENS.wstory = function(){ const h = _wstoryEx(); return typeof h === "string" ? h.replace("Add to my wonder wall", "＋ Add to my questions").replace("This story makes me wonder…", "This story makes me wonder… (my questions)") : h; };
+const _drawEx = draw;
+draw = function(){ _drawEx(); const b = document.querySelector(".head .back"); if(b && screen !== "home" && /Exhibition|Home/.test(b.textContent)) b.textContent = "‹ My journal"; };
 
 start();
 </script>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WonderNest · Look closer. Wonder more.</title>
-<meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion. Plan rich units of inquiry and give every child a nest for their questions, wonders and thinking.">
+<meta name="description" content="WonderNest by ThinkNest Education: a PYP inquiry companion. Plan rich units of inquiry, find true stories for every theme, and guide the Grade 5 PYP Exhibition.">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -250,17 +250,17 @@
 
 <nav class="nav"><div class="wrap">
   <a class="logo" href="#top" aria-label="Wonder Nest home"><img src="wondernest-mark.png" alt="" onerror="this.style.display='none'"><span><b>Wonder <span>Nest</span></b><small>by ThinkNest Education</small></span></a>
-  <div class="links"><a class="u" href="#how">How it works</a><a class="u" href="#teach">For teachers</a><a class="u" href="#kids">For children</a><a class="pillbtn" href="#teachers">Sign in</a></div>
+  <div class="links"><a class="u" href="#how">How it works</a><a class="u" href="#teach">For teachers</a><a class="u" href="#kids">PYP Exhibition</a><a class="pillbtn" href="#teachers">Sign in</a></div>
 </div></nav>
 
 <header class="hero" id="top"><div class="wrap hero-grid">
   <div>
     <span class="tag rv"><i>🔍</i>A PYP inquiry companion</span>
     <h1 class="rv d1">Look closer.<br><span class="y">Wonder more.<svg viewBox="0 0 400 20" preserveAspectRatio="none"><path d="M4 14 C 90 4, 200 4, 396 12"/></svg></span></h1>
-    <p class="lead rv d2">WonderNest helps PYP teachers plan rich units of inquiry in minutes, and gives every child a nest for their questions, wonders and thinking, so everyone can see how their understanding of the world grows.</p>
+    <p class="lead rv d2">WonderNest helps PYP teachers plan rich units of inquiry in minutes, with true stories, thinking routines and specified concepts, and guides your Grade 5 students through the PYP Exhibition.</p>
     <div class="ctas rv d3">
       <a class="cta a" href="#teachers">I'm a teacher <svg class="i" style="width:18px;height:18px"><use href="#arrow"/></svg></a>
-      <a class="cta b" href="#students">I have a class code</a>
+      <a class="cta b" href="#students">Exhibition journal code</a>
     </div>
   </div>
   <div class="stage rv d2" aria-hidden="true">
@@ -280,7 +280,7 @@
 <div class="doors-wrap"><div class="wrap"><div class="doors">
   <div class="door rv" id="teachers">
     <div class="dh"><span class="av">👩‍🏫</span><h2>Teachers</h2></div>
-    <p class="s">Plan units and see your class's wonders, thinking and portfolios.</p>
+    <p class="s">Plan units, weekly inquiry cycles and the PYP Exhibition.</p>
     <div class="signed" id="signed"><span><b style="font-size:17px;color:var(--royal)">Welcome back! 👋</b><small>Not you? <button onclick="signOut()" style="color:var(--blue);font-weight:700;font-size:12px;text-decoration:underline">Sign out</button></small></span><a href="app.html">Open WonderNest →</a></div>
     <div id="authBox">
       <div class="tabs"><button id="tabIn" class="on" onclick="setMode('signin')">Sign in</button><button id="tabUp" onclick="setMode('signup')">Create account</button></div>
@@ -294,11 +294,11 @@
     </div>
   </div>
   <div class="door kid rv d1" id="students">
-    <div class="dh"><span class="av">🧒</span><h2>Students</h2></div>
-    <p class="s">Type the class code your teacher gave you.</p>
-    <form class="code" onsubmit="event.preventDefault(); goKids()"><input id="code" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="CODE" aria-label="Class code"><button type="submit">Go →</button></form>
+    <div class="dh"><span class="av">📓</span><h2>Exhibition journal</h2></div>
+    <p class="s">Grade 5 students: type the code from your card.</p>
+    <form class="code" onsubmit="event.preventDefault(); goKids()"><input id="code" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123-4F2AB" aria-label="Exhibition journal code" style="font-size:19px;letter-spacing:2px"><button type="submit">Go →</button></form>
     <div class="msg" id="kmsg"></div>
-    <p class="hint">Your nest is waiting for your questions! 🪺</p>
+    <p class="hint">Your journal and the Wonder Library are waiting! 🔎</p>
     <img class="peek" src="wondernest-mark.png" alt="">
   </div>
 </div></div></div>
@@ -322,7 +322,7 @@
   <div class="steps">
     <div class="step rv"><span class="n">1</span><div class="ic">🌍</div><h4>Choose a theme</h4><p>Pick one of the six transdisciplinary themes and the grade, then describe your unit in a few words.</p></div>
     <div class="step rv d1"><span class="n">2</span><div class="ic">✨</div><h4>Get inspired</h4><p>WonderNest suggests grade-appropriate central ideas, lines of inquiry, specified concepts, stories, thinking routines and SDG links. You choose what fits.</p></div>
-    <div class="step rv d2"><span class="n">3</span><div class="ic">🪺</div><h4>Children wonder</h4><p>Each child keeps a portfolio of their questions and wonders, so you can see their thinking and ATL skills grow over time.</p></div>
+    <div class="step rv d2"><span class="n">3</span><div class="ic">🪺</div><h4>Teach and reflect</h4><p>Plan each week with the inquiry cycle and differentiated success criteria, and bring in true stories from the Wonder Library.</p></div>
   </div>
 </div></section>
 
@@ -333,16 +333,16 @@
   <div class="feat">
     <div class="fc rv"><div class="ic c1">🧩</div><div><h4>Unit builder</h4><p>Plan a full unit of inquiry step by step, from the central idea to the weekly plan.</p></div></div>
     <div class="fc rv d1"><div class="ic c2">💭</div><div><h4>Thinking routines</h4><p>Visible thinking routines and graphic organisers, ready to print and use.</p></div></div>
-    <div class="fc rv d2"><div class="ic c3">🧭</div><div><h4>Open inquiry</h4><p>Child-led inquiry that builds approaches to learning skills, step by step.</p></div></div>
+    <div class="fc rv d2"><div class="ic c3">🔎</div><div><h4>Wonder Library</h4><p>True stories from around the world in English and Arabic, linked to the six themes and the SDGs.</p></div></div>
     <div class="fc rv"><div class="ic c2">🎯</div><div><h4>Summative tasks</h4><p>Tasks where children choose how to show their learning, with clear success criteria.</p></div></div>
-    <div class="fc rv d1"><div class="ic c3">📈</div><div><h4>ATL growth</h4><p>Follow each child's approaches to learning skills across the year.</p></div></div>
+    <div class="fc rv d1"><div class="ic c3">🏆</div><div><h4>PYP Exhibition</h4><p>Groups, mentors, journals, a digital exhibition day and assessment, all in one place.</p></div></div>
     <div class="fc rv d2"><div class="ic c1">📄</div><div><h4>Download as Word</h4><p>Take your plans and tasks into Word to share with your team.</p></div></div>
   </div>
 </div></section>
 
 <section class="ksec" id="kids"><div class="wrap kgrid">
   <div class="kart rv" aria-hidden="true">
-    <div class="jar"><span class="lbl">My wonder jar</span>
+    <div class="jar"><span class="lbl">My questions</span>
       <span class="slip sl1">Why is the sea salty?</span>
       <span class="slip sl2">Do fish sleep?</span>
       <span class="slip sl3">Who made the first map?</span>
@@ -351,13 +351,13 @@
     <img class="kbird" src="wondernest-mark.png" alt="">
   </div>
   <div>
-    <div class="kicker rv">For children</div>
-    <h3 class="t rv d1">A little nest for <span>big ideas.</span></h3>
-    <p class="st rv d2" style="margin-bottom:28px">A calm, friendly space for learners aged 4 to 11 to follow their questions, share their thinking and celebrate each discovery.</p>
+    <div class="kicker rv">For Grade 5</div>
+    <h3 class="t rv d1">An exhibition journal for <span>every student.</span></h3>
+    <p class="st rv d2" style="margin-bottom:28px">Each Grade 5 student gets their own code. It opens their PYP Exhibition journal and the Wonder Library, and nothing else.</p>
     <div class="klist">
-      <div class="ki rv"><div class="ic c2">🫙</div><div><h4>Save every wonder</h4><p>Questions go into their own wonder jar, so no idea is ever lost.</p></div></div>
-      <div class="ki rv d1"><div class="ic c1">🗺️</div><div><h4>Go on an inquiry adventure</h4><p>A map with stamps, a field notebook and an experts wall guide their own inquiry.</p></div></div>
-      <div class="ki rv d2"><div class="ic c3">🐦</div><div><h4>Grow their own bird</h4><p>Their bird and nest grow as they wonder, think and share.</p></div></div>
+      <div class="ki rv"><div class="ic c2">❓</div><div><h4>Questions and research</h4><p>Factual, conceptual and debatable questions, and research notes with their sources.</p></div></div>
+      <div class="ki rv d1"><div class="ic c1">🧑‍🏫</div><div><h4>Mentors and process journal</h4><p>They record mentor meetings and write about their learning each week.</p></div></div>
+      <div class="ki rv d2"><div class="ic c3">🌱</div><div><h4>Action and reflection</h4><p>A group space for their action and booth, self-assessment and a final reflection.</p></div></div>
     </div>
   </div>
 </div></section>
@@ -367,10 +367,10 @@
     <div class="dots"></div>
     <div style="position:relative">
       <h3>Ready to <span>look closer?</span></h3>
-      <p>Join WonderNest and turn your class's questions into a journey they can see, share and be proud of.</p>
+      <p>Join WonderNest and plan inquiry that turns your class's questions into a journey they can be proud of.</p>
       <div class="ctas" style="margin-top:0">
         <a class="cta w" href="#teachers" onclick="setTimeout(()=>setMode('signup'),400)">Create a teacher account</a>
-        <a class="cta b" href="#students">Enter a class code</a>
+        <a class="cta b" href="#students">Exhibition journal code</a>
       </div>
     </div>
     <img class="logoimg" src="wondernest-logo.png" alt="Wonder Nest: Look closer. Wonder more." style="position:relative">
@@ -428,10 +428,11 @@ async function auth(){
 }
 async function signOut(){ if(db) await db.auth.signOut(); $("signed").style.display = "none"; $("authBox").style.display = ""; }
 function goKids(){
-  const c = $("code").value.trim().toUpperCase();
-  if(c.length < 6){ const k = $("kmsg"); k.textContent = "Class codes have 6 letters and numbers."; k.className = "msg err"; return; }
-  location.href = "kids.html?c=" + encodeURIComponent(c);
+  const c = $("code").value.trim().replace(/\s+/g, "");
+  if(c.replace(/[^a-zA-Z0-9]/g, "").length < 8){ const k = $("kmsg"); k.textContent = "Type the whole code from your card, like ABC123-4F2AB."; k.className = "msg err"; return; }
+  location.href = "kids.html?x=" + encodeURIComponent(c);
 }
+
 $("pw").addEventListener("keydown", e => { if(e.key === "Enter") auth(); });
 $("em").addEventListener("keydown", e => { if(e.key === "Enter") (mode === "forgot" ? auth() : $("pw").focus()); });
 (async () => {
