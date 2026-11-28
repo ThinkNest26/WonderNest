@@ -4202,11 +4202,11 @@ function cycleView(){
 }
 
 /* ---------- Differentiated success criteria (Must / Could / Extend) for each week ---------- */
-const DIFF = [["must","Must","All learners","#5fb548"],["could","Could","Most learners","#3b86e0"],["extend","Extend","Some learners","#9b6bd6"]];
+const DIFF = [["must","🥉 Meeting","Bronze","#b0793a"],["could","🥈 Consolidating","Silver","#7d8796"],["extend","🥇 Exceeding","Gold","#c9a227"]];
 function diffCard(i){
   const x = unit.weeks[i].extra = unit.weeks[i].extra || {}, sc = x.sc = x.sc || {}, tk = x.tasks = x.tasks || {};
   return `<div class="card dsc"><div class="actions" style="margin-top:0"><div class="label" style="margin:0">🎯 Differentiated success criteria · week ${i + 1}</div><button class="btn small ghost" onclick="diffSuggest(${i})" title="Fills the empty boxes only">Suggest</button></div>
-    <p class="hint" style="margin:4px 0 10px">Three levels so every child is supported and challenged. Write each success criterion as "I can…", then the task children working at that level do.</p>
+    <p class="hint" style="margin:4px 0 10px">Three levels: 🥉 Meeting, 🥈 Consolidating and 🥇 Exceeding. Write each success criterion as "I can…", then the task children working at that level do.</p>
     <div class="dsc-grid">${DIFF.map(([k, l, who, c]) => `<div class="dsc-col" style="--c:${c}"><div class="dsc-h"><b>${l}</b><span>${who}</span></div>
       <label>Success criterion</label><textarea oninput="wheelSet(${i},'sc.${k}',this.value)" placeholder="I can…">${esc(sc[k] || "")}</textarea>
       <label>Differentiated task</label><textarea oninput="wheelSet(${i},'tasks.${k}',this.value)" placeholder="What children at this level do…" style="min-height:84px">${esc(tk[k] || "")}</textarea></div>`).join("")}</div></div>`;
@@ -4709,7 +4709,7 @@ function uWeekCard(k, sel){
       const main = x => { const t = String(w.subj[x]).split("\n").map(l => l.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean)[0] || ""; return t.length > 95 ? t.slice(0, 94).trim() + "…" : t; };
       return subs.length ? `<div class="uw-subs">${subs.map(x => `<div><b style="color:${subCol(x)}">${esc(x)}:</b> ${esc(main(x))}</div>`).join("")}</div>` : ""; })()}
     ${items.length ? `<ul>${items.slice(0, 2).map(s => `<li>${esc(s)}</li>`).join("")}${items.length > 2 ? `<li class="whl-empty">and ${items.length - 2} more…</li>` : ""}</ul>` : (Object.values(w.subj || {}).some(v => String(v || "").trim()) ? "" : `<div class="whl-empty">Nothing planned yet.</div>`)}
-    ${(x.sc || {}).must ? `<div style="margin-top:5px"><b style="color:#5fb548">Must:</b> ${esc(x.sc.must)}</div>` : ""}
+    ${(x.sc || {}).must ? `<div style="margin-top:5px"><b style="color:#b0793a">🥉 Meeting:</b> ${esc(x.sc.must)}</div>` : ""}
     ${tags.length ? `<div class="whl-tags">${tags.map(s => `<span style="color:${subCol(s)}">${esc(s)}</span>`).join("")}</div>` : ""}</div></div>`;
 }
 function uWheelHTML(sel){
@@ -4962,7 +4962,7 @@ function obFilter(){
   return obList(obS.grade, s).filter(o => (!obS.strand || o[0] === obS.strand) && (!q || (o[1] + " " + o[2]).toLowerCase().includes(q)) && (!obS.unitOnly || chosen.includes(o[1])));
 }
 function obRenderList(){
-  const el = $("#obList"); if(!el) return; const L = obFilter(), have = obS.target === "unit" ? obUnitChosen(obS.sub) : obLines(((unit.weeks[obS.week] || {}).subj || {})[obS.sub]);
+  const el = $("#obList"); if(!el) return; const L = obFilter(), have = obS.target === "unit" ? obUnitChosen(obS.sub) : obS.target === "lpday" ? obLines((((((unit.weeks[obS.week] || {}).lesson || {}).days || {})[obS.lpDay] || {}).subj || {})[obS.sub]) : obLines(((unit.weeks[obS.week] || {}).subj || {})[obS.sub]);
   let last = null;
   el.innerHTML = L.map(o => { const head = o[0] !== last ? `<div class="ob-strand">${esc(o[0])}</div>` : ""; last = o[0]; const on = have.includes(o[1]);
     return head + `<label class="ob-item ${on ? "done" : ""}"><input type="checkbox" ${on ? "checked disabled" : obS.sel.includes(o[1]) ? "checked" : ""} onchange="obToggle(${esc(JSON.stringify(o[1]))})"><span><b>${esc(o[1])}</b>${o[2] ? `<small>e.g. ${esc(o[2])}</small>` : ""}${on ? `<em>✓ already added</em>` : ""}</span></label>`; }).join("") || `<p class="hint" style="padding:16px">No objectives match. Try another strand or search word.</p>`;
@@ -5143,6 +5143,134 @@ render = function(){
   side.insertBefore(hub, side.querySelector(".navg"));
   hub.addEventListener("click", () => { view = "week"; error = ""; hbS.classes = null; render(); });
 })();
+
+
+/* =====================================================================
+   WEEKLY LESSON PLAN: Monday to Friday, subjects through the unit, medals
+   ===================================================================== */
+const LP_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const LP_MEDALS = [["meeting","🥉","Meeting","#b0793a","#fbf1e6"],["consolidating","🥈","Consolidating","#6b7685","#f1f3f6"],["exceeding","🥇","Exceeding","#a8850f","#fdf6d8"]];
+const wlpS = { mode: "cards", day: 0 };
+function lpObj(k){ const w = unit.weeks[k]; w.lesson = w.lesson || {}; const L = w.lesson; L.days = L.days || {}; LP_DAYS.forEach(d => { L.days[d] = Object.assign({ time: "", intention: "", subj: {}, phases: {}, diff: {}, ealsen: "", assess: "", resources: "" }, L.days[d] || {}); }); L.reflect = L.reflect || {}; return L; }
+function lpSet(k, path, v){ const L = lpObj(k), p = path.split("."); let o = L; for(let i = 0; i < p.length - 1; i++){ o = o[p[i]] = o[p[i]] || {}; } o[p[p.length - 1]] = v; saveCurrent(); }
+function lpToggle(k, d, kind, key){ const D = lpObj(k).days[d], o = D[kind]; if(key in o) delete o[key]; else o[key] = ""; saveCurrent(); render(); }
+const lpTa = (k, path, val, ph, h) => `<textarea style="min-height:${h || 54}px" placeholder="${esc(ph || "")}" oninput="lpSet(${k},'${path}',this.value)">${esc(val || "")}</textarea>`;
+function lpHead(k){
+  const W = unit.weeks, w = W[k], x = w.extra || {}, ph = phaseOfWeek(k, W.length), line = w.line ? (unit.lines[w.line - 1] || {}) : null, t = themeOf(unit.theme), sc = x.sc || {}, L = lpObj(k);
+  const atl = [...new Set((unit.atl || []).map(a => String(a).split(" · ")[1] || a))].join(", ");
+  return `<div class="card lp-head"><div class="lp-hg">
+    <div><small>Unit and week</small><b>${esc(t ? t.ic + " " + t.name : "Unit")} · week ${k + 1} of ${W.length}</b></div>
+    <div><small>Inquiry phase this week</small><b style="color:${WHEEL_COL[ph]}">${phaseIc(ph)} ${esc(ph)}</b></div>
+    <div><small>Line of inquiry · ${esc(settings.conceptLabel || "specified concept").toLowerCase()}</small><b>${line ? `Line ${w.line}: ${esc(line.text || "")}${line.concept ? " · " + esc(line.concept) : ""}` : "–"}</b></div>
+    <div><small>ATL · learner profile</small><b>${esc(atl || "–")} · ${esc((unit.learnerProfile || []).join(", ") || "–")}</b></div></div>
+    <div class="lp-hg two"><div><small>Central idea</small><b>${esc(unit.centralIdea || "")}</b></div>
+      <div><small>Inquiry question this week</small><input type="text" value="${esc(x.question || "")}" placeholder="How… Why… What if…" oninput="wheelSet(${k},'question',this.value)"></div></div>
+    <div class="lp-sc">${LP_MEDALS.map(([key, ic, lab, c, bg], i) => { const dk = DIFF[i][0]; return `<div style="background:${bg};border-color:${c}"><small style="color:${c}">${ic} ${lab} · success criterion</small><textarea placeholder="I can…" oninput="wheelSet(${k},'sc.${dk}',this.value)">${esc(sc[dk] || "")}</textarea></div>`; }).join("")}</div>
+    <div class="lp-hg two"><div><small>Key vocabulary</small><input type="text" value="${esc(L.vocab || "")}" placeholder="habitat, shelter, survive" oninput="lpSet(${k},'vocab',this.value)"></div>
+      <div><small>Focus this week</small><input type="text" value="${esc(w.focus || "")}" oninput="unit.weeks[${k}].focus=this.value;saveCurrent()"></div></div></div>`;
+}
+function lpDayCard(k, d){
+  const D = lpObj(k).days[d], subs = subOrder((unit.subjects || []).map(x => x.subject)), wsub = unit.weeks[k].subj || {};
+  return `<div class="card lp-day" id="lpd-${d}"><div class="lp-dh"><h3>${d}</h3><input type="text" class="lp-time" value="${esc(D.time)}" placeholder="Time, e.g. 8:00–9:30" oninput="lpSet(${k},'days.${d}.time',this.value)"></div>
+    <label>🎯 Learning intention</label><input type="text" value="${esc(D.intention)}" placeholder="We are learning to…" oninput="lpSet(${k},'days.${d}.intention',this.value)">
+    <label style="margin-top:10px">📚 Subjects through the unit today <span class="hint">(tap to add)</span></label>
+    <div class="lp-chips">${subs.map(s => `<button class="lp-chip ${s in D.subj ? "on" : ""}" style="--c:${subCol(s)}" onclick="lpToggle(${k},'${d}','subj',${esc(JSON.stringify(s))})">${esc(s)}</button>`).join("") || `<span class="hint">Add subjects in step 6 of the unit builder.</span>`}</div>
+    ${Object.keys(D.subj).length ? `<div class="lp-subs">${subOrder(Object.keys(D.subj)).map(s => `<div style="--c:${subCol(s)}"><div class="lp-sh"><b>${esc(s)}</b>${obSubj(s) ? `<button class="link" onclick="lpObjPick(${k},'${d}',${esc(JSON.stringify(s))})">📋 Objective</button>` : ""}</div>
+      <textarea style="min-height:46px" placeholder="${esc(wsub[s] ? "This week: " + String(wsub[s]).split("\n")[0] : "Objective or what children learn in " + s)}" oninput="lpSubj(${k},'${d}',${esc(JSON.stringify(s))},this.value)">${esc(D.subj[s] || "")}</textarea></div>`).join("")}</div>` : ""}
+    <label style="margin-top:10px">🎡 Lesson flow through the inquiry cycle <span class="hint">(tap the phases this lesson moves through)</span></label>
+    <div class="lp-chips">${CYCLE.map(([p, ic]) => `<button class="lp-chip ${p in D.phases ? "on" : ""}" style="--c:${WHEEL_COL[p]}" onclick="lpToggle(${k},'${d}','phases','${p}')">${ic} ${p}</button>`).join("")}</div>
+    ${Object.keys(D.phases).length ? `<div class="lp-flow">${CYCLE.filter(([p]) => p in D.phases).map(([p, ic]) => `<div style="--c:${WHEEL_COL[p]}"><b>${ic} ${p}</b>${lpTa(k, `days.${d}.phases.${p}`, D.phases[p], "What children do…", 50)}</div>`).join("")}</div>` : ""}
+    <label style="margin-top:10px">🏅 Differentiation</label>
+    <div class="lp-med">${LP_MEDALS.map(([key, ic, lab, c, bg]) => `<div style="background:${bg};border-color:${c}"><b style="color:${c}"><span class="lp-medal">${ic}</span> ${lab}</b>${lpTa(k, `days.${d}.diff.${key}`, D.diff[key], key === "meeting" ? "Task and support, e.g. word bank, picture cards" : key === "consolidating" ? "Task for children consolidating" : "Challenge, e.g. explain why, apply to a new situation", 64)}</div>`).join("")}</div>
+    <div class="lp-3"><div><label>🤝 EAL and SEN support</label>${lpTa(k, `days.${d}.ealsen`, D.ealsen, "Visuals, buddy, adult support…", 44)}</div>
+      <div><label>🔎 Assessment</label>${lpTa(k, `days.${d}.assess`, D.assess, "How will I know? Observation, exit ticket…", 44)}</div>
+      <div><label>🧰 Resources</label>${lpTa(k, `days.${d}.resources`, D.resources, "Books, objects, websites…", 44)}</div></div></div>`;
+}
+function lpSubj(k, d, s, v){ lpObj(k).days[d].subj[s] = v; saveCurrent(); }
+function lpObjPick(k, d, s){ obOpen(s, "lpday", k); obS.lpDay = d; render(); }
+const _obAddLP = obAdd;
+obAdd = function(){ if(obS.target !== "lpday") return _obAddLP(); if(!obS.sel.length) return; const D = lpObj(obS.week).days[obS.lpDay], have = obLines(D.subj[obS.sub]); D.subj[obS.sub] = [...have, ...obS.sel.filter(o => !have.includes(o))].join("\n"); const n = obS.sel.length; obS.open = false; obS.sel = []; saveCurrent(); render(); toast(n + " objective" + (n > 1 ? "s" : "") + " added ✓"); };
+function lpGridHTML(k, print){
+  const L = lpObj(k), cell = v => esc(String(v || "")).replace(/\n/g, "<br>");
+  const rows = [["Time", d => cell(L.days[d].time)], ["Learning intention", d => cell(L.days[d].intention)],
+    ["Subjects through the unit", d => subOrder(Object.keys(L.days[d].subj)).map(s => `<div><b style="color:${subCol(s)}">${esc(s)}:</b> ${cell(L.days[d].subj[s])}</div>`).join("")],
+    ["Lesson flow (inquiry cycle)", d => CYCLE.filter(([p]) => p in L.days[d].phases).map(([p, ic]) => `<div><b style="color:${WHEEL_COL[p]}">${ic} ${p}:</b> ${cell(L.days[d].phases[p])}</div>`).join("")],
+    ...LP_MEDALS.map(([key, ic, lab, c]) => [`${ic} ${lab}`, d => cell(L.days[d].diff[key])]),
+    ["EAL and SEN", d => cell(L.days[d].ealsen)], ["Assessment", d => cell(L.days[d].assess)], ["Resources", d => cell(L.days[d].resources)]];
+  return `<table class="lp-grid"><tr><th></th>${LP_DAYS.map((d, i) => `<th>${print ? d : `<button class="link" style="color:#fff" onclick="wlpS.mode='cards';wlpS.day=${i};render()">${d} ✏️</button>`}</th>`).join("")}</tr>
+    ${rows.map(([lab, f]) => `<tr><th>${lab}</th>${LP_DAYS.map(d => `<td>${f(d)}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+function lpExtras(k){ const L = lpObj(k);
+  return `<div class="grid2"><div class="card"><div class="label">📌 Taught on its own this week</div><p class="hint" style="margin-bottom:6px">Lessons that don't link meaningfully to the unit, for example Read Write Inc. or times tables.</p>${lpTa(k, "standalone", L.standalone, "Subject: what is taught…", 90)}</div>
+    <div class="card"><div class="label">🪞 End-of-week reflection</div>
+      <label>What worked well?</label>${lpTa(k, "reflect.worked", L.reflect.worked, "", 44)}<label>Student voice: what did children say or wonder?</label>${lpTa(k, "reflect.voice", L.reflect.voice, "", 44)}<label>Next steps for next week</label>${lpTa(k, "reflect.next", L.reflect.next, "", 44)}</div></div>`; }
+function lpView(){
+  const units = savedUnits(), has = unit && (unit.centralIdea || (unit.weeks || []).length);
+  const pick = units.length ? `<select style="max-width:420px" onchange="cycleSwitch(this.value)">${units.some(u => u.id === unit.id) ? "" : `<option>${esc(unit.centralIdea || "Current unit")}</option>`}${units.map(u => { const t = themeOf(u.theme); return `<option value="${u.id}" ${u.id === unit.id ? "selected" : ""}>${esc((t ? t.ic + " " : "") + (gradeLabel(u) ? gradeLabel(u) + " · " : "") + (u.centralIdea || "Untitled unit").slice(0, 80))}</option>`; }).join("")}</select>` : "";
+  const top = `<div class="top"><div><div class="crumb">WonderNest</div><h1>📝 Weekly lesson plan</h1></div></div>${error ? `<div class="err">⚠️ ${esc(error)}</div>` : ""}`;
+  if(!has) return top + `<div class="card empty">📝<br><br><b>No unit open yet</b><p class="hint" style="margin:8px auto 14px;max-width:520px">Open or create a unit first. The weekly lesson plan uses the unit's week, phase, subjects and success criteria.</p>${pick ? `<div style="margin-bottom:12px">${pick}</div>` : ""}</div>`;
+  const W = weeksObj(), k = Math.min(wkS.week, W.length - 1);
+  return top + `<div class="card"><div class="actions" style="margin-top:0;align-items:flex-end"><div><label style="display:block">Unit</label>${pick || `<b>${esc(unit.centralIdea || "Current unit")}</b>`}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="lpSuggest(${k})">Suggest the empty boxes</button><button class="btn ghost" onclick="lpWord(${k})">⬇️ Word</button><button class="btn" onclick="lpPrint(${k})">🖨️ Print</button></div></div>
+    <div class="wktabs" style="margin-top:12px">${W.map((x, i) => `<button class="${i === k ? "on" : ""}" onclick="wkS.week=${i};render()">Week ${i + 1} · ${phaseIc(phaseOfWeek(i, W.length))}${x.lesson && Object.values(x.lesson.days || {}).some(d => d.intention) ? " ✓" : ""}</button>`).join("")}</div></div>
+    ${lpHead(k)}
+    <div class="lp-bar"><div class="s5-tabs"><button class="${wlpS.mode === "cards" ? "on" : ""}" onclick="wlpS.mode='cards';render()">🗂️ Day cards</button><button class="${wlpS.mode === "grid" ? "on" : ""}" onclick="wlpS.mode='grid';render()">📅 Week grid</button></div>
+      ${wlpS.mode === "cards" ? `<div class="s5-tabs">${LP_DAYS.map((d, i) => `<button class="${wlpS.day === i ? "on" : ""}" onclick="wlpS.day=${i};render()">${d.slice(0, 3)}</button>`).join("")}</div>` : ""}</div>
+    ${wlpS.mode === "cards" ? lpDayCard(k, LP_DAYS[wlpS.day]) : `<div class="card" style="overflow-x:auto">${lpGridHTML(k)}</div>`}
+    ${lpExtras(k)}`;
+}
+async function lpSuggest(k){
+  const W = unit.weeks, w = W[k], L = lpObj(k), x = w.extra || {};
+  loading(true, "Drafting Monday to Friday for week " + (k + 1) + "…");
+  try{
+    const r = await ai("lesson_week", unit, { week: k + 1, weeks: W.length, phase: phaseOfWeek(k, W.length), lineText: w.line ? (unit.lines[w.line - 1] || {}).text : "", focus: w.focus || "", question: x.question || "",
+      successCriteria: { meeting: (x.sc || {}).must || "", consolidating: (x.sc || {}).could || "", exceeding: (x.sc || {}).extend || "" },
+      subjects: subOrder((unit.subjects || []).map(s => s.subject)).map(s => s + ": " + String((w.subj || {})[s] || "").split("\n")[0]), phases: CYCLE.map(c => c[0]),
+      plan: CYCLE.map(([p]) => p + ": " + ((w.cells || {})[p] || "")).join("\n").slice(0, 2000), already: L });
+    const subs = (unit.subjects || []).map(s => s.subject);
+    (r.days || []).slice(0, 5).forEach((o, i) => { const D = L.days[LP_DAYS[i]]; if(!o) return;
+      if(!D.intention && o.intention) D.intention = o.intention;
+      Object.entries(o.subjects || {}).forEach(([key, v]) => { const s = subs.find(z => z === key) || subs.find(z => subjMatch(key, z)); if(s && !String(D.subj[s] || "").trim()) D.subj[s] = v; });
+      Object.entries(o.phases || {}).forEach(([p, v]) => { const ph = (CYCLE.find(c => c[0].toLowerCase() === p.toLowerCase()) || [])[0]; if(ph && !String(D.phases[ph] || "").trim()) D.phases[ph] = v; });
+      ["meeting", "consolidating", "exceeding"].forEach(m => { if(!String(D.diff[m] || "").trim() && (o.diff || {})[m]) D.diff[m] = o.diff[m]; });
+      ["ealsen", "assess", "resources"].forEach(f => { if(!String(D[f] || "").trim() && o[f]) D[f] = o[f]; }); });
+    if(!L.vocab && r.vocab) L.vocab = Array.isArray(r.vocab) ? r.vocab.join(", ") : r.vocab;
+    saveCurrent(); toast("Week drafted ✓ Check each day and change anything you like");
+  }catch(e){ error = /unknown task/i.test(e.message || "") ? "This feature isn't switched on yet. Please contact your WonderNest administrator." : e.message; }
+  finally{ loading(false); render(); }
+}
+function lpDocHTML(k){
+  const W = unit.weeks, w = W[k], x = w.extra || {}, t = themeOf(unit.theme), ph = phaseOfWeek(k, W.length), line = w.line ? (unit.lines[w.line - 1] || {}) : null, L = lpObj(k), sc = x.sc || {};
+  return `<h1>Weekly lesson plan · week ${k + 1} of ${W.length}</h1><p>${esc([settings.school, gradeLabel(unit), t ? t.name : ""].filter(Boolean).join(" · "))}</p>
+    <table class="lp-top"><tr><th>Central idea</th><td colspan="3">${esc(unit.centralIdea || "")}</td></tr>
+    <tr><th>Inquiry phase</th><td>${esc(ph)}</td><th>Line of inquiry</th><td>${line ? esc(line.text || "") + (line.concept ? " (" + esc(line.concept) + ")" : "") : ""}</td></tr>
+    <tr><th>Inquiry question</th><td>${esc(x.question || "")}</td><th>Key vocabulary</th><td>${esc(L.vocab || "")}</td></tr>
+    <tr><th>Success criteria</th><td colspan="3">🥉 <b>Meeting:</b> ${esc(sc.must || "")}<br>🥈 <b>Consolidating:</b> ${esc(sc.could || "")}<br>🥇 <b>Exceeding:</b> ${esc(sc.extend || "")}</td></tr></table>
+    ${lpGridHTML(k, true)}
+    <table class="lp-top" style="margin-top:8px"><tr><th>Taught on its own</th><td>${esc(L.standalone || "").replace(/\n/g, "<br>")}</td></tr>
+    <tr><th>Reflection</th><td><b>What worked:</b> ${esc(L.reflect.worked || "")}<br><b>Student voice:</b> ${esc(L.reflect.voice || "")}<br><b>Next steps:</b> ${esc(L.reflect.next || "")}</td></tr></table>`;
+}
+const LP_PRINT_CSS = `body{font-family:Arial,sans-serif;color:#1b2540;font-size:10.5pt}h1{color:#1f4fb0;font-size:16pt;margin:0}p{margin:2px 0 8px;color:#556}table{border-collapse:collapse;width:100%}th,td{border:1px solid #c9d3e6;padding:5px;vertical-align:top;text-align:left}th{background:#eef4ff;color:#1f4fb0}.lp-grid{table-layout:fixed}.lp-grid th{background:#1f4fb0;color:#fff}.lp-grid tr th:first-child{background:#eef4ff;color:#1f4fb0;width:13%}.lp-top th{width:15%}`;
+function lpPrint(k){ printWin("Weekly lesson plan - week " + (k + 1), lpDocHTML(k), "@page{size:A3 landscape;margin:10mm}" + LP_PRINT_CSS); }
+function lpWord(k){ wordDownload("Weekly lesson plan - " + ((themeOf(unit.theme) || {}).name || "unit") + " - week " + (k + 1), `<style>${LP_PRINT_CSS}</style>` + lpDocHTML(k)); }
+(function(){
+  const cyc = document.querySelector('.nav[data-view="cycle"]');
+  if(cyc){ const b = document.createElement("button"); b.className = "nav"; b.dataset.view = "lessons"; b.textContent = "📝 Weekly lesson plan"; cyc.after(b); b.addEventListener("click", () => { view = "lessons"; error = ""; render(); }); }
+  const st = document.createElement("style"); st.textContent = `
+  .lp-head{display:flex;flex-direction:column;gap:10px}.lp-hg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.lp-hg.two{grid-template-columns:1fr 1fr}
+  .lp-hg>div{background:var(--bg);border-radius:12px;padding:8px 10px}.lp-hg small,.lp-sc small{display:block;color:var(--muted);font-weight:700;font-size:11.5px;margin-bottom:2px}.lp-hg b{font-size:13.5px;line-height:1.35;display:block}
+  .lp-sc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lp-sc>div{border:1.5px solid;border-radius:12px;padding:8px 10px}.lp-sc textarea{min-height:44px;font-size:13px;background:#fff}
+  .lp-bar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 12px}
+  .lp-day label{display:block;font-weight:800;font-size:13.5px;color:var(--navy);margin:6px 0 4px}.lp-day label .hint{font-weight:600}.lp-dh{display:flex;justify-content:space-between;align-items:center;gap:10px}.lp-dh h3{font-family:"Fredoka",sans-serif;color:var(--navy);font-size:22px}.lp-time{max-width:220px}
+  .lp-chips{display:flex;flex-wrap:wrap;gap:6px}.lp-chip{border:1.5px solid var(--c);color:var(--c);background:#fff;border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px}.lp-chip.on{background:var(--c);color:#fff}
+  .lp-subs,.lp-flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:8px}.lp-subs>div,.lp-flow>div{border-left:4px solid var(--c);padding-left:10px}.lp-subs b,.lp-flow b{color:var(--c);font-size:13.5px}.lp-sh{display:flex;justify-content:space-between;gap:6px;align-items:center}.lp-sh .link{font-size:12px}
+  .lp-med{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.lp-med>div{border:1.5px solid;border-radius:14px;padding:10px 12px}.lp-med b{display:flex;align-items:center;gap:6px;font-size:15px;margin-bottom:6px}.lp-medal{font-size:26px}.lp-med textarea{background:#fff}
+  .lp-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+  .lp-grid{width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px;table-layout:fixed}.lp-grid th,.lp-grid td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}.lp-grid tr:first-child th{background:var(--navy);color:#fff}.lp-grid tr th:first-child{background:var(--bg);color:var(--navy);width:14%}.lp-grid td div{margin-bottom:3px}
+  @media (max-width:1000px){.lp-hg,.lp-sc,.lp-med,.lp-3{grid-template-columns:1fr}}`; document.head.appendChild(st);
+})();
+const _renderLP = render;
+render = function(){ if(view === "lessons"){ const m = $("#main"); _renderLP(); if(m){ m.innerHTML = lpView(); document.querySelectorAll(".nav[data-view]").forEach(n => n.classList.toggle("on", n.dataset.view === "lessons")); try{ teacherOnly(m); orgSide(); }catch(e){} if(obS.open) m.insertAdjacentHTML("beforeend", obModal()); } return; } _renderLP(); };
 
 /* =====================================================================
    NAVIGATION: logo goes to the landing page; Back button on every page
