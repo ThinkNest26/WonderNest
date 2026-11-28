@@ -5312,6 +5312,72 @@ lpSuggest = async function(k){ await _lpSuggestS(k); const L = lpObj(k); LP_DAYS
   .lps-diff div{display:flex;gap:6px;align-items:center;margin-bottom:4px}.lps-diff span{font-size:20px}.lps-diff input{border:0;border-bottom:1px dashed var(--line);border-radius:0;padding:4px 2px;font-size:13px;background:transparent}
   .lps-key{display:block;font-weight:600;font-size:11.5px;opacity:.85}.lps-notes{display:block;font-weight:800;color:var(--navy);margin:14px 0 4px}`; document.head.appendChild(st); })();
 
+
+/* ---------- lesson plan: one row per subject on each day ---------- */
+const LP_UOI = "Unit of inquiry";
+function lpRows(k, d){
+  const D = lpObj(k).days[d];
+  if(!Array.isArray(D.rows)){
+    D.rows = coreSubs().map(s => ({ s, intention: "", activities: String(D.subj[s] || ""), diff: {} }));
+    if(String(D.intention || D.activities || "").trim()) D.rows.unshift({ s: LP_UOI, intention: D.intention || "", activities: D.activities || "", diff: Object.assign({}, D.diff) });
+    if(!D.rows.length) D.rows.push({ s: LP_UOI, intention: "", activities: "", diff: {} });
+  }
+  return D.rows;
+}
+function lpRowSet(k, d, i, f, v){ const r = lpRows(k, d)[i]; if(f.startsWith("diff.")){ r.diff = r.diff || {}; r.diff[f.slice(5)] = v; } else r[f] = v; saveCurrent(); }
+function lpRowAdd(k, d, s){ if(!s) return; lpRows(k, d).push({ s, intention: "", activities: "", diff: {} }); saveCurrent(); render(); }
+function lpRowDel(k, d, i){ const R = lpRows(k, d), r = R[i]; if((r.intention || r.activities || Object.values(r.diff || {}).join("")).trim() && !confirm("Remove " + r.s + " from " + d + "?")) return; R.splice(i, 1); saveCurrent(); render(); }
+const lpSubCol = s => s === LP_UOI ? "#1f4fb0" : subCol(s);
+lpSimpleRows = function(k, print){
+  const cell = v => esc(String(v || "")).replace(/\n/g, "<br>"), all = [LP_UOI, ...subOrder((unit.subjects || []).map(x => x.subject))];
+  return LP_DAYS.map(d => { const R = lpRows(k, d), n = Math.max(R.length, 1);
+    const dayCell = `<th rowspan="${n + (print ? 0 : 1)}" class="lps-day">${d}</th>`;
+    const rows = R.map((r, i) => print
+      ? `<tr>${i === 0 ? dayCell : ""}<td><b style="color:${lpSubCol(r.s)}">${esc(r.s)}</b></td><td>${cell(r.intention)}</td><td>${cell(r.activities)}</td><td>${LP_MEDALS.map(([key, ic, lab]) => (r.diff || {})[key] ? `<div>${ic} <b>${lab}:</b> ${cell(r.diff[key])}</div>` : "").join("")}</td></tr>`
+      : `<tr>${i === 0 ? dayCell : ""}<td class="lps-sub" style="--c:${lpSubCol(r.s)}"><b>${esc(r.s)}</b>${obSubj(r.s) ? `<button class="link" onclick="lpRowObj(${k},'${d}',${i})">📋 Objective</button>` : ""}<button class="link danger" title="Remove" onclick="lpRowDel(${k},'${d}',${i})">✕</button></td>
+        <td><textarea placeholder="We are learning to…" oninput="lpRowSet(${k},'${d}',${i},'intention',this.value)">${esc(r.intention || "")}</textarea></td>
+        <td><textarea placeholder="What children do…" oninput="lpRowSet(${k},'${d}',${i},'activities',this.value)">${esc(r.activities || "")}</textarea></td>
+        <td class="lps-diff">${LP_MEDALS.map(([key, ic, lab]) => `<div><span title="${lab}">${ic}</span><input type="text" placeholder="${lab}" value="${esc((r.diff || {})[key] || "")}" oninput="lpRowSet(${k},'${d}',${i},'diff.${key}',this.value)"></div>`).join("")}</td></tr>`).join("");
+    if(print) return R.length ? rows : `<tr>${dayCell}<td></td><td></td><td></td><td></td></tr>`;
+    const left = all.filter(s => !R.some(r => r.s === s));
+    return (R.length ? rows : `<tr>${dayCell}`) + `${R.length ? "<tr>" : ""}<td colspan="4" class="lps-add"><select onchange="lpRowAdd(${k},'${d}',this.value)"><option value="">＋ Add a subject to ${d}…</option>${left.map(s => `<option>${esc(s)}</option>`).join("")}</select></td></tr>`;
+  }).join("");
+};
+function lpRowObj(k, d, i){ const r = lpRows(k, d)[i]; obOpen(r.s, "lprow", k); obS.lpDay = d; obS.lpRow = i; render(); }
+const _obAddRow = obAdd;
+obAdd = function(){ if(obS.target !== "lprow") return _obAddRow(); if(!obS.sel.length) return; const r = lpRows(obS.week, obS.lpDay)[obS.lpRow], have = obLines(r.intention); r.intention = [...have, ...obS.sel.filter(o => !have.includes(o))].join("\n"); const n = obS.sel.length; obS.open = false; obS.sel = []; saveCurrent(); render(); toast(n + " objective" + (n > 1 ? "s" : "") + " added ✓"); };
+const _lpViewRows = lpView;
+lpView = function(){ return _lpViewRows().replace('<tr><th style="width:11%">Day</th><th style="width:25%">Learning intention</th><th style="width:30%">Activities and subjects</th><th>Differentiation', '<tr><th style="width:9%">Day</th><th style="width:15%">Subject</th><th style="width:23%">Learning intention</th><th style="width:25%">Activities</th><th>Differentiation'); };
+const _lpDocRows = lpDocHTML;
+lpDocHTML = function(k){ return _lpDocRows(k).replace('<tr><th style="width:11%">Day</th><th style="width:25%">Learning intention</th><th style="width:30%">Activities and subjects</th><th>Differentiation</th></tr>', '<tr><th style="width:9%">Day</th><th style="width:14%">Subject</th><th style="width:24%">Learning intention</th><th style="width:26%">Activities</th><th>Differentiation</th></tr>'); };
+lpPrint = function(k){ printWin("Weekly lesson plan - week " + (k + 1), lpDocHTML(k), "@page{size:A4 landscape;margin:10mm}" + LP_PRINT_CSS + ".lp-grid tr th:first-child{width:9%}.lp-grid td{height:44px}.lp-grid th[rowspan]{background:#eef4ff;color:#1f4fb0;vertical-align:middle}"); };
+lpSuggest = async function(k){
+  const W = unit.weeks, w = W[k], x = w.extra || {}, L = lpObj(k);
+  loading(true, "Drafting Monday to Friday for week " + (k + 1) + "…");
+  try{
+    const r = await ai("lesson_week", unit, { week: k + 1, weeks: W.length, phase: phaseOfWeek(k, W.length), lineText: w.line ? (unit.lines[w.line - 1] || {}).text : "", focus: w.focus || "", question: x.question || "",
+      successCriteria: { meeting: (x.sc || {}).must || "", consolidating: (x.sc || {}).could || "", exceeding: (x.sc || {}).extend || "" }, perSubject: true,
+      daySubjects: Object.fromEntries(LP_DAYS.map(d => [d, lpRows(k, d).map(rr => rr.s)])),
+      subjects: subOrder((unit.subjects || []).map(s => s.subject)).map(s => s + ": " + String((w.subj || {})[s] || "").split("\n")[0]), phases: CYCLE.map(c => c[0]),
+      plan: CYCLE.map(([p]) => p + ": " + ((w.cells || {})[p] || "")).join("\n").slice(0, 2000) });
+    const names = [LP_UOI, ...(unit.subjects || []).map(s => s.subject)];
+    (r.days || []).slice(0, 5).forEach((o, i) => { if(!o) return; const d = LP_DAYS[i], R = lpRows(k, d);
+      Object.entries(o.subjects || {}).forEach(([key, v]) => { const s = names.find(z => z === key) || names.find(z => z !== LP_UOI && subjMatch(key, z)) || (/unit|inquiry/i.test(key) ? LP_UOI : null); if(!s) return;
+        let row = R.find(z => z.s === s); if(!row){ row = { s, intention: "", activities: "", diff: {} }; R.push(row); }
+        const V = typeof v === "string" ? { activity: v } : (v || {});
+        if(!String(row.intention || "").trim() && V.intention) row.intention = V.intention;
+        if(!String(row.activities || "").trim() && (V.activity || V.activities)) row.activities = V.activity || V.activities;
+        row.diff = row.diff || {}; ["meeting", "consolidating", "exceeding"].forEach(m => { const t = (V.diff || {})[m]; if(t && !String(row.diff[m] || "").trim()) row.diff[m] = t; }); }); });
+    saveCurrent(); toast("Week drafted ✓ Check each day and change anything you like");
+  }catch(e){ error = /unknown task/i.test(e.message || "") ? "This feature isn't switched on yet. Please contact your WonderNest administrator." : e.message; }
+  finally{ loading(false); render(); }
+};
+(function(){ const st = document.createElement("style"); st.textContent = `
+  .lps .lps-day{background:var(--bg) !important;color:var(--navy) !important;vertical-align:top;font-size:15px}
+  .lps-sub{border-left:4px solid var(--c) !important}.lps-sub b{display:block;color:var(--c);font-size:13.5px;margin-bottom:4px}.lps-sub .link{font-size:12px;margin-right:8px}
+  .lps-add{background:#fafcff;padding:6px 8px !important}.lps-add select{width:auto;font-size:13px;padding:6px 10px;border-style:dashed}
+  .lps textarea{min-height:70px}`; document.head.appendChild(st); })();
+
 /* =====================================================================
    NAVIGATION: logo goes to the landing page; Back button on every page
    ===================================================================== */
